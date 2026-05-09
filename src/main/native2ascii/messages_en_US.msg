@@ -198,3 +198,6 @@ add.inst = Add Apisix Inst
 add.user = Add User
 add.cert = Add Cert
 add.proto = Add Proto
+commonStr.instName = Instance Name
+commonStr.gc = GC
+commonStr.generatedConfig = Generated Config

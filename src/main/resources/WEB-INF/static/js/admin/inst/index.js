@@ -34,12 +34,12 @@ function addLink(d) {
 //    var link = d.url.split('://')[1];
     let editBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">' + commonStr.edit + '</button>'
     let delBtn  = '<button type="button" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">' + commonStr.del + '</button>'
-    let restartBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="restart">Restart</button>'
-    let stopBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="stop">Stop</button>'
-    let startBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="start">Start</button>'
-    let gcBtn = '<button type="button" class="layui-btn layui-btn-warm layui-btn-xs" lay-event="gc">GC</button>'
+    let restartBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="restart">' + commonStr.restart + '</button>'
+    let stopBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="stop">' + commonStr.stop + '</button>'
+    let startBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="start">' + commonStr.start + '</button>'
+    let gcBtn = '<button type="button" class="layui-btn layui-btn-warm layui-btn-xs" lay-event="gc">' + commonStr.gc + '</button>'
     let proxyBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit_proxy">proxy</button>'
-    let generatedConfigBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="config">Generated Config</button>'
+    let generatedConfigBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="config">' + commonStr.generatedConfig + '</button>'
 
     return [editBtn, generatedConfigBtn , startBtn, stopBtn, restartBtn, gcBtn, delBtn].join("&nbsp;");
 }

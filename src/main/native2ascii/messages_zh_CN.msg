@@ -198,3 +198,6 @@ add.inst = 新增Apisix实例
 add.user = 新增用户
 add.cert = 添加证书
 add.proto = 新增Proto
+commonStr.instName = 实例名字
+commonStr.gc = GC
+commonStr.generatedConfig = 生成的配置
