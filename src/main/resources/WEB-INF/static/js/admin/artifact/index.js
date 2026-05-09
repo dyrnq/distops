@@ -26,7 +26,7 @@ function addLink(d) {
     let ociBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="' + btnEvent + '">' + btnText + '</button>'
     let editBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">' + commonStr.edit + '</button>'
     let delBtn  = '<button type="button" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">' + commonStr.del + '</button>'
-    return [ociBtn, editBtn, delBtn].join("&nbsp;");
+    return [ociBtn, delBtn].join("&nbsp;");
 }
 
 layui.use(function(){
@@ -312,9 +312,17 @@ $('#addOver').click(function(){
                     }
                 });
         } else if (layEvent === 'oci' || layEvent === 'manifest'){
-            // 打开 OCI 多架构详情页面或单 Manifest 详情页面
-            // 传递 mediaType 用于判断类型
-            window.open(ctx + '/admin/oci?manifestId=' + data.manifestId + '&tagName=' + data.fullName + '&mediaType=' + (data.mediaType || ''), '_blank');
+            layer.open({
+                type: 2,
+                title: data.fullName || 'OCI',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['80%', '80%'],
+                content: ctx + '/admin/oci?manifestId=' + data.manifestId + '&tagName=' + data.fullName + '&mediaType=' + (data.mediaType || ''),
+                anim: 'slideRight',
+                maxmin: true,
+                skin: 'layui-layer-win10'
+            });
         }
     });
 });
