@@ -23,11 +23,11 @@ storage:
 auth:
 <#if inst.auth?lower_case == "token"?lower_case>
   token:
-    realm: http://192.168.66.125:${port}/auth
+    realm: ${realm_url}
     autoredirectpath: /auth/token/
     autoredirect: false
-    service: registry.docker.io
-    issuer: docker-auth-server
+    service: ${service_name}
+    issuer: ${issuer_name}
     jwks: ${app_home}/registry/${inst.name}/config/jwks.json
     signingalgorithms: [EdDSA, HS256, HS384, HS512, RS256, RS384, RS512, ES256, ES384, ES512, PS256, PS384, PS512]
 </#if>

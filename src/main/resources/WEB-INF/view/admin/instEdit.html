@@ -111,12 +111,30 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">auth</label>
                     <div class="layui-input-block">
-                        <select name="auth" lay-verify="">
+                        <select name="auth" lay-verify="" lay-filter="auth">
                             <option value="none">None</option>
                             <option value="htpasswd">htpasswd</option>
                             <option value="token">token</option>
                             <option value="silly">silly</option>
                         </select>
+                    </div>
+                </div>
+                <div class="layui-form-item" id="authRealmRow" style="display:none;">
+                    <label class="layui-form-label">realm</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="authRealm" class="layui-input" placeholder="e.g. https://registry.example.com/auth (leave blank for auto-detect)">
+                    </div>
+                </div>
+                <div class="layui-form-item" id="authServiceRow" style="display:none;">
+                    <label class="layui-form-label">service</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="authService" class="layui-input" placeholder="default: registry.docker.io">
+                    </div>
+                </div>
+                <div class="layui-form-item" id="authIssuerRow" style="display:none;">
+                    <label class="layui-form-label">issuer</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="authIssuer" class="layui-input" placeholder="default: docker-auth-server">
                     </div>
                 </div>
         </div>

@@ -164,6 +164,15 @@ public class InstService {
         data.put("inst", inst);
         data.put("app_home", homeDir.getHomeAbsolutePath());
 
+        // Compute realm URL: use explicit config, or auto-detect from local IP
+        String realmUrl = inst.getAuthRealm();
+        if (StringUtils.isBlank(realmUrl)) {
+            realmUrl = "http://" + getLocalIp() + ":" + Solon.cfg().serverPort() + "/auth";
+        }
+        data.put("realm_url", realmUrl);
+        data.put("service_name", StringUtils.defaultIfBlank(inst.getAuthService(), "registry.docker.io"));
+        data.put("issuer_name", StringUtils.defaultIfBlank(inst.getAuthIssuer(), "docker-auth-server"));
+
         try {
             FileUtils.forceMkdirParent(config_file);
             Template yaml = new Template("yaml", new StringReader(config_yaml_template), cfg);
@@ -450,6 +459,42 @@ public class InstService {
 
         }
         return all;
+    }
+
+    /**
+     * Auto-detect the local non-loopback IPv4 address.
+     * Used as fallback when auth_realm is not explicitly configured.
+     */
+    private static String getLocalIp() {
+        // try to find first non-loopback, non-link-local IPv4 address
+        try {
+            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                java.net.NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
+                java.util.Enumeration<java.net.InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    java.net.InetAddress addr = addresses.nextElement();
+                    if (addr instanceof java.net.Inet4Address
+                            && !addr.isLoopbackAddress()
+                            && !addr.isLinkLocalAddress()) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception ignore) {
+        }
+        // last resort: try InetAddress.getLocalHost with strict loopback check
+        try {
+            java.net.InetAddress localHost = java.net.InetAddress.getLocalHost();
+            if (localHost instanceof java.net.Inet4Address
+                    && !localHost.isLoopbackAddress()
+                    && !localHost.isLinkLocalAddress()) {
+                return localHost.getHostAddress();
+            }
+        } catch (Exception ignore) {
+        }
+        throw new RuntimeException("Cannot determine local non-loopback IP. Please configure auth_realm explicitly on the instance.");
     }
 
 }

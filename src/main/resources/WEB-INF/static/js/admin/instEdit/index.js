@@ -48,6 +48,18 @@ layui.use(function() {
        layui.form.render('checkbox');
     });
 
+    // show/hide auth realm/service/issuer based on auth type
+    function toggleAuthFields(authVal) {
+        var show = (authVal === 'token');
+        $('#authRealmRow').toggle(show);
+        $('#authServiceRow').toggle(show);
+        $('#authIssuerRow').toggle(show);
+    }
+
+    form.on('select(auth)', function(data){
+        toggleAuthFields(data.value);
+    });
+
     // resize ACE editor when yaml tab (eee) becomes visible
     element.on('tab(demoTabs1)', function(data){
         if (data.elem.getAttribute('lay-id') === 'eee') {
@@ -90,12 +102,45 @@ layui.use(function() {
                     form.render('checkbox');
                     form.render();
 
+                    // toggle auth fields visibility based on loaded auth value
+                    toggleAuthFields($('select[name="auth"]').val());
+
                     // load extraYaml into ACE editor
                     if (typeof editor !== 'undefined' && editor) {
                         var extraYamlVal = data.data.extraYaml || data.data.extra_yaml || '';
                         editor.setValue(extraYamlVal, -1);
                         editor.clearSelection();
                     }
+
+                    // fetch generated config.yaml to extract realm/service/issuer
+                    $.ajax({
+                        url: ctx + '/api/inst/config',
+                        type: 'post',
+                        data: { id: id },
+                        dataType: 'json',
+                        success: function(res) {
+                            if (res.code == '200' && res.data && res.data['config.yaml']) {
+                                try {
+                                    var yamlBody = res.data['config.yaml'].body;
+                                    var config = jsyaml.load(yamlBody);
+                                    if (config && config.auth && config.auth.token) {
+                                        var token = config.auth.token;
+                                        if (token.realm) {
+                                            $('input[name="authRealm"]').val(token.realm);
+                                        }
+                                        if (token.service) {
+                                            $('input[name="authService"]').val(token.service);
+                                        }
+                                        if (token.issuer) {
+                                            $('input[name="authIssuer"]').val(token.issuer);
+                                        }
+                                    }
+                                } catch(e) {
+                                    console.log('Failed to parse config.yaml:', e);
+                                }
+                            }
+                        }
+                    });
 
                 } else {
                     layer.msg(data.description);
@@ -109,6 +154,8 @@ layui.use(function() {
         form.render('select');
         form.render('checkbox');
         form.render();
+        // new record: hide auth token fields by default
+        toggleAuthFields($('select[name="auth"]').val());
     }
 
     $('#addOver').click(function(){
