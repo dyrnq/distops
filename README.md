@@ -7,7 +7,7 @@ Features
 - Multi distribution support
 - Config private registry Or proxy registry
 - Auth server for Multi distribution
-- Auth type include None, htpasswd and token
+- Auth type include None,silly, htpasswd, and token
 - create jwks dynamic
 - create read-only account dynamic
 
