@@ -89,7 +89,7 @@ public static final String DESCRIPTION="description";
 
 //Customize BEGIN
     @org.noear.wood.annotation.Column("inst_name")
-    public transient String instName;
+    public String instName;
 //Customize END
 
 }

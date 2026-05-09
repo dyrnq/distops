@@ -17,8 +17,6 @@ import org.noear.solon.annotation.Mapping;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.Result;
 import org.noear.wood.IPage;
-import org.noear.wood.MapperWhereQ;
-import org.noear.wood.ext.Act1;
 
 import java.util.List;
 
@@ -66,25 +64,30 @@ public class ArtifactController extends ApiController {
                 filterInstId = null;
             }
 
-            Act1<MapperWhereQ> condition = mapperWhereQ -> {
-                mapperWhereQ.whereTrue();
-                if (filterInstId != null) {
-                    mapperWhereQ.and().beginEq(ArtifactManifestView.INST_ID, filterInstId).end();
-                }
-                if (StrUtil.isNotBlank(artQuery.getRepoName())) {
-                    mapperWhereQ.and().beginLk(ArtifactManifestView.FULL_NAME, "%" + artQuery.getRepoName() + "%").end();
-                }
-                if (StrUtil.isNotBlank(artQuery.getTagName())) {
-                    mapperWhereQ.and()
-                            .beginLk(ArtifactManifestView.TAG_NAME, "%" + artQuery.getTagName() + "%")
-                            .orLk(ArtifactManifestView.DIGEST, "%" + artQuery.getTagName() + "%")
-                            .end();
-                }
-            };
+            StringBuilder sql = new StringBuilder(
+                "select v.*, i.name as inst_name from artifact_manifest_view v, inst i where v.inst_id = i.id");
+            StringBuilder countSql = new StringBuilder(
+                "select count(*) from artifact_manifest_view v, inst i where v.inst_id = i.id");
 
-            IPage<ArtifactManifestView> p = artifactManifestViewMapper.selectPage(start, limit, condition);
-            List<ArtifactManifestView> artifactList = p.getList();
-            return PageResult.succeed(artifactList, p.getTotal());
+            if (filterInstId != null) {
+                String cond = " and v.inst_id = " + filterInstId;
+                sql.append(cond);
+                countSql.append(cond);
+            }
+            if (StrUtil.isNotBlank(artQuery.getRepoName())) {
+                String cond = " and v.full_name like '%" + artQuery.getRepoName() + "%'";
+                sql.append(cond);
+                countSql.append(cond);
+            }
+            if (StrUtil.isNotBlank(artQuery.getTagName())) {
+                String cond = " and (v.tag_name like '%" + artQuery.getTagName() + "%' or v.digest like '%" + artQuery.getTagName() + "%')";
+                sql.append(cond);
+                countSql.append(cond);
+            }
+            sql.append(" LIMIT ?,?");
+            List<ArtifactManifestView> artifactList = instMapper.db().sql(sql.toString(), start, limit).getList(ArtifactManifestView.class);
+            long count = instMapper.db().sql(countSql.toString()).getCount();
+            return PageResult.succeed(artifactList, count);
         } catch (Exception e) {
             log.error("Failed to query artifacts", e);
             return PageResult.failure(e.getMessage());
