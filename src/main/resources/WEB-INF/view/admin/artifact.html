@@ -87,68 +87,11 @@ input[name='param']{
 </div>
 
 
-<div style="height: 500px; width: 300px; overflow: hidden;">
-    <!-- 弹出框 -->
-    <div class="layui-form" id="windowDiv" style="padding: 15px; display: none">
-        <form id="addForm1">
-            <input type="hidden" name="u">
 
-            <div class="layui-form-item" id="div_id" style="display: none">
-                <label class="layui-form-label">id</label>
-                <div class="layui-input-block">
-                    <input type="text" name="id" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">tag_name</label>
-                <div class="layui-input-block">
-                    <input type="text" name="tagName" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">full_name</label>
-                <div class="layui-input-block">
-                    <input type="text" name="fullName" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">manifest_id</label>
-                <div class="layui-input-block">
-                    <input type="text" name="manifestId" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">created</label>
-                <div class="layui-input-block">
-                    <input type="text" name="created" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">last_pushed</label>
-                <div class="layui-input-block">
-                    <input type="text" name="lastPushed" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item center">
-                <button type="button" class="layui-btn layui-btn-normal" id="addOver">${i18n.get("commonStr.submit")}</button>
-                <button type="button" class="layui-btn" onclick="layer.closeAll()">${i18n.get("commonStr.close")}</button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <#include "script.html"/>
 <script type="text/html" id="toolbarDemo">
     <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add"><i class="layui-icon  layui-icon-add-1"></i></button>
-        <button class="layui-btn layui-btn-sm" lay-event="more">${i18n.get("commonStr.batch")}<i class="layui-icon layui-icon-down layui-font-12"></i></button>
-        <button class="layui-btn layui-btn-sm" lay-event="deleteSelected" style="display: none"><i class="layui-icon  layui-icon-delete"></i></button>
     </div>
 </script>
 

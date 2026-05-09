@@ -70,61 +70,11 @@ input[name='param']{
 </div>
 
 
-<div style="height: 500px; width: 300px; overflow: hidden;">
-    <!-- 弹出框 -->
-    <div class="layui-form" id="windowDiv" style="padding: 15px; display: none">
-        <form id="addForm1">
-            <input type="hidden" name="u">
 
-            <div class="layui-form-item" id="div_id" style="display: none">
-                <label class="layui-form-label">id</label>
-                <div class="layui-input-block">
-                    <input type="text" name="id" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">repo_name</label>
-                <div class="layui-input-block">
-                    <input type="text" name="repoName" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">media_type</label>
-                <div class="layui-input-block">
-                    <input type="text" name="mediaType" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">is_manifest_list</label>
-                <div class="layui-input-block">
-                    <input type="checkbox" name="isManifestList" title="ON|OFF" lay-skin="switch" value="1" checked lay-filter="demo-checkbox-filter">
-                </div>
-            </div>
-
-            <div class="layui-form-item">
-                <label class="layui-form-label">tag_count</label>
-                <div class="layui-input-block">
-                    <input type="text" name="tagCount" class="layui-input">
-                </div>
-            </div>
-
-            <div class="layui-form-item center">
-                <button type="button" class="layui-btn layui-btn-normal" id="addOver">${i18n.get("commonStr.submit")}</button>
-                <button type="button" class="layui-btn" onclick="layer.closeAll()">${i18n.get("commonStr.close")}</button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <#include "script.html"/>
 <script type="text/html" id="toolbarDemo">
     <div class="layui-btn-container">
-        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add"><i class="layui-icon  layui-icon-add-1"></i></button>
-        <button class="layui-btn layui-btn-sm" lay-event="more">${i18n.get("commonStr.batch")}<i class="layui-icon layui-icon-down layui-font-12"></i></button>
-        <button class="layui-btn layui-btn-sm" lay-event="deleteSelected" style="display: none"><i class="layui-icon  layui-icon-delete"></i></button>
     </div>
 </script>
 

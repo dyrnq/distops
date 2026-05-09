@@ -71,42 +71,7 @@ $('#add').click(function(){
     });
 });
 
-$('#addOver').click(function(){
-    let u = $('#addForm1 input[name="u"]').val();
-    var formData = $('#addForm1').serializeArray();
-    var fieldName = 'isManifestList';
-    $.each(formData, function() {
-      if (this.name === fieldName) {
-        if ( $('#addForm1 input[name="isManifestList"]').prop('checked') === false){
-            this.value = '0';
-        }else{
-            this.value = '1';
-        }
-      }
-    });
-    var serializedData = formData.reduce(function(acc, curr) {
-      return acc + (acc ? '&' : '') + curr.name + '=' + curr.value;
-    }, '');
 
-    $.ajax({
-        type : 'POST',
-        url: ctx + '/api/repo/'+u,
-        data : serializedData,
-        dataType : 'json',
-        success : function(data) {
-            if(data.code=='200'){
-                layer.closeAll();
-                layer.msg(commonStr.success);
-                table.reload('demo',{});
-            } else {
-                layer.msg(data.description);
-            }
-        },
-        error : function() {
-            layer.alert(commonStr.errorInfo);
-        }
-    });
-});
 
     table.render({
         elem: '#demo'
@@ -191,20 +156,7 @@ $('#addOver').click(function(){
                     });
                 }
                 break;
-            case 'add':
-                cleanData(false);
-                layer.open({
-                    type: 1,
-                    area: ['800px', '600px'],
-                    title: 'Add',
-                    content : $('#windowDiv'),
-                    anim: 'slideRight',
-                    shade: 0.6,
-                    shadeClose: true,
-                    maxmin: true,
-                    skin: 'layui-layer-win10'
-                });
-                break;
+
             case 'more':
                 var that = this;
                 dropdown.render({

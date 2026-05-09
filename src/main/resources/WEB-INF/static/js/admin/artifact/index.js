@@ -198,20 +198,7 @@ $('#addOver').click(function(){
                     });
                 }
                 break;
-            case 'add':
-                cleanData(false);
-                layer.open({
-                    type: 1,
-                    area: ['800px', '600px'],
-                    title: 'Add',
-                    content : $('#windowDiv'),
-                    anim: 'slideRight',
-                    shade: 0.6,
-                    shadeClose: true,
-                    maxmin: true,
-                    skin: 'layui-layer-win10'
-                });
-                break;
+
             case 'more':
                 var that = this;
                 dropdown.render({
