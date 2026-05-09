@@ -284,51 +284,27 @@ $('#addOver').click(function(){
                 });
             }
         } else if (layEvent === 'edit'){
-
-            cleanData(true);
-            $.ajax({
-                url: ctx + '/api/user/get',
-                type:'post',
-                contentType: 'application/json',
-                data:JSON.stringify({id:obj.data.id}),
-                success:function (data,statusText) {
-                    if(data.code=='200'){
-                        $('#addForm1 input[name="id"]').val(data.data.id);
-                        $('#addForm1 input[name="name"]').val(data.data.name);
-                        $('#addForm1 input[name="email"]').val(data.data.email);
-                        $('#addForm1 input[name="phone"]').val(data.data.phone);
-                        layer.open({
-                            type: 1,
-                            area: ['800px', '600px'],
-                            title: 'Edit',
-                            content : $('#windowDiv'),
-                            anim: 'slideRight',
-                            shade: 0.6, // 遮罩透明度
-                            shadeClose: true, // 点击遮罩区域，关闭弹层
-                            maxmin: true, // 允许全屏最小化
-                            skin: 'layui-layer-win10'
-                        });
-                    }else{
-                         layer.msg(data.description);
-                    }
-                },
-                'error':function () {
-                    layer.msg(commonStr.errorInfo);
-                }
+            layer.open({
+                type: 2,
+                title: 'Edit User',
+                shadeClose: true,
+                shade: 0.8,
+                area: ['500px', '400px'],
+                content: ctx + '/admin/userEdit-' + obj.data.id,
+                anim: 'slideRight',
+                maxmin: true,
+                skin: 'layui-layer-win10'
             });
         }else if(layEvent == 'changePass'){
-
-            $('#addForm2 input[name="id"]').val(obj.data.id);
-            $('#addForm2 input[name="newPass"]').val("");
-            $('#addForm2 input[name="confirmPass"]').val("");
             layer.open({
-                type: 1,
-                area: ['400px', '300px'],
+                type: 2,
                 title: 'Change Password',
-                content : $('#changeDiv'),
-                shade: 0.6, // 遮罩透明度
-                shadeClose: true, // 点击遮罩区域，关闭弹层
-                maxmin: true, // 允许全屏最小化
+                shadeClose: true,
+                shade: 0.8,
+                area: ['450px', '300px'],
+                content: ctx + '/admin/userPassEdit-' + obj.data.id,
+                anim: 'slideRight',
+                maxmin: true,
                 skin: 'layui-layer-win10'
             });
 

@@ -201,3 +201,5 @@ add.proto = 新增Proto
 commonStr.instName = 实例名字
 commonStr.gc = GC
 commonStr.generatedConfig = 生成的配置
+
+commonStr.changePass = 改密

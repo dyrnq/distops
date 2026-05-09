@@ -93,6 +93,27 @@ public class AdminController extends BaseController {
 
 
 
+    @Mapping("userEdit")
+    public Object userEdit() {
+        ModelAndView model = new ModelAndView("admin/userEdit.html");
+        model.put("id", "");
+        return model;
+    }
+
+    @Mapping("userEdit-{id}")
+    public Object userEdit(@Path("id") String id) {
+        ModelAndView model = new ModelAndView("admin/userEdit.html");
+        model.put("id", id);
+        return model;
+    }
+
+    @Mapping("userPassEdit-{id}")
+    public Object userPassEdit(@Path("id") String id) {
+        ModelAndView model = new ModelAndView("admin/userPassEdit.html");
+        model.put("id", id);
+        return model;
+    }
+
     @Mapping("user")
     public Object user() {
         ModelAndView model = new ModelAndView("admin/user.html");

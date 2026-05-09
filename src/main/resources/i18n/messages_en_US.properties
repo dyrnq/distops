@@ -201,3 +201,5 @@ add.proto = Add Proto
 commonStr.instName = Instance Name
 commonStr.gc = GC
 commonStr.generatedConfig = Generated Config
+
+commonStr.changePass = Change Password

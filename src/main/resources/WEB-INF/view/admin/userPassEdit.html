@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <#include "common.html"/>
+</head>
+<body class="layui-layout-body">
+<div class="layui-form">
+<form id="changeForm">
+    <input type="hidden" name="id">
+
+    <div class="layui-form-item">
+        <div class="layui-input-group">
+            <div class="layui-input-split layui-input-prefix">${i18n.get("loginStr.pass")}</div>
+            <input type="password" name="newPass" id="newPass" class="layui-input" lay-affix="eye">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <div class="layui-input-group">
+            <div class="layui-input-split layui-input-prefix">${i18n.get("loginStr.repeatPass")}</div>
+            <input type="password" name="confirmPass" id="confirmPass" class="layui-input" lay-affix="eye">
+        </div>
+    </div>
+
+    <div class="layui-form-item center">
+        <button type="button" class="layui-btn layui-btn-normal" id="changeBtn">${i18n.get("commonStr.submit")}</button>
+    </div>
+</form>
+</div>
+
+<#include "script.html"/>
+
+<script>
+    let id="${id!}"
+</script>
+<script src="${ctx}/lib/base64/base64.js" type="text/javascript"></script>
+<script src="${ctx}/js/admin/userPassEdit/index.js?v=${jsrandom}" type="text/javascript"></script>
+</body>
+</html>

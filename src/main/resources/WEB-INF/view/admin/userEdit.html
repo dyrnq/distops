@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <#include "common.html"/>
+</head>
+<body class="layui-layout-body">
+<div class="layui-form">
+<form id="addForm1">
+    <div class="layui-form-item" id="div_id" style="display: none">
+        <label class="layui-form-label">id</label>
+        <div class="layui-input-block">
+            <input type="text" name="id" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">name</label>
+        <div class="layui-input-block">
+            <input type="text" name="name" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">email</label>
+        <div class="layui-input-block">
+            <input type="text" name="email" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">phone</label>
+        <div class="layui-input-block">
+            <input type="text" name="phone" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item center">
+        <button type="button" class="layui-btn layui-btn-normal" id="addOver">${i18n.get("commonStr.submit")}</button>
+    </div>
+</form>
+</div>
+
+<#include "script.html"/>
+
+<script>
+    let id="${id!}"
+</script>
+<script src="${ctx}/lib/base64/base64.js" type="text/javascript"></script>
+<script src="${ctx}/js/admin/userEdit/index.js?v=${jsrandom}" type="text/javascript"></script>
+</body>
+</html>
