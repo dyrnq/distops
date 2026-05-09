@@ -1,0 +1,151 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <#include "common.html"/>
+    <style type="text/css">
+
+        .long{
+            width: 210px;
+        }
+
+        .short{
+            width: 110px!important;
+        }
+
+        input[name='param']{
+            width: 100px;
+        }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-form">
+<form id="addForm1">
+<div class="layui-tabs layui-hide-v" id="demoTabs1" lay-options="{closable: true, headerMode:'normal'}">
+    <ul class="layui-tabs-header">
+        <li lay-id="aaa" lay-closable="false">basic config</li>
+        <li lay-id="bbb" lay-closable="false">proxy config</li>
+        <li lay-id="ccc" lay-closable="false">auth  config</li>
+        <li lay-id="ddd" lay-closable="false">env   config</li>
+        <li lay-id="eee" lay-closable="false">yaml  config</li>
+    </ul>
+    <div class="layui-tabs-body">
+
+        <div class="layui-tabs-item">
+               <input type="hidden" name="u">
+
+                <div class="layui-form-item" id="div_id" style="display: none">
+                    <label class="layui-form-label">id</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="id" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">name</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">port</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="port" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">logLevel</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="logLevel" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">auth</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="auth" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">enabled</label>
+                    <div class="layui-input-block">
+                        <input type="checkbox" name="enabled" title="ON|OFF" lay-skin="switch" value="0" checked lay-filter="demo-checkbox-filter">
+                    </div>
+                </div>
+
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">env</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="env" class="layui-input">
+                    </div>
+                </div>
+
+
+
+
+        </div>
+        <div class="layui-tabs-item">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">remoteurl</label>
+                <div class="layui-input-block">
+                    <input type="text" name="proxyRemoteurl" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">username</label>
+                <div class="layui-input-block">
+                    <input type="text" name="proxyUsername" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">password</label>
+                <div class="layui-input-block">
+                    <input type="text" name="proxyPassword" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">ttl</label>
+                <div class="layui-input-block">
+                    <input type="text" name="proxyTtl" class="layui-input">
+                </div>
+            </div>
+
+
+        </div>
+        <div class="layui-tabs-item">Tab Content-3</div>
+        <div class="layui-tabs-item">Tab Content-4</div>
+        <div class="layui-tabs-item">Tab Content-5</div>
+
+        <div class="layui-form-item center">
+            <button type="button" class="layui-btn layui-btn-normal" id="addOver">${i18n.get("commonStr.submit")}</button>
+        </div>
+
+
+
+    </div>
+
+
+
+
+</div>
+</form>
+</div>
+<#include "script.html"/>
+
+
+<script>
+    let externalUrl="${externalUrl!}"
+    let id="${id!}"
+</script>
+
+<script src="${ctx}/lib/base64/base64.js" type="text/javascript"></script>
+<script src="${ctx}/js/admin/instEdit/index.js?v=${jsrandom}" type="text/javascript"></script>
+</body>
+</html>

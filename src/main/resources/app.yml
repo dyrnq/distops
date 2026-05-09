@@ -1,0 +1,86 @@
+server:
+  port: 12680
+  contextPath: /
+  request:
+    maxBodySize: 2048mb
+    maxHeaderSize: 20mb
+  session:
+    timeout: 7200 #单位秒；（可不配，默认：7200）
+
+
+
+jwt:
+  name: TOKEN #变量名；（可不配，默认：TOKEN）
+  secret: "IDP32XTulsVIUZU+srFEUC9Lhu1wV+nd8iCJPoPA2zSFVAtWhCgpMEymxy5wFAZKMB9yROX31UjDzjwL66r1RA==" #密钥（使用 JwtUtils.createKey() 生成）；
+#  prefix: Bearer #令牌前缀（可不配，默认：空）
+  allowExpire: true #充许超时；（可不配，默认：true）；false，则token一直有效
+  allowAutoIssue: false #充许自动输出；（可不配，默认：true）；flase，则不向header 或 cookie 设置值（由用户手动控制）
+  allowUseHeader: true #充许使用Header传递；（可不配，默认：使用 Cookie 传递）；true，则使用 header 传递
+  expire: 864000000 # token超时时间，单位为毫秒
+
+
+
+
+solon:
+#  debug: 1
+  app:
+    name: distops
+  view:
+    mapping:
+      html: FreemarkerRender
+  logging:
+    logger:
+      "io.undertow":
+        level: "WARN"
+    appender:
+      console:
+        level: INFO
+      file:
+        enable: false
+        level: INFO
+        maxFileSize: "1 MB"
+        maxHistory: "7"
+  serialization:
+    json:
+      longAsString: true #将long型转为字符串输出 （默认为false）
+
+
+#spring:
+# database:
+#   type: h2
+# datasource:
+#   url:
+#   username:
+#   password:
+
+#spring:
+#  database:
+#    type: mysql
+#  datasource:
+#    url: jdbc:mysql://192.168.66.125:3306/distops?characterEncoding=utf-8&useSSL=false&autoReconnect=true
+#    username: root
+#    password: 666666
+#
+#spring:
+# database:
+#   type: mysql
+# datasource:
+#   url: jdbc:mysql://192.168.66.125:13306/distops?characterEncoding=utf-8&useSSL=false&autoReconnect=true&allowPublicKeyRetrieval=true
+#   username: root
+#   password: 666666
+
+#spring:
+#  database:
+#    type: postgresql
+#  datasource:
+#    url: jdbc:postgresql://192.168.66.125:5432/distops?&ssl=false
+#    username: postgres
+#    password: 666666
+#
+spring:
+  database:
+    type: sqlite
+  datasource:
+    url:
+    username:
+    password:

@@ -1,0 +1,54 @@
+
+<script src="${ctx}/lib/layui/layui.js" type="text/javascript"></script>
+
+<script src="${ctx}/js/admin/base.js?v=${jsrandom}" type="text/javascript"></script>
+<script src="${ctx}/lib/ztree/js/jquery.ztree.core.js" type="text/javascript"></script>
+<script src="${ctx}/lib/ztree/js/jquery.ztree.excheck.js" type="text/javascript"></script>
+
+<script src="${ctx}/lib/echarts/echarts.min.js" type="text/javascript"></script>
+<script src="${ctx}/lib/ace-builds/src-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
+<!-- load ace language_tools extension -->
+<script src="${ctx}/lib/ace-builds/src-noconflict/ext-language_tools.js" type="text/javascript" charset="utf-8"></script>
+<script src="${ctx}/lib/js-cookie/js.cookie.js" type="text/javascript"></script>
+<script src="${ctx}/lib/js-yaml/js-yaml.js?v=${jsrandom}" type="text/javascript"></script>
+<script>
+    //根路径
+    var ctx = '${ctx}';
+
+    // 翻页参数
+    var page = {
+            count : '<#if page??>${page.count}<#else>0</#if>',
+            curr : '<#if page??>${page.curr}<#else>1</#if>',
+            limit : '<#if page??>${page.limit}<#else>10</#if>',
+    };
+
+    var cfg = ${cfg};
+    var COOK_NAME = ${cookName};
+
+    if (document.getElementById("editor")) {
+
+        var path = window.location.pathname;
+        var pathArray = path.split('/');
+        var lastPath = pathArray[pathArray.length - 1];
+
+
+        var aceMode = localStorage.getItem(lastPath+'_aceMode');
+
+        if ('' == aceMode || null == aceMode || undefined == aceMode) {
+            aceMode = cfg.aceMode;
+        }
+
+
+        var editor = ace.edit("editor");
+        editor.setTheme("ace/theme/twilight");
+        editor.session.setMode("ace/mode/"+aceMode);
+        editor.session.setOption("tabSize", 2);
+        editor.setFontSize(16);
+        editor.setOptions({
+            minLines: 20,
+            maxLines: Infinity
+        });
+        editor.resize();
+    }
+</script>
+

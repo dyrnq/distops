@@ -1,0 +1,116 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <#include "common.html"/>
+    <style type="text/css">
+
+        .long{
+            width: 210px;
+        }
+
+        .short{
+            width: 110px!important;
+        }
+
+        input[name='param']{
+            width: 100px;
+        }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+
+    <#include "header.html"/>
+    <#include "menu.html"/>
+
+    <div class="layui-body">
+
+
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px">
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>maven</legend>
+            </fieldset>
+
+
+
+            <div class="layui-bg-gray" style="padding: 16px;">
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md6">
+                        <div class="layui-card">
+                            <div class="layui-card-header"></div>
+                            <div class="layui-card-body">
+
+
+
+
+                                <form class="layui-form layui-form-pane" action="">
+
+
+
+                                    <div class="layui-form-item layui-form-text">
+                                        <label class="layui-form-label">xml</label>
+                                        <div class="layui-input-block">
+                                            <textarea name="xml" placeholder="请输入内容" class="layui-textarea"></textarea>
+                                        </div>
+                                        <pre>
+e.g.<code class="xml">
+&lt;dependency&gt;
+  &lt;groupId&gt;org.jsoup&lt;/groupId&gt;
+  &lt;artifactId&gt;jsoup&lt;/artifactId&gt;
+  &lt;version&gt;1.21.1&lt;/version&gt;
+&lt;/dependency&gt;
+</code></pre>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <button class="layui-btn" lay-submit lay-filter="demo2">确认</button>
+                                        <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md6">
+                        <div class="layui-card">
+                            <div class="layui-card-header"></div>
+                            <div class="layui-card-body">
+                                <span id="url"></span>
+                            </div></div></div></div>
+
+
+            </div>
+
+
+
+
+
+
+        </div>
+    </div>
+</div>
+
+
+
+
+<#include "script.html"/>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add" style="display: none"><i class="layui-icon  layui-icon-add-1"></i></button>
+        <button class="layui-btn layui-btn-sm" lay-event="deleteSelected"><i class="layui-icon  layui-icon-delete"></i></button>
+        <button class="layui-btn layui-btn-sm" lay-event="getCheckData" style="display: none">获取选中行数据</button>
+        <button class="layui-btn layui-btn-sm" lay-event="statusAll1" style="display: none">${i18n.get("commonStr.batchEnable")}</button>
+        <button class="layui-btn layui-btn-sm" lay-event="statusAll0" style="display: none">${i18n.get("commonStr.batchDisable")}</button>
+        <span id="yourDiv" class="layui-btn layui-btn-primary layui-border-red" style="display: none"></span>
+        <span id="threadDiv" class="layui-btn layui-btn-primary layui-border-red" style="display: none"></span>
+    </div>
+</script>
+<script src="${ctx}/lib/base64/base64.js" type="text/javascript"></script>
+<script src="${ctx}/js/admin/maven/index.js?v=${jsrandom}" type="text/javascript"></script>
+</body>
+</html>

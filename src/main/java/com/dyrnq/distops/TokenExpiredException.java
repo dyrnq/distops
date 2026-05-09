@@ -1,0 +1,9 @@
+package com.dyrnq.distops;
+
+public class TokenExpiredException extends Exception {
+    private static final long serialVersionUID = -1435635459744147463L;
+
+    public TokenExpiredException(String message) {
+        super(message);
+    }
+}

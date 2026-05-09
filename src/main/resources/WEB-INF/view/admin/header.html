@@ -1,0 +1,52 @@
+<div class="layui-header">
+    <div class="layui-logo">${projectName} <span class="layui-font-12    ">${currentVersion}</span></div>
+    <ul class="layui-nav layui-layout-right">
+
+        <li class="layui-nav-item">
+            <span class="layui-font-12"    style="color: gray;">${gitRevision[0..*7]}</span>
+        </li>
+
+        <li class="layui-nav-item">
+<!--            <div class="layui-inline layui-word-aux layui-font-white">-->
+
+<!--            </div>-->
+        </li>
+
+
+        <li class="layui-nav-item">
+            <a href="javascript:" style="color: white;">${i18n.get("commonStr.currentUser")}: <b>${admin.name!}</b></a>
+        </li>
+
+
+        <li class="layui-nav-item">
+            <a href="javascript:;" style="color: white;">
+            <svg width="18" height="18" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M28.2857 37H39.7143M42 42L39.7143 37L42 42ZM26 42L28.2857 37L26 42ZM28.2857 37L34 24L39.7143 37H28.2857Z" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 6L17 9" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11H28" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 16C10 16 11.7895 22.2609 16.2632 25.7391C20.7368 29.2174 28 32 28 32" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 11C24 11 22.2105 19.2174 17.7368 23.7826C13.2632 28.3478 6 32 6 32" stroke="#FFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            ${langType}</a>
+            <dl class="layui-nav-child">
+                <dd><a href="javascript:i18n('en_US');">English</a></dd>
+                <dd><a href="javascript:i18n('zh');">简体中文</a></dd>
+            </dl>
+        </li>
+        
+        <!-- <li class="layui-nav-item">
+            <a href="javascript:;">${i18n.get("commonStr.userTutorial")}</a>
+            <dl class="layui-nav-child">
+                <a href="https://apisix.apache.org/docs/apisix/getting-started/README/" target="_blank">官方文档</a>
+                <a href="https://github.com/apache/apisix" target="_blank">官方代码库</a>
+                <a href="https://hub.docker.com/r/apache/apisix" target="_blank">apisix镜像</a>
+                <a href="https://hub.docker.com/r/dyrnq/apisixweb" target="_blank">apisixWeb镜像</a>
+                <a href="https://github.com/apache/apisix/blob/master/conf/config.yaml.example" target="_blank">config.yaml.example</a>
+                <a href="https://github.com/apache/apisix/blob/master/apisix/cli/config.lua" target="_blank">config.lua</a>
+                <a href="https://github.com/apache/apisix/blob/master/apisix/cli/ngx_tpl.lua" target="_blank">ngx_tpl.lua</a>
+            </dl>
+        </li> -->
+
+
+
+
+
+        <li class="layui-nav-item">
+            <a href="javascript:loginOut();">${i18n.get("commonStr.exit")}</a>
+        </li>
+    </ul>
+</div>

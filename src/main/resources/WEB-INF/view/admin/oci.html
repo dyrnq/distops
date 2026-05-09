@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<#include "common.html"/>
+<style type="text/css">
+.long{
+    width: 210px;
+}
+.short{
+    width: 110px!important;
+}
+input[name='param']{
+    width: 100px;
+}
+</style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+
+<#include "header.html"/>
+<#include "menu.html"/>
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px">
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>oci</legend>
+            </fieldset>
+
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header">OCI Manifest 信息</div>
+                        <div class="layui-card-body">
+                            <div class="layui-row">
+                                <div class="layui-col-md4">
+                                    <p><strong>Tag:</strong> <span id="tag_name"></span></p>
+                                    <p><strong>Full Name:</strong> <span id="full_name"></span></p>
+                                    <p><strong>Manifest List Digest:</strong> <span id="manifest_list_digest"></span></p>
+                                    <p><strong>Media Type:</strong> <span id="parent_media_type"></span></p>
+                                </div>
+                                <div class="layui-col-md4">
+                                    <p><strong>Size:</strong> <span id="manifest_list_size"></span> bytes</p>
+                                    <p><strong>Created:</strong> <span id="manifest_list_created"></span></p>
+                                    <p><strong>Config Digest:</strong> <span id="config_digest"></span></p>
+                                </div>
+                                <div class="layui-col-md4">
+                                    <p><strong>Architecture Count:</strong> <span id="arch_count"></span></p>
+                                    <button type="button" class="layui-btn layui-btn-normal" id="copyDigest">复制 Digest</button>
+                                    <button type="button" class="layui-btn layui-btn-warm" id="pullCommand">查看 Pull 命令</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <table class="layui-hide" id="demo" lay-filter="test"></table>
+        </div>
+    </div>
+</div>
+
+<#include "script.html"/>
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="more">${i18n.get("commonStr.batch")}<i class="layui-icon layui-icon-down layui-font-12"></i></button>
+    </div>
+</script>
+
+<script type="text/html" id="annotationsTpl">
+    <div style="padding: 10px;">
+        {{# var annotations = JSON.parse(d.annotations || '{}'); }}
+        {{# layui.each(annotations, function(key, value){ }}
+            <p><strong>{{ key }}:</strong> {{ value }}</p>
+        {{# }); }}
+    </div>
+</script>
+
+<script src="${ctx}/lib/base64/base64.js" type="text/javascript"></script>
+<script src="${ctx}/js/admin/oci/index.js?v=${jsrandom}" type="text/javascript"></script>
+</body>
+</html>

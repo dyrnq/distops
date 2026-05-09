@@ -1,0 +1,100 @@
+<html>
+<title>${projectName}</title>
+
+<meta http-equiv="expires" content="0">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<meta name="renderer" content="webkit" />
+<meta name="force-rendering" content="webkit" />
+<meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
+
+<link rel="shortcut icon" href="${ctx}/img/favicon.ico" type="image/x-icon">
+
+<link href="${ctx}/lib/ztree/css/zTreeStyle/zTreeStyle.css" rel="stylesheet">
+<link href="${ctx}/lib/layui/css/layui.css" rel="stylesheet" />
+<link href="${ctx}/css/admin/base.css" rel="stylesheet" />
+
+<body class="layui-bg-gray">
+
+<div class="layui-fluid" style="padding: 30px;">
+
+    <div class="layui-row" style="margin-top:10%;">
+        <div class="layui-col-md4">
+            <div class="grid-demo grid-demo-bg1">&nbsp;</div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="grid-demo">
+
+                <div class="layui-panel"><div style="padding: 50px 30px;">
+                <form class="layui-form" action="">
+
+
+
+                    <div class="layui-form-item">
+                        <div class="layui-input-wrap">
+                            <div class="layui-input-prefix">
+                                <i class="layui-icon layui-icon-username"></i>
+                            </div>
+                            <input type="text" name="name" id="name" value="" lay-verify="required" placeholder="用户名" lay-reqtext="请填写用户名" autocomplete="off" class="layui-input" lay-affix="clear" autofocus>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-wrap">
+                            <div class="layui-input-prefix">
+                                <i class="layui-icon layui-icon-password"></i>
+                            </div>
+                            <input type="password" name="pass" id="pass" value="" lay-verify="required" placeholder="密   码" lay-reqtext="请填写密码" autocomplete="off" class="layui-input" lay-affix="eye">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <input type="checkbox" name="remember" id="remember" lay-skin="primary" title="记住密码">
+                        <a href="#forget" style="float: right; margin-top: 7px; display: none;" >忘记密码？</a>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <button class="layui-btn layui-btn-fluid" lay-submit lay-filter="demo1">${i18n.get("loginStr.login")}</button>
+                    </div>
+
+
+                </form>
+                </div></div>
+
+
+            </div>
+        </div>
+        <div class="layui-col-md4">
+            <div class="grid-demo grid-demo-bg1"></div>
+        </div>
+    </div>
+
+
+<!--    <div class="layui-row layui-col-space15">-->
+<!--        <div class="layui-col-md4">-->
+<!--            <div class="layui-panel">-->
+<!--                <div style="padding: 50px 30px;">-->
+
+
+
+
+
+
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="layui-col-md6">-->
+<!--            <div class="layui-panel">-->
+<!--                <div style="padding: 50px 30px;">一个面板</div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+</div>
+
+
+</body>
+<#include "script.html"/>
+<script src="${ctx}/lib/base64/base64.js" type="text/javascript"></script>
+<script src="${ctx}/js/admin/login/index.js?v=${jsrandom}" type="text/javascript"></script>
+</html>
