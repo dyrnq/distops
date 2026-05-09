@@ -37,6 +37,13 @@ public class AdminController extends BaseController {
         return model;
     }
 
+    @Mapping("instEdit")
+    public Object instEdit() {
+        ModelAndView model = new ModelAndView("admin/instEdit.html");
+        model.put("id", "");
+        return model;
+    }
+
 
     @Mapping("instEdit-{id}")
     public Object instEdit(@Path("id") Long id ) {

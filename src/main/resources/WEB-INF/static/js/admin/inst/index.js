@@ -156,19 +156,17 @@ form.on('switch(demo-checkbox-filter)', function(data){
 
 
 $('#add').click(function(){
-    cleanData(false);
     layer.open({
-        type: 1,
-        area: ['800px', '600px'],
+        type: 2,
         title: 'Add',
-        content : $('#windowDiv'),
+        shadeClose: true,
+        shade: 0.8,
+        area: ['60%', '80%'],
+        content: ctx+'/admin/instEdit',
         anim: 'slideRight',
-        shade: 0.6, // 遮罩透明度
-        shadeClose: true, // 点击遮罩区域，关闭弹层
-        maxmin: true, // 允许全屏最小化
+        maxmin: true,
         skin: 'layui-layer-win10'
     });
-
 });
 
 $('#addOver').click(function(){
@@ -353,16 +351,15 @@ $('#addOver3').click(function(){
                 }
                 break;
             case 'add':
-                cleanData(false);
                 layer.open({
-                    type: 1,
-                    area: ['800px', '600px'],
+                    type: 2,
                     title: 'Add',
-                    content : $('#windowDiv'),
+                    shadeClose: true,
+                    shade: 0.8,
+                    area: ['60%', '80%'],
+                    content: ctx+'/admin/instEdit',
                     anim: 'slideRight',
-                    shade: 0.6, // 遮罩透明度
-                    shadeClose: true, // 点击遮罩区域，关闭弹层
-                    maxmin: true, // 允许全屏最小化
+                    maxmin: true,
                     skin: 'layui-layer-win10'
                 });
                 break;

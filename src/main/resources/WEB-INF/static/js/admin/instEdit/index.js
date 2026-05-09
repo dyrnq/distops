@@ -1,4 +1,3 @@
-
 function cleanData(d){
     console.log(d)
     $('#addForm1 input, #addForm1 select, #addForm1 textarea, #addForm1 checkbox').val('');
@@ -27,6 +26,7 @@ layui.use(function() {
     var table = layui.table;
     var form = layui.form;
     var upload = layui.upload;
+    var element = layui.element;
 
     var default_limit = localStorage.getItem('pageLimit');
     if ('' == default_limit || null == default_limit || undefined == default_limit) {
@@ -34,10 +34,10 @@ layui.use(function() {
     }
 
     form.on('switch(demo-checkbox-filter)', function(data){
-        var elem = data.elem; // 获得 checkbox 原始 DOM 对象
-        var checked = elem.checked; // 获得 checkbox 选中状态
-        var value = elem.value; // 获得 checkbox 值
-        var othis = data.othis; // 获得 checkbox 元素被替换后的 jQuery 对象
+        var elem = data.elem;
+        var checked = elem.checked;
+        var value = elem.value;
+        var othis = data.othis;
         if(checked){
             $(elem).val("1");
         }else{
@@ -46,39 +46,112 @@ layui.use(function() {
        layui.form.render('checkbox');
     });
 
-    cleanData(false);
-    $.ajax({
-        url: ctx + '/api/inst/get',
-        type: 'post',
-        contentType: 'application/json',
-        data: JSON.stringify({id: id}),
-        success: function (data, statusText) {
-            if (data.code == '200') {
-                $('#addForm1 input, #addForm1 select, #addForm1 textarea, #addForm1 checkbox').each(function () {
-                    var elementName = $(this).attr('name');
-                    if (elementName in data.data) { // 判断对象中是否有该属性
-                        $(this).val(data.data[elementName]); // 将属性对应的值填充到表单元素中
-                    }
-                    console.log(elementName)
-                    if (elementName === 'enabled') {
-                        if (data.data[elementName] === 1) {
-                            $(this).prop('checked', true);
-                        } else {
-                            $(this).prop('checked', false);
-                        }
-                    }
-                });
-                form.render('select');
-                form.render('checkbox');
-                form.render();
-
-            } else {
-                layer.msg(data.description);
+    // resize ACE editor when yaml tab (eee) becomes visible
+    element.on('tab(demoTabs1)', function(data){
+        if (data.elem.getAttribute('lay-id') === 'eee') {
+            if (typeof editor !== 'undefined' && editor) {
+                setTimeout(function(){ editor.resize(); }, 100);
             }
-        },
-        'error': function () {
-            layer.msg(commonStr.errorInfo);
         }
+    });
+
+    cleanData(id ? true : false);
+
+    if (id) {
+        $.ajax({
+            url: ctx + '/api/inst/get',
+            type: 'post',
+            contentType: 'application/json',
+            data: JSON.stringify({id: id}),
+            success: function (data, statusText) {
+                if (data.code == '200') {
+                    $('#addForm1 input, #addForm1 select, #addForm1 textarea, #addForm1 checkbox').each(function () {
+                        var elementName = $(this).attr('name');
+                        if (elementName in data.data) {
+                            var val = data.data[elementName];
+                            if (elementName === 'env' && val) {
+                                // convert comma-separated to newline for textarea
+                                val = val.replace(/,/g, '\n');
+                            }
+                            $(this).val(val);
+                        }
+                        console.log(elementName)
+                        if (elementName === 'enabled') {
+                            if (data.data[elementName] === 1) {
+                                $(this).prop('checked', true);
+                            } else {
+                                $(this).prop('checked', false);
+                            }
+                        }
+                    });
+                    form.render('select');
+                    form.render('checkbox');
+                    form.render();
+
+                    // load extraYaml into ACE editor
+                    if (typeof editor !== 'undefined' && editor) {
+                        var extraYamlVal = data.data.extraYaml || data.data.extra_yaml || '';
+                        editor.setValue(extraYamlVal, -1);
+                        editor.clearSelection();
+                    }
+
+                } else {
+                    layer.msg(data.description);
+                }
+            },
+            'error': function () {
+                layer.msg(commonStr.errorInfo);
+            }
+        });
+    } else {
+        form.render('select');
+        form.render('checkbox');
+        form.render();
+    }
+
+    $('#addOver').click(function(){
+        // sync ACE editor content to hidden input before serialize
+        if (typeof editor !== 'undefined' && editor) {
+            $('#extraYamlInput').val(editor.getValue());
+        }
+
+        var formData = $('#addForm1').serializeArray();
+
+        // convert env newlines to commas before submit
+        $.each(formData, function() {
+            if (this.name === 'env' && this.value) {
+                this.value = this.value.replace(/\n/g, ',');
+            }
+        });
+
+        var serializedData = formData.reduce(function(acc, curr) {
+            return acc + (acc ? '&' : '') + curr.name + '=' + encodeURIComponent(curr.value);
+        }, '');
+
+        var url = id ? ctx + '/api/inst/update' : ctx + '/api/inst/add';
+
+        $.ajax({
+            type : 'POST',
+            url: url,
+            data : serializedData,
+            dataType : 'json',
+            success : function(data) {
+                if(data.code=='200'){
+                    layer.msg(commonStr.success);
+                    // close the iframe/layer and go back
+                    setTimeout(function(){
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index);
+                        parent.layui.table.reload('demo',{});
+                    }, 1000);
+                } else {
+                    layer.msg(data.description);
+                }
+            },
+            error : function() {
+                layer.alert(commonStr.errorInfo);
+            }
+        });
     });
 
 });

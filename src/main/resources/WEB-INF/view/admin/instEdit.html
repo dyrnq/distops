@@ -62,28 +62,11 @@
                 </div>
 
                 <div class="layui-form-item">
-                    <label class="layui-form-label">auth</label>
-                    <div class="layui-input-block">
-                        <input type="text" name="auth" class="layui-input">
-                    </div>
-                </div>
-
-                <div class="layui-form-item">
                     <label class="layui-form-label">enabled</label>
                     <div class="layui-input-block">
                         <input type="checkbox" name="enabled" title="ON|OFF" lay-skin="switch" value="0" checked lay-filter="demo-checkbox-filter">
                     </div>
                 </div>
-
-
-
-                <div class="layui-form-item">
-                    <label class="layui-form-label">env</label>
-                    <div class="layui-input-block">
-                        <input type="text" name="env" class="layui-input">
-                    </div>
-                </div>
-
 
 
 
@@ -119,9 +102,31 @@
 
 
         </div>
-        <div class="layui-tabs-item">Tab Content-3</div>
-        <div class="layui-tabs-item">Tab Content-4</div>
-        <div class="layui-tabs-item">Tab Content-5</div>
+        <div class="layui-tabs-item">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">auth</label>
+                    <div class="layui-input-block">
+                        <select name="auth" lay-verify="">
+                            <option value="none">None</option>
+                            <option value="htpasswd">htpasswd</option>
+                            <option value="token">token</option>
+                            <option value="silly">silly</option>
+                        </select>
+                    </div>
+                </div>
+        </div>
+        <div class="layui-tabs-item">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">env</label>
+                    <div class="layui-input-block">
+                        <textarea name="env" placeholder="KEY=VALUE, one per line" class="layui-textarea" rows="6"></textarea>
+                    </div>
+                </div>
+        </div>
+        <div class="layui-tabs-item">
+                <div id="editor" style="height: 400px;"></div>
+                <input type="hidden" name="extraYaml" id="extraYamlInput">
+        </div>
 
         <div class="layui-form-item center">
             <button type="button" class="layui-btn layui-btn-normal" id="addOver">${i18n.get("commonStr.submit")}</button>
