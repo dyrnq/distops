@@ -261,6 +261,35 @@ public class InstController extends ApiController {
     }
 
     /**
+     * Run registry garbage collection to clean up orphaned blobs.
+     */
+    @Mapping("/gc")
+    public Result gc(Context ctx, long... id) {
+        try {
+            List<Long> list = CollectionUtil.newArrayList();
+            for (long i : id) {
+                list.add(i);
+            }
+            List<Inst> selectedInst = instMapper.findByIdList(list);
+            StringBuilder result = new StringBuilder();
+            for (Inst inst : selectedInst) {
+                try {
+                    instService.runGarbageCollection(inst);
+                    result.append(inst.getName()).append(" GC completed. ");
+                } catch (Exception e) {
+                    log.error("GC failed for instance {}", inst.getName(), e);
+                    result.append(inst.getName()).append(" GC failed: ").append(e.getMessage()).append("; ");
+                }
+            }
+            return Result.succeed(result.toString().trim());
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+
+    /**
      * Generate key pair for instance
      *
      * @param ctx       Context

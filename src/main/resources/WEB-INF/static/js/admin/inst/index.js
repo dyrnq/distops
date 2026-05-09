@@ -37,10 +37,11 @@ function addLink(d) {
     let restartBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="restart">Restart</button>'
     let stopBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="stop">Stop</button>'
     let startBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="start">Start</button>'
+    let gcBtn = '<button type="button" class="layui-btn layui-btn-warm layui-btn-xs" lay-event="gc">GC</button>'
     let proxyBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit_proxy">proxy</button>'
     let generatedConfigBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="config">Generated Config</button>'
 
-    return [editBtn, generatedConfigBtn , startBtn, stopBtn, restartBtn, delBtn].join("&nbsp;");
+    return [editBtn, generatedConfigBtn , startBtn, stopBtn, restartBtn, gcBtn, delBtn].join("&nbsp;");
 }
 function addLog(d) {
     if (typeof d !== 'undefined' && d !== null && typeof d.currentJobId !== 'undefined' && d.currentJobId!==null) {
@@ -604,6 +605,27 @@ $('#addOver3').click(function(){
                 anim: 'slideRight',
                 maxmin: true,
                 skin: 'layui-layer-win10'
+            });
+        }else if(layEvent === 'gc'){
+            layer.confirm('Run garbage collection for ' + obj.data.name + '? This will clean up orphaned blobs.', function(index) {
+                $.ajax({
+                    url: ctx + '/api/inst/gc',
+                    type: 'post',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ id: [obj.data.id] }),
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.code == '200') {
+                            layer.msg(data.data || 'GC completed');
+                        } else {
+                            layer.msg(data.description);
+                        }
+                    },
+                    error: function() {
+                        layer.msg(commonStr.errorInfo);
+                    }
+                });
+                layer.close(index);
             });
         }
 

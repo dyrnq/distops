@@ -465,6 +465,19 @@ public class InstService {
     }
 
     /**
+     * Run registry garbage collection to clean up orphaned blobs.
+     */
+    public void runGarbageCollection(Inst inst) {
+        String instName = inst.getName();
+        String configPath = StringUtils.joinWith(File.separator,
+                homeDir.getHomeAbsolutePath(), "registry", instName, "config", "config.yml");
+        String cmd = "registry garbage-collect " + configPath;
+        log.info("Running GC for instance {}: {}", instName, cmd);
+        String output = RuntimeUtil.execForStr(cmd);
+        log.info("GC output for {}: {}", instName, output);
+    }
+
+    /**
      * Auto-detect the local non-loopback IPv4 address.
      * Used as fallback when auth_realm is not explicitly configured.
      */

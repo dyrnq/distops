@@ -2,14 +2,13 @@ package com.dyrnq.distops.controller.api;
 
 import cn.hutool.core.util.PageUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.Method;
 import com.dyrnq.distops.controller.ApiController;
 import com.dyrnq.distops.controller.PageResult;
-import com.dyrnq.distops.dso.ArtifactManifestOciViewMapper;
-import com.dyrnq.distops.dso.ArtifactManifestViewMapper;
-import com.dyrnq.distops.dso.ArtifactMapper;
-import com.dyrnq.distops.model.Artifact;
-import com.dyrnq.distops.model.ArtifactManifestOciView;
-import com.dyrnq.distops.model.ArtifactManifestView;
+import com.dyrnq.distops.dso.*;
+import com.dyrnq.distops.model.*;
 import com.dyrnq.distops.service.dto.ArtQuery;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Controller;
@@ -36,6 +35,15 @@ public class ArtifactController extends ApiController {
 
     @Inject
     ArtifactManifestOciViewMapper artifactManifestOciViewMapper;
+
+    @Inject
+    ManifestMapper manifestMapper;
+
+    @Inject
+    RepoMapper repoMapper;
+
+    @Inject
+    InstMapper instMapper;
 
     /**
      * Query artifacts with pagination
@@ -91,18 +99,78 @@ public class ArtifactController extends ApiController {
     }
 
     /**
-     * Delete artifacts by IDs
+     * Delete artifacts by IDs.
+     * Also deletes the manifest from the registry so GC can clean up physical files.
      */
     @Mapping("del")
     public Result del(Context ctx, Long... id) {
         try {
-            for (Long i : id) {
-                artifactMapper.deleteById(i);
+            StringBuilder resultMsg = new StringBuilder();
+            for (Long artifactId : id) {
+                Artifact artifact = artifactMapper.selectById(artifactId);
+                if (artifact == null) {
+                    log.warn("Artifact not found: {}", artifactId);
+                    continue;
+                }
+
+                Inst inst = instMapper.selectById(artifact.getInstId());
+                Manifest manifest = manifestMapper.selectById(artifact.getManifestId());
+
+                // Delete manifest from registry (marks blobs for GC)
+                if (inst != null && manifest != null) {
+                    deleteRegistryManifest(inst, artifact.getRepoName(), manifest.getDigest());
+                    log.info("Deleted manifest from registry: {}/{} @ {}", inst.getName(), artifact.getFullName(), manifest.getDigest());
+
+                    // If manifest is a multi-arch index, also delete child manifests
+                    if (manifest.getDigest() != null) {
+                        List<Manifest> children = manifestMapper.findByParentDigest(inst.getId(), manifest.getDigest());
+                        if (children != null) {
+                            for (Manifest child : children) {
+                                deleteRegistryManifest(inst, artifact.getRepoName(), child.getDigest());
+                                log.info("Deleted child manifest from registry: {}", child.getDigest());
+                                manifestMapper.deleteById(child.getId());
+                            }
+                        }
+                    }
+                }
+
+                // Delete artifact from database
+                artifactMapper.deleteById(artifactId);
+
+                // If no other artifacts reference this manifest, delete it too
+                if (manifest != null) {
+                    List<Artifact> remaining = artifactMapper.selectList(c ->
+                            c.whereEq(Artifact.MANIFEST_ID, manifest.getId())
+                    );
+                    if (remaining == null || remaining.isEmpty()) {
+                        manifestMapper.deleteById(manifest.getId());
+                        log.info("Deleted orphaned manifest: {}", manifest.getDigest());
+                    }
+                }
+
+                resultMsg.append(artifact.getFullName()).append(" deleted. ");
             }
-            return Result.succeed("ok");
+            return Result.succeed(resultMsg.toString().trim());
         } catch (Exception e) {
             log.error("Failed to delete artifacts", e);
             return Result.failure(e.getMessage());
+        }
+    }
+
+    /**
+     * Call the registry's DELETE /v2/{name}/manifests/{reference} API
+     * to remove a manifest and mark its blobs for garbage collection.
+     */
+    private void deleteRegistryManifest(Inst inst, String repoName, String digest) {
+        int registryPort = inst.getPort() != null ? inst.getPort() : 5000;
+        String url = "http://127.0.0.1:" + registryPort + "/v2/" + repoName + "/manifests/" + digest;
+        try (HttpResponse response = HttpRequest.of(url)
+                .method(Method.DELETE)
+                .header("Accept", "application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json")
+                .execute()) {
+            if (!response.isOk() && response.getStatus() != 404) {
+                log.warn("Registry delete returned {}: {}", response.getStatus(), response.body());
+            }
         }
     }
 
