@@ -15,6 +15,7 @@ import com.dyrnq.distops.service.dto.ConfigVo;
 import com.dyrnq.distops.service.dto.InstQuery;
 import com.dyrnq.utils.IDUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.Strings;
 import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
@@ -85,7 +86,9 @@ public class InstController extends ApiController {
             if (ObjectUtil.isNull(inst.getId())) {
                 inst.setId(id);
             }
-
+            if (Strings.CI.equals("none", inst.getAuth())) {
+                inst.setAuth(null);
+            }
             instMapper.insert(inst, true);
             return Result.succeed("ok");
         } catch (Exception e) {
@@ -184,13 +187,19 @@ public class InstController extends ApiController {
             }
 
             instMapper.updateById(inst, true);
+
+            if (inst.getAuth() == null || Strings.CI.equals("none", inst.getAuth())) {
+                instMapper.db().table("inst").usingNull(true)
+                        .set("auth", null)
+                        .whereTrue().and().beginEq("id", inst.getId()).end().update();
+            }
+
             return Result.succeed("ok");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return Result.failure(e.getMessage());
         }
     }
-
 
 
     @Mapping("/config")
