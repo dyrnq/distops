@@ -439,13 +439,14 @@ public class InstService {
     public Map<String, ConfigVo> getInstConfig(Inst inst) {
         Map<String, ConfigVo> all = new LinkedHashMap<>();
 
+
         try {
-            all.put("supervisor", getSupervisorConfig(inst));
+            all.put("config.yaml", getRegistryConfig(inst));
         } catch (Exception ignore) {
 
         }
         try {
-            all.put("config.yaml", getRegistryConfig(inst));
+            all.put("supervisor", getSupervisorConfig(inst));
         } catch (Exception ignore) {
 
         }
