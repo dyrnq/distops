@@ -24,4 +24,5 @@ Related projects
 - [regclient.org](https://regclient.org)
 - [CNCF distribution](https://distribution.github.io/distribution/)
 - [GitHub docker_auth](https://github.com/cesanta/docker_auth)
+- [Supervisor: A Process Control System](https://supervisord.org/)
 
