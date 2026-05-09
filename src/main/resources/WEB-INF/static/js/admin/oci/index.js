@@ -19,7 +19,7 @@ var tagName = getUrlParam('tagName');
 var mediaType = getUrlParam('mediaType');
 
 if (!manifestId) {
-    layer.msg('缺少 manifestId 参数');
+    layer.msg('missing manifestId');
 }
 
 // 判断是 manifest list 还是单 manifest
@@ -27,29 +27,29 @@ function isManifestList() {
     return mediaType && (mediaType.includes('index') || mediaType.includes('manifest.list'));
 }
 
-// 加载 OCI 信息
+// 加载 Manifest 信息
 function loadOciInfo() {
     if (!manifestId) return;
 
     $.ajax({
-        url: ctx + '/api/artifact/queryOciByManifest',
+        url: ctx + '/api/artifact/queryManifest',
         type: 'post',
         contentType: 'application/json',
         data: JSON.stringify({manifestId: manifestId}),
         success: function(data) {
-            if (data.code == '200' && data.data && data.data.length > 0) {
-                var oci = data.data[0];
-                
-                // 判断类型并显示不同内容
-                if (isManifestList()) {
-                    // Manifest List - 多架构镜像
+            if (data.code == '200' && data.data) {
+                if (Array.isArray(data.data) && data.data.length > 0) {
+                    // OCI manifest list (multi-arch)
+                    var oci = data.data[0];
                     loadManifestListInfo(oci, data.data);
+                } else if (data.data.digest) {
+                    // Single manifest returned as object
+                    loadSingleManifestDetail(data.data);
                 } else {
-                    // Single Manifest - 单架构镜像
-                    loadSingleManifestInfo(oci, data.data);
+                    layer.msg('Manifest not found');
                 }
             } else {
-                layer.msg('未找到 OCI 信息');
+                layer.msg('Manifest not found');
             }
         },
         error: function() {
@@ -60,51 +60,83 @@ function loadOciInfo() {
 
 // 加载 Manifest List 信息（多架构）
 function loadManifestListInfo(oci, ociList) {
+    // Set OCI-specific labels
+    $('#pageTitle').text('OCI Image Index');
+    $('#cardTitle').text('OCI Manifest List');
+    $('#digestLabel').text('Manifest List Digest');
+    $('#archInfo').html('<strong>Architecture Count:</strong> <span id="arch_count"></span>');
+
     // 填充基本信息
     $('#tag_name').text(oci.tagName || '-');
     $('#full_name').text(oci.fullName || '-');
     $('#manifest_list_digest').text(oci.manifestListDigest || '-');
     $('#parent_media_type').text(oci.parentMediaType || '-');
-    $('#manifest_list_size').text(oci.manifestListSize || '-');
+    $('#manifest_list_size').text(formatSize(oci.manifestListSize));
     $('#manifest_list_created').text(oci.manifestListCreated ? layui.util.toDateString(oci.manifestListCreated, 'yyyy-MM-dd HH:mm:ss') : '-');
     $('#config_digest').text(oci.configDigest || '-');
     $('#arch_count').text(ociList.length);
-    
+
     // 加载子 manifest 列表
     loadChildManifests(ociList);
 }
 
-// 加载单 Manifest 信息（单架构）
-function loadSingleManifestInfo(oci, ociList) {
-    // 填充基本信息
-    $('#tag_name').text(oci.tagName || '-');
-    $('#full_name').text(oci.fullName || '-');
-    $('#manifest_list_digest').text(oci.childDigest || '-');
-    $('#parent_media_type').text(oci.childMediaType || '-');
-    $('#manifest_list_size').text(oci.childSize || '-');
-    $('#manifest_list_created').text(oci.childCreated ? layui.util.toDateString(oci.childCreated, 'yyyy-MM-dd HH:mm:ss') : '-');
-    $('#config_digest').text(oci.configDigest || '-');
-    $('#arch_count').text('1 (Single Arch)');
-    
-    // 隐藏子 manifest 表格，显示单架构信息
-    $('#arch_count').parent().html('<p><strong>Type:</strong> Single Architecture</p>' +
-        '<p><strong>Platform:</strong> ' + (oci.os || 'unknown') + '/' + (oci.osArch || 'unknown') + (oci.variant ? '/' + oci.variant : '') + '</p>');
-    
-    // 不加载子 manifest 列表
-    table.render({
-        elem: '#demo',
-        data: ociList,
-        page: false,
-        cols: [[
-            {type: 'numbers', title: '序号', width: 60}
-            , {field: 'info', title: 'Information', templet: function(d){
-                return '<div style="padding: 20px; text-align: center; color: #999;">' +
-                    'This is a single-architecture manifest.<br/>' +
-                    'Platform: ' + (d.os || 'unknown') + '/' + (d.osArch || 'unknown') + (d.variant ? '/' + d.variant : '') +
-                    '</div>';
-            }}
-        ]]
-    });
+// 加载单 Manifest 详情（从 API 返回的 Manifest 对象）
+function loadSingleManifestDetail(manifest) {
+    $('#pageTitle').text('Image Manifest');
+    $('#cardTitle').text('Manifest Detail');
+    $('#digestLabel').text('Manifest Digest');
+    $('#archInfo').html('<p><strong>Type:</strong> <span style="color: #FFB800;">Single Architecture</span></p><p><strong>Platform:</strong> <span id="platformInfo"></span></p>');
+
+    $('#tag_name').text(tagName || '-');
+    $('#full_name').text(tagName || '-');
+    $('#manifest_list_digest').text(manifest.digest || '-');
+    $('#parent_media_type').text(manifest.mediaType || '-');
+    $('#manifest_list_size').text(formatSize(manifest.size));
+    $('#manifest_list_created').text(manifest.created ? layui.util.toDateString(manifest.created, 'yyyy-MM-dd HH:mm:ss') : '-');
+    $('#config_digest').text(manifest.configDigest || '-');
+
+    var platform = (manifest.os || 'unknown') + '/' + (manifest.osArch || 'unknown') + (manifest.variant ? '/' + manifest.variant : '');
+    $('#platformInfo').text(platform).css({color: 'green', fontWeight: 'bold'});
+
+    var pullCmd = 'docker pull 192.168.66.125:5000/' + (tagName ? tagName.split(':')[0] : 'repo') + '@' + manifest.digest;
+
+    var detailHtml = '<div style="padding: 20px;">';
+    detailHtml += '<table class="layui-table"><colgroup><col width="150"><col></colgroup><tbody>';
+    detailHtml += '<tr><td><strong>Type</strong></td><td><span style="color: #FFB800;">Single Architecture</span></td></tr>';
+    detailHtml += '<tr><td><strong>Platform</strong></td><td><span style="color: green; font-weight: bold;">' + platform + '</span></td></tr>';
+    detailHtml += '<tr><td><strong>Digest</strong></td><td style="font-family: monospace; font-size: 12px;">' + (manifest.digest || '-') + '</td></tr>';
+    detailHtml += '<tr><td><strong>Media Type</strong></td><td style="font-size: 12px;">' + (manifest.mediaType || '-') + '</td></tr>';
+    detailHtml += '<tr><td><strong>Size</strong></td><td>' + formatSize(manifest.size) + '</td></tr>';
+    detailHtml += '<tr><td><strong>Created</strong></td><td>' + (manifest.created ? layui.util.toDateString(manifest.created, 'yyyy-MM-dd HH:mm:ss') : '-') + '</td></tr>';
+    detailHtml += '<tr><td><strong>Config Digest</strong></td><td style="font-family: monospace; font-size: 12px;">' + (manifest.configDigest || '-') + '</td></tr>';
+    detailHtml += '<tr><td><strong>Pull Command</strong></td><td style="padding: 8px 4px;">';
+    detailHtml += '<code style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; word-break: break-all;">' + pullCmd + '</code>';
+    detailHtml += '&nbsp;<button class="layui-btn layui-btn-xs layui-btn-normal" onclick="copyPullCmd()">Copy</button>';
+    detailHtml += '</td></tr></tbody></table>';
+
+    if (manifest.annotations) {
+        try {
+            var annObj = JSON.parse(manifest.annotations);
+            detailHtml += '<fieldset class="layui-elem-field" style="margin-top: 15px;"><legend>Annotations</legend><div class="layui-field-box">';
+            layui.each(annObj, function(key, value) {
+                detailHtml += '<p style="margin: 4px 0;"><strong style="color: #1E9FFF;">' + key + ':</strong> ' + value + '</p>';
+            });
+            detailHtml += '</div></fieldset>';
+        } catch(e) {}
+    }
+    detailHtml += '</div>';
+
+    $('#demo').html(detailHtml);
+    window._singlePullCmd = pullCmd;
+}
+
+// Copy pull command for single arch
+function copyPullCmd() {
+    if (window._singlePullCmd) {
+        navigator.clipboard.writeText(window._singlePullCmd).then(function() {
+            layer.msg('已复制');
+        });
+    }
 }
 
 // 加载子 manifest 列表
@@ -126,7 +158,6 @@ function loadChildManifests(ociList) {
         , cols: [[
             {type: 'numbers', title: '序号', width: 60}
             , {field: 'platform', title: 'Platform', width: 200, templet: function(d){
-                // 合并显示：os/arch[/variant]，类似 docker hub 格式
                 var platform = d.os || 'unknown';
                 if (d.osArch) {
                     platform += '/' + d.osArch;
@@ -175,20 +206,16 @@ function formatSize(bytes) {
 
 // 复制 Digest
 function copyDigest(digest) {
-    var input = document.createElement('input');
-    input.value = digest;
-    document.body.appendChild(input);
-    input.select();
-    document.execCommand('copy');
-    document.body.removeChild(input);
-    layer.msg('已复制到剪贴板');
+    navigator.clipboard.writeText(digest).then(function() {
+        layer.msg('已复制到剪贴板');
+    });
 }
 
 // 显示 Pull 命令
 function showPullCommand(digest, tagName) {
     var repoName = tagName ? tagName.split(':')[0] : 'repository';
     var pullCmd = 'docker pull 192.168.66.125:5000/' + repoName + '@' + digest;
-    
+
     layer.open({
         type: 1,
         area: ['600px', '200px'],
@@ -196,7 +223,7 @@ function showPullCommand(digest, tagName) {
         content: '<div style="padding: 20px;">' +
                  '<p style="margin-bottom: 10px;"><strong>Command:</strong></p>' +
                  '<textarea style="width: 100%; height: 80px; font-family: monospace;" readonly>' + pullCmd + '</textarea>' +
-                 '<button type="button" class="layui-btn layui-btn-normal layui-btn-sm" style="margin-top: 10px;" onclick="navigator.clipboard.writeText(\'' + pullCmd + '\');layer.msg(\'已复制\');">复制命令</button>' +
+                 '<button type="button" class="layui-btn layui-btn-normal layui-btn-sm" style="margin-top: 10px;" onclick="navigator.clipboard.writeText(\'' + pullCmd.replace(/'/g, "\\'") + '\');layer.msg(\'已复制\');">复制命令</button>' +
                  '</div>',
         shade: 0.6,
         shadeClose: true
@@ -209,7 +236,7 @@ function showAnnotations(annotations) {
         layer.msg('No annotations');
         return;
     }
-    
+
     try {
         var annObj = JSON.parse(annotations);
         var content = '<div style="padding: 10px; max-height: 400px; overflow-y: auto;">';
@@ -217,7 +244,7 @@ function showAnnotations(annotations) {
             content += '<p style="margin: 5px 0;"><strong style="color: #1E9FFF;">' + key + ':</strong> ' + value + '</p>';
         });
         content += '</div>';
-        
+
         layer.open({
             type: 1,
             area: ['600px', '500px'],
@@ -235,7 +262,7 @@ function showAnnotations(annotations) {
 table.on('tool(test)', function(obj){
     var data = obj.data;
     var layEvent = obj.event;
-    
+
     if (layEvent === 'copy') {
         copyDigest(data.childDigest);
     } else if (layEvent === 'pull') {

@@ -86,6 +86,7 @@ commonStr.autoE      = auto/enable
 commonStr.autoD      = auto/disable
 commonStr.data       = data
 commonStr.tips       = tips
+commonStr.detail     = Detail
 
 loginStr.add         = Add
 loginStr.authCode    = Auth code

@@ -247,15 +247,25 @@ public class ArtifactController extends ApiController {
         }
     }
 
-    @Mapping("queryOciByManifest")
-    public Result queryOciByManifest(Context ctx, Long manifestId) {
+    @Mapping("queryManifest")
+    public Result queryManifest(Context ctx, Long manifestId) {
         try {
-            List<ArtifactManifestOciView> artifactList = artifactManifestOciViewMapper.selectList(c -> {
+            // First try OCI manifest list (multi-arch)
+            List<ArtifactManifestOciView> ociList = artifactManifestOciViewMapper.selectList(c -> {
                 c.whereEq(ArtifactManifestOciView.MANIFEST_LIST_ID, manifestId);
             });
-            return Result.succeed(artifactList);
+            if (ociList != null && !ociList.isEmpty()) {
+                return Result.succeed(ociList);
+            }
+
+            // Not an OCI index, return single manifest detail
+            Manifest manifest = manifestMapper.selectById(manifestId);
+            if (manifest == null) {
+                return Result.failure("Manifest not found");
+            }
+            return Result.succeed(manifest);
         } catch (Exception e) {
-            log.error("Failed to query OCI artifacts by manifest", e);
+            log.error("Failed to query manifest", e);
             return Result.failure(e.getMessage());
         }
     }

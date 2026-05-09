@@ -86,6 +86,7 @@ commonStr.autoE      = 自动下载/打开
 commonStr.autoD      = 自动下载/关闭
 commonStr.data       = 数据
 commonStr.tips       = 说明
+commonStr.detail     = 详情
 
 loginStr.add         = 添加
 loginStr.authCode    = 身份码
