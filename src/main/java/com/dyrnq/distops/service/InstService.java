@@ -167,7 +167,9 @@ public class InstService {
         // Compute realm URL: use explicit config, or auto-detect from local IP
         String realmUrl = inst.getAuthRealm();
         if (StringUtils.isBlank(realmUrl)) {
-            realmUrl = "http://" + getLocalIp() + ":" + Solon.cfg().serverPort() + "/auth";
+            realmUrl = "http://" + getLocalIp() + ":" + Solon.cfg().serverPort() + "/auth/" + inst.getName();
+        } else if (!realmUrl.endsWith("/" + inst.getName())) {
+            realmUrl = realmUrl + "/" + inst.getName();
         }
         data.put("realm_url", realmUrl);
         data.put("service_name", StringUtils.defaultIfBlank(inst.getAuthService(), "registry.docker.io"));

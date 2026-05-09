@@ -42,7 +42,8 @@ public class AuthController {
                               @Param(required = false) String service,
                               @Param(required = false) List<String> scope,
                               @Header(value = "Authorization", required = false) String authorization) {
-        return authenticate(ctx, account, service, scope, authorization);
+        Inst inst = instMapper.selectById(1L);
+        return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
     @Mapping("/auth/token/?")
@@ -52,12 +53,45 @@ public class AuthController {
                                    @Param(required = false) List<String> scope,
                                    @Header(value = "Authorization", required = false) String authorization
     ) {
+        Inst inst = instMapper.selectById(1L);
+        return authenticate(ctx, inst, account, service, scope, authorization);
+    }
 
-        return authenticate(ctx, account, service, scope, authorization);
+    @Mapping("/auth/{instName}")
+    public TokenResponse authByInst(Context ctx,
+                                    @Path("instName") String instName,
+                                    @Param(required = false) String account,
+                                    @Param(required = false) String service,
+                                    @Param(required = false) List<String> scope,
+                                    @Header(value = "Authorization", required = false) String authorization) {
+        Inst inst = instMapper.findByName(instName);
+        if (inst == null) {
+            log.warn("Instance not found: {}", instName);
+            ctx.status(404);
+            return null;
+        }
+        return authenticate(ctx, inst, account, service, scope, authorization);
+    }
+
+    @Mapping("/auth/{instName}/token/?")
+    public TokenResponse authTokenByInst(Context ctx,
+                                         @Path("instName") String instName,
+                                         @Param(required = false) String account,
+                                         @Param(required = false) String service,
+                                         @Param(required = false) List<String> scope,
+                                         @Header(value = "Authorization", required = false) String authorization) {
+        Inst inst = instMapper.findByName(instName);
+        if (inst == null) {
+            log.warn("Instance not found: {}", instName);
+            ctx.status(404);
+            return null;
+        }
+        return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
 
     public TokenResponse authenticate(Context ctx,
+                                      Inst inst,
                                       String account,
                                       String service,
                                       List<String> scope,
@@ -83,8 +117,6 @@ public class AuthController {
 
             if (!authService.authenticate(authRequest.getUser(), authRequest.getPassword())) {
                 log.warn("Authentication failed for user: {}", authRequest.getUser());
-                // Get issuer from Inst table or use default
-                Inst inst = instMapper.selectById(1L);
                 String issuer = (inst != null && inst.getAuthIssuer() != null)
                         ? inst.getAuthIssuer()
                         : DEFAULT_ISSUER;
@@ -94,8 +126,6 @@ public class AuthController {
             }
 
             List<JWTPayload.ResourceAccess> accessList = authorizeScopes(authRequest);
-
-            Inst inst = instMapper.selectById(1L);
 
             String auth = inst.getAuthKeyType();
 
