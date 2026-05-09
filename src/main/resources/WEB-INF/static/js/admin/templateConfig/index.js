@@ -21,8 +21,8 @@ layui.use(function() {
     var element = layui.element;
 
     // init both ACE editors
-    editorYaml = initAceEditor("editorYaml", "yaml");
-    editorIni = initAceEditor("editorIni", "ini");
+    editorYaml = initAceEditor("editorYaml", "ftl");
+    editorIni = initAceEditor("editorIni", "ftl");
 
     // resize editors when tab switches
     element.on('tab(templateTabs)', function(data) {

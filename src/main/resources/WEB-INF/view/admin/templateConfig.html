@@ -9,6 +9,13 @@
     </style>
 </head>
 <body class="layui-layout-body">
+<div class="layui-layout layui-layout-admin">
+
+<#include "header.html"/>
+<#include "menu.html"/>
+
+<div class="layui-body">
+<div style="padding: 15px">
 <div class="layui-form">
     <div class="layui-tabs" id="templateTabs" lay-options="{headerMode:'normal'}">
         <ul class="layui-tabs-header">
@@ -28,6 +35,9 @@
     <div class="layui-form-item center" style="margin-top: 15px;">
         <button type="button" class="layui-btn layui-btn-normal" id="saveBtn">${i18n.get("commonStr.submit")}</button>
     </div>
+</div>
+</div>
+</div>
 </div>
 
 <#include "script.html"/>
