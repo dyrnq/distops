@@ -9,10 +9,10 @@
                 </a>
                 <dl class="layui-nav-child">
 
-                    <dd> <a href="${ctx}/admin/inst">inst</a> </dd>
-                    <dd> <a href="${ctx}/admin/repo">repo</a> </dd>
-                    <dd> <a href="${ctx}/admin/artifact">artifact</a> </dd>
-                    <dd> <a href="${ctx}/admin/account">account</a> </dd>
+                    <dd> <a href="${ctx}/admin/inst">${i18n.get("menu.inst")}</a> </dd>
+                    <dd> <a href="${ctx}/admin/repo">${i18n.get("menu.repo")}</a> </dd>
+                    <dd> <a href="${ctx}/admin/artifact">${i18n.get("menu.artifact")}</a> </dd>
+                    <dd> <a href="${ctx}/admin/account">${i18n.get("menu.account")}</a> </dd>
                 </dl>
             </li>
 
@@ -31,6 +31,18 @@
                         <a href="${ctx}/admin/about">${i18n.get("menu.about")}</a>
                     </dd>
 
+                </dl>
+            </li>
+        </ul>
+
+        <ul class="layui-nav layui-nav-tree" lay-filter="i18n" style="position: absolute; bottom: 0; width: 100%; border-top: 1px solid #393D49;">
+            <li class="layui-nav-item">
+                <a href="javascript:;" style="color: white;">
+                    <i class="layui-icon layui-icon-website"></i> ${langType}
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:i18n('en_US');">English</a></dd>
+                    <dd><a href="javascript:i18n('zh');">简体中文</a></dd>
                 </dl>
             </li>
         </ul>
