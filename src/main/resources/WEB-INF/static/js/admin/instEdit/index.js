@@ -7,6 +7,8 @@ function cleanData(d){
     }else{
         $('#addForm1 input[name="u"]').val("add");
         $("#div_id").show();
+        // set defaults for new records
+        $('#addForm1 select[name="logLevel"]').val('info');
     }
     layui.form.render('select');
     layui.form.render('checkbox');

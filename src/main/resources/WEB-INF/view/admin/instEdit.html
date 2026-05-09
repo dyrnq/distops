@@ -57,7 +57,12 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">logLevel</label>
                     <div class="layui-input-block">
-                        <input type="text" name="logLevel" class="layui-input">
+                        <select name="logLevel" lay-verify="">
+                            <option value="error">error</option>
+                            <option value="warn">warn</option>
+                            <option value="info" selected>info</option>
+                            <option value="debug">debug</option>
+                        </select>
                     </div>
                 </div>
 
