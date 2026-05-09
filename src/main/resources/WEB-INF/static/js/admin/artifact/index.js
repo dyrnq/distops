@@ -132,7 +132,7 @@ $('#addOver').click(function(){
             , {field: 'fullName', title: 'full_name', width: 300}
 //            , {field: 'manifestId', title: 'manifest_id', width: 200}
             , {field: 'mediaType', title: 'media_type', width: 400}
-            , {field: 'digest', title: 'digest', width: 400}
+//            , {field: 'digest', title: 'digest', width: 400}
             , {field: 'created', title: 'created', width: 180, templet: "<div>{{!d.created?'-':layui.util.toDateString(d.created, 'yyyy-MM-dd HH:mm:ss') }}</div>"}
             , {field: 'lastPushed', title: 'last_pushed', width: 180, sort: true, templet: "<div>{{!d.lastPushed?'-':layui.util.toDateString(d.lastPushed, 'yyyy-MM-dd HH:mm:ss') }}</div>"}
             , {field: 'lastPulled', title: 'last_pulled', width: 180, templet: "<div>{{!d.lastPulled?'-':layui.util.toDateString(d.lastPulled, 'yyyy-MM-dd HH:mm:ss') }}</div>"}

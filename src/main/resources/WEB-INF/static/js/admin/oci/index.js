@@ -75,6 +75,7 @@ function loadManifestListInfo(oci, ociList) {
     $('#manifest_list_created').text(oci.manifestListCreated ? layui.util.toDateString(oci.manifestListCreated, 'yyyy-MM-dd HH:mm:ss') : '-');
     $('#config_digest').text(oci.configDigest || '-');
     $('#arch_count').text(ociList.length);
+    window._currentRepoName = oci.repoName || '';
 
     // 加载子 manifest 列表
     loadChildManifests(ociList);
@@ -92,6 +93,7 @@ function loadSingleManifestDetail(manifest) {
     $('#manifest_list_digest').text(manifest.digest || '-');
     $('#parent_media_type').text(manifest.mediaType || '-');
     $('#manifest_list_size').text(formatSize(manifest.size));
+    window._currentRepoName = (tagName ? tagName.split(':')[0] : 'repo');
     $('#manifest_list_created').text(manifest.created ? layui.util.toDateString(manifest.created, 'yyyy-MM-dd HH:mm:ss') : '-');
     $('#config_digest').text(manifest.configDigest || '-');
 
@@ -212,21 +214,33 @@ function copyDigest(digest) {
 }
 
 // 显示 Pull 命令
-function showPullCommand(digest, tagName) {
-    var repoName = tagName ? tagName.split(':')[0] : 'repository';
-    var pullCmd = 'docker pull 192.168.66.125:5000/' + repoName + '@' + digest;
+function showPullCommand(digest, repoName) {
+    var pullCmd = 'docker pull 192.168.66.125:5000/' + (repoName || 'repo') + '@' + digest;
+
+    window._popupPullCmd = pullCmd;
 
     layer.open({
         type: 1,
-        area: ['600px', '200px'],
+        area: ['800px', '400px'],
         title: 'Pull Command',
         content: '<div style="padding: 20px;">' +
                  '<p style="margin-bottom: 10px;"><strong>Command:</strong></p>' +
-                 '<textarea style="width: 100%; height: 80px; font-family: monospace;" readonly>' + pullCmd + '</textarea>' +
-                 '<button type="button" class="layui-btn layui-btn-normal layui-btn-sm" style="margin-top: 10px;" onclick="navigator.clipboard.writeText(\'' + pullCmd.replace(/'/g, "\\'") + '\');layer.msg(\'已复制\');">复制命令</button>' +
+                 '<textarea id="popupPullTextarea" style="width: 100%; height: 80px; font-family: monospace;" readonly>' + pullCmd + '</textarea>' +
+                 '<button type="button" class="layui-btn layui-btn-normal layui-btn-sm" style="margin-top: 10px;" onclick="copyPopupPullCmd()">复制命令</button>' +
                  '</div>',
         shade: 0.6,
         shadeClose: true
+    });
+}
+
+function copyPopupPullCmd() {
+    var cmd = window._popupPullCmd || '';
+    if (!cmd) {
+        var ta = document.getElementById('popupPullTextarea');
+        if (ta) cmd = ta.value;
+    }
+    navigator.clipboard.writeText(cmd).then(function() {
+        layer.msg('已复制');
     });
 }
 
@@ -266,7 +280,7 @@ table.on('tool(test)', function(obj){
     if (layEvent === 'copy') {
         copyDigest(data.childDigest);
     } else if (layEvent === 'pull') {
-        showPullCommand(data.childDigest, data.tagName);
+        showPullCommand(data.childDigest, data.repoName);
     } else if (layEvent === 'detail') {
         showAnnotations(data.annotations);
     }
@@ -283,9 +297,9 @@ $('#copyDigest').click(function(){
 // 查看 Pull 命令
 $('#pullCommand').click(function(){
     var digest = $('#manifest_list_digest').text();
-    var tagName = $('#tag_name').text();
+    var repoName = window._currentRepoName || 'repo';
     if (digest && digest !== '-') {
-        showPullCommand(digest, tagName);
+        showPullCommand(digest, repoName);
     }
 });
 

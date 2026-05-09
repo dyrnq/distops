@@ -256,8 +256,10 @@ $('#addOver3').click(function(){
             , {field: 'id', title: 'id', width: 200, sort: true, fixed: 'left', totalRowText: '合计：'}
             , {field: 'name', title: 'name', width: 200}
             , {field: 'port', title: 'port', width: 100}
-            , {field: 'logLevel', title: 'logLevel',width: 100}
-            , {field: 'proxyRemoteurl', title: 'proxy',width: 100}
+            //, {field: 'logLevel', title: 'logLevel',width: 100}
+            , {field: 'type', title: 'type', width: 100, templet: function(d){
+                return (d.proxyRemoteurl && d.proxyRemoteurl.length > 0) ? '<span style="color: #1E9FFF;">proxy</span>' : '<span style="color: #5FB878;">registry</span>';
+            }}
             , {field: 'auth', title: 'auth',width: 100}
             , {field: 'pid', title: 'pid',width: 100}
             , {field: 'enabled', title: 'enabled', width: 100, templet: '<input type="checkbox" name="enabled" value="{{= d.id }}" title="开|" lay-skin="switch" lay-filter="demo-templet-status" {{= d.enabled == 1 ? "checked" : "" }}>'}
