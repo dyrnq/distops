@@ -85,6 +85,12 @@ public class AdminController extends BaseController {
         return model;
     }
 
+
+    @Mapping("templateConfig")
+    public Object templateConfig() {
+        ModelAndView model = new ModelAndView("admin/templateConfig.html");
+        return model;
+    }
     @Mapping("about")
     public Object about() {
         ModelAndView model = new ModelAndView("admin/about.html");

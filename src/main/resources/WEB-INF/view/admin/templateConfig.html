@@ -1,0 +1,37 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <#include "common.html"/>
+    <style type="text/css">
+        #editorYaml, #editorIni {
+            height: 500px;
+        }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-form">
+    <div class="layui-tabs" id="templateTabs" lay-options="{headerMode:'normal'}">
+        <ul class="layui-tabs-header">
+            <li lay-id="yaml" lay-closable="false">YAML (registry config)</li>
+            <li lay-id="ini" lay-closable="false">INI (supervisor)</li>
+        </ul>
+        <div class="layui-tabs-body">
+            <div class="layui-tabs-item">
+                <div id="editorYaml"></div>
+            </div>
+            <div class="layui-tabs-item">
+                <div id="editorIni"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="layui-form-item center" style="margin-top: 15px;">
+        <button type="button" class="layui-btn layui-btn-normal" id="saveBtn">${i18n.get("commonStr.submit")}</button>
+    </div>
+</div>
+
+<#include "script.html"/>
+
+<script src="${ctx}/js/admin/templateConfig/index.js?v=${jsrandom}" type="text/javascript"></script>
+</body>
+</html>
