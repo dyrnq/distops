@@ -52,17 +52,18 @@ public class AccountController extends ApiController {
     @Mapping("")
     public PageResult query(Context ctx, int page, int limit, AccountQuery query) {
         try {
-            Act1<MapperWhereQ> condition = mapperWhereQ -> {
-                mapperWhereQ.whereTrue();
-
-
-                if (StrUtil.isNotBlank(query.getInstName())) {
-                    mapperWhereQ.and().beginLk("name", "%" + query.getInstName() + "%").end();
-                }
-            };
             int start = PageUtil.getStart(page - 1, limit);
-            List<Account> list = instMapper.db().sql("select a.*, b.name as inst_name from account as a , inst as b where a.inst_id = b.id LIMIT ?,?", start, limit).getList(Account.class);
-            long count = instMapper.db().sql("select count(*) from account as a , inst as b where a.inst_id = b.id").getCount();
+            StringBuilder sql = new StringBuilder("select a.*, b.name as inst_name from account as a, inst as b where a.inst_id = b.id");
+            StringBuilder countSql = new StringBuilder("select count(*) from account as a, inst as b where a.inst_id = b.id");
+
+            if (StrUtil.isNotBlank(query.getInstName())) {
+                String like = " and b.name like '%" + query.getInstName() + "%'";
+                sql.append(like);
+                countSql.append(like);
+            }
+            sql.append(" LIMIT ?,?");
+            List<Account> list = instMapper.db().sql(sql.toString(), start, limit).getList(Account.class);
+            long count = instMapper.db().sql(countSql.toString()).getCount();
             return PageResult.succeed(list, count);
         } catch (Exception e) {
             log.error("Failed to query accounts", e);

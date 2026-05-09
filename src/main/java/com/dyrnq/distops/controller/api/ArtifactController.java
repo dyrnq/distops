@@ -53,11 +53,24 @@ public class ArtifactController extends ApiController {
         try {
             int start = PageUtil.getStart(page - 1, limit);
 
+            // Resolve instName to instId if provided
+            final Long filterInstId;
+            if (artQuery != null && StrUtil.isNotBlank(artQuery.getInstName())) {
+                com.dyrnq.distops.model.Inst inst = instMapper.findByName(artQuery.getInstName());
+                if (inst != null) {
+                    filterInstId = inst.getId();
+                } else {
+                    return PageResult.succeed(java.util.Collections.emptyList(), 0L);
+                }
+            } else {
+                filterInstId = null;
+            }
+
             Act1<MapperWhereQ> condition = mapperWhereQ -> {
                 mapperWhereQ.whereTrue();
-//                if (StrUtil.isNotBlank(artQuery.getFullName())) {
-//                    mapperWhereQ.and().beginLk(ArtifactManifestView.FULL_NAME, "%" + artQuery.getFullName() + "%").end();
-//                }
+                if (filterInstId != null) {
+                    mapperWhereQ.and().beginEq(ArtifactManifestView.INST_ID, filterInstId).end();
+                }
                 if (StrUtil.isNotBlank(artQuery.getRepoName())) {
                     mapperWhereQ.and().beginLk(ArtifactManifestView.FULL_NAME, "%" + artQuery.getRepoName() + "%").end();
                 }
@@ -67,9 +80,6 @@ public class ArtifactController extends ApiController {
                             .orLk(ArtifactManifestView.DIGEST, "%" + artQuery.getTagName() + "%")
                             .end();
                 }
-//                if (StrUtil.isNotBlank(artQuery.getDigest())) {
-//                    mapperWhereQ.and().beginLk(ArtifactManifestView.DIGEST, "%" + artQuery.getDigest() + "%").end();
-//                }
             };
 
             IPage<ArtifactManifestView> p = artifactManifestViewMapper.selectPage(start, limit, condition);

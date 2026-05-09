@@ -129,6 +129,8 @@ $('#addOver').click(function(){
 //            , {field: 'id', title: 'id', width: 200, sort: true, fixed: 'left'}
 //            , {field: 'repoName', title: 'repo_name', width: 250}
 //            , {field: 'tagName', title: 'tag_name', width: 150}
+            , {field: 'instId', title: 'instId', width: 150}
+            , {field: 'instName', title: 'instName', width: 150}
             , {field: 'fullName', title: 'full_name', width: 300}
 //            , {field: 'manifestId', title: 'manifest_id', width: 200}
             , {field: 'mediaType', title: 'media_type', width: 400}

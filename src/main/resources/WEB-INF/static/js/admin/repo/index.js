@@ -127,7 +127,8 @@ $('#addOver').click(function(){
         , cols: [[
             {type: 'checkbox', fixed: 'left'}
             , {field: 'id', title: 'id', width: 200, sort: true, fixed: 'left'}
-            , {field: 'instId', title: 'instId', width: 300}
+            , {field: 'instId', title: 'instId', width: 150}
+            , {field: 'instName', title: 'instName', width: 150}
             , {field: 'repoName', title: 'repo_name', width: 300}
             , {field: 'artifactCount', title: 'artifact_count', width: 200, sort: true}
             , {field: 'upstream', title: 'operation', fixed: 'right', templet: addLink}

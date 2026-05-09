@@ -281,7 +281,8 @@ public static final String PUSH_COUNT="push_count";
 **/
 
 //Customize BEGIN
-
+    @org.noear.wood.annotation.Column("inst_name")
+    public transient String instName;
 //Customize END
 
 }
