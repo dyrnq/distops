@@ -21,26 +21,26 @@
 
 ## 2. Technology Stack
 
-| Layer           | Technology                                                                 |
-|-----------------|----------------------------------------------------------------------------|
-| **Language**    | Java 21                                                                    |
-| **Framework**   | [Solon](https://solon.noear.org/) 3.10.4 (lightweight alternative to Spring Boot) |
-| **ORM**         | [Wood](https://github.com/noear/wood) (lightweight ORM by Noear)           |
-| **Templating**  | [FreeMarker](https://freemarker.apache.org/) for views and config generation |
-| **Database**    | H2 (embedded, default), SQLite (embedded), MySQL, PostgreSQL               |
-| **Migration**   | [Flyway](https://flywaydb.org/) 12.x                                       |
-| **Connection Pool** | [HikariCP](https://github.com/brettwooldridge/HikariCP) 7.x            |
-| **JWT (App)**   | [JJWT](https://github.com/jwtk/jjwt) 0.13.0 (io.jsonwebtoken)             |
-| **JWT (Registry Auth)** | [Nimbus JOSE+JWT](https://connect2id.com/products/nimbus-jose-jwt) 10.9 |
-| **Password**    | [password4j](https://github.com/Password4j/password4j) 1.8.4 + Hutool BCrypt               |
-| **CLI**         | [Picocli](https://picocli.info/) 4.7.7                                      |
-| **ID Gen**      | [TSID Creator](https://github.com/f4b6a3/tsid-creator) 5.2.6 (Snowflake-like) |
-| **YAML**        | [SnakeYAML](https://bitbucket.org/snakeyaml/snakeyaml/) + Jackson YAML     |
-| **Crypto**      | [Bouncy Castle](https://www.bouncycastle.org/) 1.84 (bcprov, bcpkix)       |
-| **HTTP Client** | [OkHttp](https://square.github.io/okhttp/) 5.3.2                            |
-| **Build Info**  | `build-info-maven-plugin` (embeds git revision and build datetime)         |
-| **Container**   | s6-overlay (process supervisor + init), supervisord (registry process mgmt) |
-| **Frontend**    | [Layui](https://layui.dev/) 2.x + [ECharts](https://echarts.apache.org/)  |
+| Layer                   | Technology                                                                        |
+|-------------------------|-----------------------------------------------------------------------------------|
+| **Language**            | Java 21                                                                           |
+| **Framework**           | [Solon](https://solon.noear.org/) 3.10.4 (lightweight alternative to Spring Boot) |
+| **ORM**                 | [Wood](https://github.com/noear/wood) (lightweight ORM by Noear)                  |
+| **Templating**          | [FreeMarker](https://freemarker.apache.org/) for views and config generation      |
+| **Database**            | H2 (embedded, default), SQLite (embedded), MySQL, PostgreSQL                      |
+| **Migration**           | [Flyway](https://flywaydb.org/) 12.x                                              |
+| **Connection Pool**     | [HikariCP](https://github.com/brettwooldridge/HikariCP) 7.x                       |
+| **JWT (App)**           | [JJWT](https://github.com/jwtk/jjwt) 0.13.0 (io.jsonwebtoken)                     |
+| **JWT (Registry Auth)** | [Nimbus JOSE+JWT](https://connect2id.com/products/nimbus-jose-jwt) 10.9           |
+| **Password**            | [password4j](https://github.com/Password4j/password4j) 1.8.4 + Hutool BCrypt      |
+| **CLI**                 | [Picocli](https://picocli.info/) 4.7.7                                            |
+| **ID Gen**              | [TSID Creator](https://github.com/f4b6a3/tsid-creator) 5.2.6 (Snowflake-like)     |
+| **YAML**                | [SnakeYAML](https://bitbucket.org/snakeyaml/snakeyaml/) + Jackson YAML            |
+| **Crypto**              | [Bouncy Castle](https://www.bouncycastle.org/) 1.84 (bcprov, bcpkix)              |
+| **HTTP Client**         | [OkHttp](https://square.github.io/okhttp/) 5.3.2                                  |
+| **Build Info**          | `build-info-maven-plugin` (embeds git revision and build datetime)                |
+| **Container**           | s6-overlay (process supervisor + init), supervisord (registry process mgmt)       |
+| **Frontend**            | [Layui](https://layui.dev/) 2.x + [ECharts](https://echarts.apache.org/)          |
 
 ---
 
@@ -195,15 +195,15 @@ Inst (Registry Instance)
 
 ### 5.2 Database Tables
 
-| Table                  | Description                                                  |
-|------------------------|--------------------------------------------------------------|
-| `inst`                 | Registry instance configuration (port, auth, proxy, env)     |
-| `repo`                 | Image repositories per instance                              |
-| `manifest`             | OCI/Docker manifest metadata (digest, media type, platform, annotations) |
-| `artifact`             | Image tags referencing manifests                             |
-| `account`              | Docker Registry user accounts with BCrypt hashes and ACL     |
-| `user`                 | System admin users (for the web UI)                          |
-| `global_config`        | Key-value store for runtime configuration templates          |
+| Table           | Description                                                              |
+|-----------------|--------------------------------------------------------------------------|
+| `inst`          | Registry instance configuration (port, auth, proxy, env)                 |
+| `repo`          | Image repositories per instance                                          |
+| `manifest`      | OCI/Docker manifest metadata (digest, media type, platform, annotations) |
+| `artifact`      | Image tags referencing manifests                                         |
+| `account`       | Docker Registry user accounts with BCrypt hashes and ACL                 |
+| `user`          | System admin users (for the web UI)                                      |
+| `global_config` | Key-value store for runtime configuration templates                      |
 
 ### 5.3 Database Views
 
@@ -299,11 +299,12 @@ Generates a supervisord program definition:
 
 ### 7.1 Auth Types
 
-| Type       | Description                                      |
-|------------|--------------------------------------------------|
-| `none`     | No authentication (development only)             |
-| `htpasswd` | Basic HTTP authentication backed by htpasswd file|
-| `token`    | JWT Bearer token authentication (Docker v2)      |
+| Type       | Description                                                            |
+|------------|------------------------------------------------------------------------|
+| `none`     | No authentication (development only)                                   |
+| `htpasswd` | Basic HTTP authentication backed by htpasswd file                      |
+| `token`    | JWT Bearer token authentication (Docker v2)                            |
+| `silly`    | The silly authentication provider is only appropriate for development. |
 
 ### 7.2 Token Authentication Flow
 
