@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <#include "common.html"/>
+    <style type="text/css">
+        .long { width: 210px; }
+        .short { width: 110px!important; }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-form">
+<form id="addForm1">
+    <input type="hidden" name="u">
+
+    <div class="layui-form-item" id="div_id" style="display: none">
+        <label class="layui-form-label">id</label>
+        <div class="layui-input-block">
+            <input type="text" name="id" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">instId</label>
+        <div class="layui-input-block">
+            <input type="text" name="instId" class="layui-input" placeholder="Instance ID (default: 1)">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">username</label>
+        <div class="layui-input-block">
+            <input type="text" name="username" class="layui-input">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">password</label>
+        <div class="layui-input-block">
+            <input type="text" name="password" class="layui-input" placeholder="Leave blank to keep current password">
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">enabled</label>
+        <div class="layui-input-block">
+            <input type="checkbox" name="enabled" title="ON|OFF" lay-skin="switch" value="0" checked lay-filter="demo-checkbox-filter">
+        </div>
+    </div>
+
+    <div class="layui-form-item center">
+        <button type="button" class="layui-btn layui-btn-normal" id="addOver">${i18n.get("commonStr.submit")}</button>
+    </div>
+</form>
+</div>
+
+<#include "script.html"/>
+
+<script>
+    let id="${id!}"
+</script>
+
+<script src="${ctx}/lib/base64/base64.js" type="text/javascript"></script>
+<script src="${ctx}/js/admin/accountEdit/index.js?v=${jsrandom}" type="text/javascript"></script>
+</body>
+</html>

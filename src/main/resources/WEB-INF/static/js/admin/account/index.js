@@ -124,59 +124,20 @@ form.on('switch(demo-checkbox-filter)', function(data){
    });
 
 $('#add').click(function(){
-    cleanData(false);
     layer.open({
-        type: 1,
-        area: ['800px', '600px'],
-        title: 'Add',
-        content : $('#windowDiv'),
+        type: 2,
+        title: 'Add Account',
+        shadeClose: true,
+        shade: 0.8,
+        area: ['500px', '450px'],
+        content: ctx + '/admin/accountEdit',
         anim: 'slideRight',
-        shade: 0.6, // 遮罩透明度
-        shadeClose: true, // 点击遮罩区域，关闭弹层
-        maxmin: true, // 允许全屏最小化
+        maxmin: true,
         skin: 'layui-layer-win10'
     });
-
 });
 
-$('#addOver').click(function(){
-    let u = $('#addForm1 input[name="u"]').val();
-    var formData = $('#addForm1').serializeArray();
-    var fieldName = 'autoJob'; // 要判断的参数名
-    $.each(formData, function() {
-      if (this.name === fieldName) {
-        //console.log('包含字段：' + fieldName);
-        if ( $('#addForm1 input[name="autoJob"]').prop('checked') === false){
-            this.value = '0';
-        }else{
-            this.value = '1';
-        }
-      }
-    });
-    var serializedData = formData.reduce(function(acc, curr) {
-      return acc + (acc ? '&' : '') + curr.name + '=' + curr.value;
-    }, '');
 
-//    console.log(serializedData);
-    $.ajax({
-        type : 'POST',
-        url: ctx + '/api/account/'+u,
-        data : serializedData,
-        dataType : 'json',
-        success : function(data) {
-            if(data.code=='200'){
-                layer.closeAll();
-                layer.msg(commonStr.success);
-                table.reload('demo',{});
-            } else {
-                layer.msg(data.description);
-            }
-        },
-        error : function() {
-            layer.alert(commonStr.errorInfo);
-        }
-    });
-});
 
 
 
@@ -353,16 +314,15 @@ $('#addOverAcl').click(function(){
                 }
                 break;
             case 'add':
-                cleanData(false);
                 layer.open({
-                    type: 1,
-                    area: ['800px', '600px'],
-                    title: 'Add',
-                    content : $('#windowDiv'),
+                    type: 2,
+                    title: 'Add Account',
+                    shadeClose: true,
+                    shade: 0.8,
+                    area: ['500px', '450px'],
+                    content: ctx + '/admin/accountEdit',
                     anim: 'slideRight',
-                    shade: 0.6, // 遮罩透明度
-                    shadeClose: true, // 点击遮罩区域，关闭弹层
-                    maxmin: true, // 允许全屏最小化
+                    maxmin: true,
                     skin: 'layui-layer-win10'
                 });
                 break;
@@ -476,54 +436,16 @@ $('#addOverAcl').click(function(){
                 });
 
         } else if (layEvent === 'edit'){
-
-                //console.log(obj.data.id);
-                cleanData(true);
-                $.ajax({
-                    url: ctx + '/api/account/get',
-                    type:'post',
-                    contentType: 'application/json',
-                    data:JSON.stringify({id:obj.data.id}),
-                    success:function (data,statusText) {
-
-
-                        if(data.code=='200'){
-
-                            //批量回添数据
-                            $('#addForm1 input, #addForm1 select, #addForm1 textarea, #addForm1 checkbox').each(function() {
-                              var elementName = $(this).attr('name');
-                              if (elementName in data.data) { // 判断对象中是否有该属性
-                                $(this).val(data.data[elementName]); // 将属性对应的值填充到表单元素中
-                              }
-                              if ( elementName == 'autoJob') {
-                                if (data.data[elementName] == 1) {
-                                    $(this).prop('checked', true);
-                                }else {
-                                    $(this).prop('checked', false);
-                                }
-                              }
-                            });
-                            layui.form.render('select');
-                            layui.form.render('checkbox');
-
-                            layer.open({
-                                type: 1,
-                                area: ['800px', '600px'],
-                                title: 'Edit',
-                                content : $('#windowDiv'),
-                                anim: 'slideRight',
-                                shade: 0.6, // 遮罩透明度
-                                shadeClose: true, // 点击遮罩区域，关闭弹层
-                                maxmin: true, // 允许全屏最小化
-                                skin: 'layui-layer-win10'
-                            });
-                        }else{
-                             layer.msg(data.description);
-                        }
-                    },
-                    'error':function () {
-                        layer.msg(commonStr.errorInfo);
-                    }
+                layer.open({
+                    type: 2,
+                    title: 'Edit Account',
+                    shadeClose: true,
+                    shade: 0.8,
+                    area: ['500px', '450px'],
+                    content: ctx + '/admin/accountEdit-' + obj.data.id,
+                    anim: 'slideRight',
+                    maxmin: true,
+                    skin: 'layui-layer-win10'
                 });
             }else if (layEvent === 'acl'){
                              // Open ACL editor
