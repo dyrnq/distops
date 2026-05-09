@@ -67,6 +67,27 @@ public class InstService {
     }
 
     /**
+     * Deep merge source map into target map recursively.
+     * Nested maps are merged; all other values are replaced.
+     */
+    @SuppressWarnings("unchecked")
+    private static void deepMerge(Map<String, Object> target, Map<String, Object> source) {
+        for (Map.Entry<String, Object> entry : source.entrySet()) {
+            String key = entry.getKey();
+            Object sourceValue = entry.getValue();
+            Object targetValue = target.get(key);
+
+            if (sourceValue instanceof Map && targetValue instanceof Map) {
+                Map<String, Object> targetMap = (Map<String, Object>) targetValue;
+                Map<String, Object> sourceMap = (Map<String, Object>) sourceValue;
+                deepMerge(targetMap, sourceMap);
+            } else {
+                target.put(key, sourceValue);
+            }
+        }
+    }
+
+    /**
      * Write htpasswd file from Account table (preferred) or Htpasswd table (legacy)
      */
     public void writeHtpasswd(Inst inst) {
@@ -186,7 +207,7 @@ public class InstService {
                     mergedMap.remove("notifications");
                 }
                 if (extra != null) {
-                    mergedMap.putAll(extra);
+                    deepMerge(mergedMap, extra);
                 }
 
 
