@@ -135,9 +135,22 @@ function loadSingleManifestDetail(manifest) {
 // Copy pull command for single arch
 function copyPullCmd() {
     if (window._singlePullCmd) {
-        navigator.clipboard.writeText(window._singlePullCmd).then(function() {
+        var cmd = window._singlePullCmd;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(cmd).then(function() {
+                layer.msg('已复制');
+            });
+        } else {
+            var ta = document.createElement('textarea');
+            ta.value = cmd;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
             layer.msg('已复制');
-        });
+        }
     }
 }
 
@@ -208,9 +221,21 @@ function formatSize(bytes) {
 
 // 复制 Digest
 function copyDigest(digest) {
-    navigator.clipboard.writeText(digest).then(function() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(digest).then(function() {
+            layer.msg('已复制到剪贴板');
+        });
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = digest;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
         layer.msg('已复制到剪贴板');
-    });
+    }
 }
 
 // 显示 Pull 命令
@@ -233,16 +258,7 @@ function showPullCommand(digest, repoName) {
     });
 }
 
-function copyPopupPullCmd() {
-    var cmd = window._popupPullCmd || '';
-    if (!cmd) {
-        var ta = document.getElementById('popupPullTextarea');
-        if (ta) cmd = ta.value;
-    }
-    navigator.clipboard.writeText(cmd).then(function() {
-        layer.msg('已复制');
-    });
-}
+
 
 // 显示 Annotations
 function showAnnotations(annotations) {
@@ -302,6 +318,32 @@ $('#pullCommand').click(function(){
         showPullCommand(digest, repoName);
     }
 });
+
+// Global function for popup copy button (called from inline onclick)
+window.copyPopupPullCmd = function() {
+    var cmd = window._popupPullCmd || '';
+    if (!cmd) {
+        var ta = document.getElementById('popupPullTextarea');
+        if (ta) cmd = ta.value;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(cmd).then(function() {
+            layer.msg('已复制');
+        });
+    } else {
+        var textarea = document.getElementById('popupPullTextarea');
+        if (!textarea) {
+            textarea = document.createElement('textarea');
+            textarea.value = cmd;
+            textarea.style.position = 'fixed';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+        }
+        textarea.select();
+        document.execCommand('copy');
+        layer.msg('已复制');
+    }
+};
 
 // 页面加载时初始化
 $(document).ready(function(){
