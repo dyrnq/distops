@@ -53,10 +53,6 @@ CALL.md
 
 rg.sh
 go.sh
-scripts/gen-ec-keys.sh
-scripts/jwks.json
-scripts/mvn-gen.sh
-scripts/nginx.sh
 buildx.sh
 build.sh
 chmod.sh
@@ -66,4 +62,4 @@ gen.sh
 reload.sh
 run.sh
 docker/rootfs/*.jar
-
+.qwen
