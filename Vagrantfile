@@ -32,8 +32,8 @@ Vagrant.configure("2") do |config|
                 vb.customize ["modifyvm", :id, "--natdnshostresolver1", "on"]
                 vb.customize ["modifyvm", :id, "--vram", "128"]
                 vb.customize ["modifyvm", :id, "--ioapic", "on"]
-                vb.customize ["modifyvm", :id, "--cpus", "2"]
-                vb.customize ["modifyvm", :id, "--memory", "4096"]
+                vb.customize ["modifyvm", :id, "--cpus", "8"]
+                vb.customize ["modifyvm", :id, "--memory", "16384"]
             end
 
              machine.vm.provision "shell", path: "scripts/provision.sh"
