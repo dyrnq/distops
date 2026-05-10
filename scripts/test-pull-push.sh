@@ -43,3 +43,11 @@ docker://192.168.66.125:5000/"${i}"
 
 done
 
+
+skopeo login      --tls-verify=false --username test --password test 192.168.66.125:5000
+skopeo list-tags  --tls-verify=false docker://192.168.66.125:5000/library/busybox
+skopeo inspect    --tls-verify=false docker://192.168.66.125:5000/library/busybox:1.37.0-musl
+skopeo logout 192.168.66.125:5000
+docker logout 192.168.66.125:5000
+test=$(skopeo list-tags  --tls-verify=false docker://192.168.66.125:5000/library/busybox 2>&1)
+grep -q "authentication required" <<< "${test}" && echo "assert pass"
