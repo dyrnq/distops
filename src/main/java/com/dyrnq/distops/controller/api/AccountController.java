@@ -203,25 +203,23 @@ public class AccountController extends ApiController {
      * Enable account
      */
     @Mapping("enable")
-    public Result enable(Context ctx, long id) {
+    public Result enable(Context ctx, long... id) {
         try {
-            Account account = accountMapper.selectById(id);
-            if (account == null) {
-                return Result.failure("Account not found");
-            }
-
-            account.setEnabled(1);
-            accountMapper.updateById(account, true);
-
-            // Update htpasswd file
-            if (account.getInstId() != null) {
-                Inst inst = instMapper.selectById(account.getInstId());
-                if (inst != null) {
-                    instService.writeHtpasswd(inst);
+            for (long i : id) {
+                Account account = accountMapper.selectById(i);
+                if (account == null) {
+                    continue;
                 }
+                account.setEnabled(1);
+                accountMapper.updateById(account, true);
+                if (account.getInstId() != null) {
+                    Inst inst = instMapper.selectById(account.getInstId());
+                    if (inst != null) {
+                        instService.writeHtpasswd(inst);
+                    }
+                }
+                log.info("Enabled account: {}", account.getUsername());
             }
-
-            log.info("Enabled account: {}", account.getUsername());
             return Result.succeed("ok");
         } catch (Exception e) {
             log.error("Failed to enable account", e);
@@ -233,25 +231,23 @@ public class AccountController extends ApiController {
      * Disable account
      */
     @Mapping("disable")
-    public Result disable(Context ctx, long id) {
+    public Result disable(Context ctx, long... id) {
         try {
-            Account account = accountMapper.selectById(id);
-            if (account == null) {
-                return Result.failure("Account not found");
-            }
-
-            account.setEnabled(0);
-            accountMapper.updateById(account, true);
-
-            // Update htpasswd file
-            if (account.getInstId() != null) {
-                Inst inst = instMapper.selectById(account.getInstId());
-                if (inst != null) {
-                    instService.writeHtpasswd(inst);
+            for (long i : id) {
+                Account account = accountMapper.selectById(i);
+                if (account == null) {
+                    continue;
                 }
+                account.setEnabled(0);
+                accountMapper.updateById(account, true);
+                if (account.getInstId() != null) {
+                    Inst inst = instMapper.selectById(account.getInstId());
+                    if (inst != null) {
+                        instService.writeHtpasswd(inst);
+                    }
+                }
+                log.info("Disabled account: {}", account.getUsername());
             }
-
-            log.info("Disabled account: {}", account.getUsername());
             return Result.succeed("ok");
         } catch (Exception e) {
             log.error("Failed to disable account", e);

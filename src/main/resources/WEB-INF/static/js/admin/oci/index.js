@@ -100,7 +100,9 @@ function loadSingleManifestDetail(manifest) {
     var platform = (manifest.os || 'unknown') + '/' + (manifest.osArch || 'unknown') + (manifest.variant ? '/' + manifest.variant : '');
     $('#platformInfo').text(platform).css({color: 'green', fontWeight: 'bold'});
 
-    var pullCmd = 'docker pull 192.168.66.125:5000/' + (tagName ? tagName.split(':')[0] : 'repo') + '@' + manifest.digest;
+    var repoName = tagName ? tagName.split(':')[0] : 'repo';
+    var commands = buildPullCommands(manifest.digest, repoName);
+    window._pullCommands = commands;
 
     var detailHtml = '<div style="padding: 20px;">';
     detailHtml += '<table class="layui-table"><colgroup><col width="150"><col></colgroup><tbody>';
@@ -111,10 +113,16 @@ function loadSingleManifestDetail(manifest) {
     detailHtml += '<tr><td><strong>Size</strong></td><td>' + formatSize(manifest.size) + '</td></tr>';
     detailHtml += '<tr><td><strong>Created</strong></td><td>' + (manifest.created ? layui.util.toDateString(manifest.created, 'yyyy-MM-dd HH:mm:ss') : '-') + '</td></tr>';
     detailHtml += '<tr><td><strong>Config Digest</strong></td><td style="font-family: monospace; font-size: 12px;">' + (manifest.configDigest || '-') + '</td></tr>';
-    detailHtml += '<tr><td><strong>Pull Command</strong></td><td style="padding: 8px 4px;">';
-    detailHtml += '<code style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; word-break: break-all;">' + pullCmd + '</code>';
-    detailHtml += '&nbsp;<button class="layui-btn layui-btn-xs layui-btn-normal" onclick="copyPullCmd()">Copy</button>';
-    detailHtml += '</td></tr></tbody></table>';
+
+    for (var i = 0; i < commands.length; i++) {
+        var label = (i === 0) ? '<strong>Pull Commands</strong>' : '';
+        detailHtml += '<tr><td>' + label + '</td><td style="padding: 4px;">';
+        detailHtml += '<span style="font-weight: bold; color: #1E9FFF;">' + commands[i].name + ':</span> ';
+        detailHtml += '<code style="background: #f0f0f0; padding: 4px 8px; border-radius: 4px; font-size: 12px; word-break: break-all; display: block; margin: 2px 0;">' + commands[i].cmd + '</code>';
+        detailHtml += copyBtnHtml(i);
+        detailHtml += '</td></tr>';
+    }
+    detailHtml += '</tbody></table>';
 
     if (manifest.annotations) {
         try {
@@ -129,30 +137,10 @@ function loadSingleManifestDetail(manifest) {
     detailHtml += '</div>';
 
     $('#demo').html(detailHtml);
-    window._singlePullCmd = pullCmd;
 }
 
 // Copy pull command for single arch
-function copyPullCmd() {
-    if (window._singlePullCmd) {
-        var cmd = window._singlePullCmd;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(cmd).then(function() {
-                layer.msg('已复制');
-            });
-        } else {
-            var ta = document.createElement('textarea');
-            ta.value = cmd;
-            ta.style.position = 'fixed';
-            ta.style.left = '-9999px';
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-            layer.msg('已复制');
-        }
-    }
-}
+
 
 // 加载子 manifest 列表
 function loadChildManifests(ociList) {
@@ -238,25 +226,49 @@ function copyDigest(digest) {
     }
 }
 
+// 生成 pull 命令列表
+function buildPullCommands(digest, repoName) {
+    var base = '192.168.66.125:5000/' + (repoName || 'repo') + '@' + digest;
+    return [
+        { name: 'docker', cmd: 'docker pull ' + base },
+        { name: 'nerdctl', cmd: 'nerdctl pull ' + base },
+        { name: 'ctr', cmd: 'ctr image pull ' + base }
+    ];
+}
+
+// 生成 copy 按钮 HTML
+function copyBtnHtml(index) {
+    return '<button type="button" class="layui-btn layui-btn-xs layui-btn-normal" onclick="copyPullCmdByIndex(' + index + ')">Copy</button>';
+}
+
 // 显示 Pull 命令
 function showPullCommand(digest, repoName) {
-    var pullCmd = 'docker pull 192.168.66.125:5000/' + (repoName || 'repo') + '@' + digest;
+    var commands = buildPullCommands(digest, repoName);
+    window._pullCommands = commands;
 
-    window._popupPullCmd = pullCmd;
+    var html = '<div style="padding: 20px;">';
+    for (var i = 0; i < commands.length; i++) {
+        html += '<div style="margin-bottom: 12px;">';
+        html += '<strong>' + commands[i].name + ':</strong>';
+        html += '<div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">';
+        html += '<code style="flex: 1; background: #f0f0f0; padding: 6px 10px; border-radius: 4px; font-size: 13px; word-break: break-all;">' + commands[i].cmd + '</code>';
+        html += copyBtnHtml(i);
+        html += '</div></div>';
+    }
+    html += '</div>';
 
     layer.open({
         type: 1,
-        area: ['800px', '400px'],
-        title: 'Pull Command',
-        content: '<div style="padding: 20px;">' +
-                 '<p style="margin-bottom: 10px;"><strong>Command:</strong></p>' +
-                 '<textarea id="popupPullTextarea" style="width: 100%; height: 80px; font-family: monospace;" readonly>' + pullCmd + '</textarea>' +
-                 '<button type="button" class="layui-btn layui-btn-normal layui-btn-sm" style="margin-top: 10px;" onclick="copyPopupPullCmd()">复制命令</button>' +
-                 '</div>',
+        area: ['70%', '50%'],
+        title: 'Pull Commands',
+        content: html,
         shade: 0.6,
         shadeClose: true
     });
 }
+
+// 通过 index 复制 pull 命令
+
 
 
 
@@ -320,30 +332,7 @@ $('#pullCommand').click(function(){
 });
 
 // Global function for popup copy button (called from inline onclick)
-window.copyPopupPullCmd = function() {
-    var cmd = window._popupPullCmd || '';
-    if (!cmd) {
-        var ta = document.getElementById('popupPullTextarea');
-        if (ta) cmd = ta.value;
-    }
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(cmd).then(function() {
-            layer.msg('已复制');
-        });
-    } else {
-        var textarea = document.getElementById('popupPullTextarea');
-        if (!textarea) {
-            textarea = document.createElement('textarea');
-            textarea.value = cmd;
-            textarea.style.position = 'fixed';
-            textarea.style.left = '-9999px';
-            document.body.appendChild(textarea);
-        }
-        textarea.select();
-        document.execCommand('copy');
-        layer.msg('已复制');
-    }
-};
+
 
 // 页面加载时初始化
 $(document).ready(function(){
@@ -351,3 +340,26 @@ $(document).ready(function(){
 });
 
 });
+
+// Global function for copy buttons (called from inline onclick)
+window.copyPullCmdByIndex = function(index) {
+    var cmd = '';
+    if (window._pullCommands && window._pullCommands[index]) {
+        cmd = window._pullCommands[index].cmd;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(cmd).then(function() {
+            layer.msg('已复制');
+        });
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = cmd;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        layer.msg('已复制');
+    }
+};

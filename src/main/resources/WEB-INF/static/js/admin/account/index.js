@@ -191,6 +191,7 @@ $('#addOver3').click(function(){
             , {field: 'password', title: 'password', width: 200}
             , {field: 'instId', title: 'instId',width: 100}
             , {field: 'instName', title: 'instName',width: 100}
+            , {field: 'enabled', title: 'enabled', width: 100, templet: function(d){ return d.enabled == 1 ? '<span style="color: #5FB878;">ON</span>' : '<span style="color: #FF5722;">OFF</span>'; }}
             , {field: 'upstream', title: 'operation', fixed: 'right', templet: addLink}
 
 //            , {field: 'insertTime', title: 'insert_time', sort: true, width: 300, templet: "<div>{{!d.insertTime?'-':layui.util.toDateString(d.insertTime, 'yyyy-MM-dd HH:mm:ss') }}</div>" }
@@ -315,10 +316,10 @@ $('#addOver3').click(function(){
                     show: true,
                     data: [
                         {title: commonStr.del, id: 'del'},
-                        {title: commonStr.autoE, id: 'enable'},
-                        {title: commonStr.autoD, id: 'disable'},
-                        {title: commonStr.download, id: 'download'},
-                        {title: commonStr.reset, id: 'reset'},
+                        {title: commonStr.enable, id: 'enable'},
+                        {title: commonStr.disable, id: 'disable'},
+                        // {title: commonStr.download, id: 'download'},
+                        // {title: commonStr.reset, id: 'reset'},
 
                         ],
                     click: function(data, othis){
