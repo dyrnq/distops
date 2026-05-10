@@ -59,7 +59,7 @@ public class AppFilter implements Filter {
         cookName.put("instId", CookieName.NAME_INSTID);
         ctx.attrSet("projectName", projectName);
         ctx.attrSet("cookName", JSONUtil.toJsonStr(cookName));
-        ctx.attrSet("cfg", "{ \"pageLimit\":10, \"pageLimits\":[10,20,50,100,1000], \"aceMode\": \"yaml\" }");
+        ctx.attrSet("cfg", "{ \"pageLimit\":50, \"pageLimits\":[50,100,1000,10000], \"aceMode\": \"yaml\" }");
         ctx.attrSet("ctx", getCtxStr(ctx));
         ctx.attrSet("currentVersion", VersionUtils.getVersion());
         ctx.attrSet("gitRevision", VersionUtils.getGitRevision());
