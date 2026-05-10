@@ -38,14 +38,17 @@ function nginxConfig(inst, cfg) {
     conf += 'server {\n';
 
     if (ssl) {
-        var opts = http2 ? ' ssl http2' : ' ssl';
-        conf += '    listen ' + listenPort + opts + ';\n';
-        conf += '    listen [::]:' + listenPort + opts + ';\n';
+        conf += '    listen ' + listenPort + ' ssl;\n';
+        conf += '    listen [::]:' + listenPort + ' ssl;\n';
         conf += '    server_name ' + domain + ';\n\n';
         conf += '    ssl_certificate /etc/nginx/ssl/' + domain + '.pem;\n';
         conf += '    ssl_certificate_key /etc/nginx/ssl/' + domain + '-key.pem;\n';
         conf += '    ssl_protocols TLSv1.2 TLSv1.3;\n';
-        conf += '    ssl_ciphers HIGH:!aNULL:!MD5;\n\n';
+        conf += '    ssl_ciphers HIGH:!aNULL:!MD5;\n';
+        if (http2) {
+            conf += '    http2 on;\n';
+        }
+        conf += '\n';
     } else {
         conf += '    listen ' + listenPort + ';\n';
         conf += '    server_name ' + domain + ';\n\n';
@@ -118,7 +121,7 @@ function apacheConfig(inst, cfg) {
     conf += '    <Location /v2/>\n';
     conf += '        ProxyPass http://127.0.0.1:' + registryPort + '\n';
     conf += '        ProxyPassReverse http://127.0.0.1:' + registryPort + '\n';
-    conf += '        RequestHeader set X-Forwarded-Proto "https"\n';
+    conf += '        RequestHeader set X-Forwarded-Proto "' + (ssl ? 'https' : 'http') + '"\n';
     conf += '    </Location>\n\n';
     conf += '    ProxyTimeout 900\n';
     conf += '</VirtualHost>\n';

@@ -3,76 +3,23 @@
 <head>
     <#include "common.html"/>
     <style type="text/css">
-
-        .long{
-            width: 210px;
-        }
-
-        .short{
-            width: 110px!important;
-        }
-
-        input[name='param']{
-            width: 100px;
-        }
+        .ace-editor-tab { height: 550px; }
     </style>
 </head>
 <body class="layui-layout-body">
 
-<div id="test"></div>
+    <div class="layui-form" style="padding: 15px;">
+        <div class="layui-tabs" id="configTabs" lay-options="{headerMode:'normal'}">
+            <ul class="layui-tabs-header" id="tabHeader"></ul>
+            <div class="layui-tabs-body" id="tabBody"></div>
+        </div>
+    </div>
+
 <#include "script.html"/>
 
-
 <script>
-    let externalUrl="${externalUrl!}"
-
-    let id="${id!}"
-
-
-    url=ctx + '/api/inst/config'
-
-    $.ajax({
-        type : 'GET',
-        url : url,
-        content: 'json',
-        data: {"id": id},
-        success : function(data) {
-            if(data.code=='200'){
-                console.log(data)
-                const header = Object.keys(data.data).map(key => ({
-                    title: key
-                }));
-
-                const body = Object.entries(data.data).map(([key, value]) => {
-                    return {
-                        content: '&nbsp;&nbsp;&nbsp;<button class="layui-btn layui-btn-primary layui-border-red">' + value.path + '</button>' + '<pre class="layui-code code-demo" lay-options="{}">' + value.body +'</pre>' || ''
-                    };
-                });
-
-                layui.use(function(){
-                    var tabs = layui.tabs;
-                    tabs.render({
-                        elem: '#test',
-                        header: header,
-                        body: body,
-                        index: 0, // 初始选中标签索引
-                    })
-                });
-
-            } else {
-                layer.msg(data.description);
-            }
-        },
-        error : function() {
-            layer.alert(commonStr.errorInfo);
-        }
-    });
-
-
-
-
+    let id = "${id!}"
 </script>
-
 <script src="${ctx}/lib/base64/base64.js" type="text/javascript"></script>
 <script src="${ctx}/js/admin/instConfig/index.js?v=${jsrandom}" type="text/javascript"></script>
 </body>
