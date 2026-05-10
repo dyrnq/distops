@@ -158,7 +158,7 @@ $('#addOver').click(function(){
             // 获取配置项
             var thisOptions = table.getOptions('demo');
             //console.log(thisOptions);
-            localStorage.setItem('pageLimit', thisOptions.limit);
+            localStorage.setItem("pageLimit", this.limit);
 
 
             if(res.data && res.data.length == 0){

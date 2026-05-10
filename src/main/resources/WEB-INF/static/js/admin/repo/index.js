@@ -100,7 +100,7 @@ $('#add').click(function(){
         ]]
         , done: function (res, curr, count){
             var thisOptions = table.getOptions('demo');
-            localStorage.setItem('pageLimit', thisOptions.limit);
+            localStorage.setItem("pageLimit", this.limit);
             if(res.data && res.data.length == 0){
                 if(curr>1){
                     toPage=curr-1;
