@@ -203,3 +203,4 @@ commonStr.gc = GC
 commonStr.generatedConfig = 生成的配置
 
 commonStr.changePass = 改密
+commonStr.repoName = 仓库名字

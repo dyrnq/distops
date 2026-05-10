@@ -203,3 +203,4 @@ commonStr.gc = GC
 commonStr.generatedConfig = Generated Config
 
 commonStr.changePass = Change Password
+commonStr.repoName = Repo Name
