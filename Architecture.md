@@ -49,52 +49,54 @@
 ### 3.1 High-Level Architecture
 
 ```
-                          ┌─────────────────────┐
-                          │   Admin Web UI      │
-                          │  (Layui + ECharts)  │
-                          └──────────┬──────────┘
-                                     │ HTTP
-                          ┌──────────▼──────────┐
-                          │   Solon Web Server  │
-                          │     (port 12680)     │
-                          ├─────────────────────┤
-                          │  Filters & Interceptors
-                          │  ├─ AppFilter        │
-                          │  ├─ I18nFilter       │
-                          │  ├─ JwtInterceptor   │
-                          │  └─ AppExceptionFilter│
-                          ├─────────────────────┤
-                          │  Controllers         │
-                          │  ├─ /admin (UI pages) │
-                          │  ├─ /api/* (REST API) │
-                          │  ├─ /auth (Registry Auth) │
-                          │  ├─ /event (Webhooks)│
-                          │  └─ /token (Login)   │
-                          ├─────────────────────┤
-                          │  Services            │
-                          │  ├─ InstService      │
-                          │  ├─ AuthService      │
-                          │  ├─ BusinessLogic    │
-                          │  └─ CronTab          │
-                          ├─────────────────────┤
-                          │  DSO / Mappers       │
-                          │  (Wood ORM)          │
-                          └──────────┬──────────┘
-                                     │
-                          ┌──────────▼──────────┐
-                          │   Database          │
-                          │  (H2/SQLite/MySQL/  │
-                          │   PostgreSQL)        │
-                          └─────────────────────┘
-
-    Supervisor Control
-    ───────────────────
-    distops ──supervisorctl──► supervisord
-                                  │
-                                  ├── registry-default (port 5000)
-                                  ├── registry-staging (port 5001)
-                                  └── ...
+                        ┌──────────────────────────────────────────┐
+                        │              Docker Client               │
+                        └──────┬──────────────┬──────────┬────────┘
+                               │ Pull/Push    │ Auth     │
+                               ▼              ▼          │
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                            distops.jar (Solon)                                │
+│                                                                              │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────────────┐   │
+│  │   Auth Server    │  │  Event Webhook   │  │  Distribution Web        │   │
+│  │  /auth/{inst}    │  │  /event/{inst}   │  │  Management (/admin,     │   │
+│  │  Token Issuance  │  │  Manifest/Blob   │  │  /api, Web UI)           │   │
+│  │  EC/RSA/HMAC JWT │  │  Ingestion       │  │  Inst/Repo/Artifact CRUD │   │
+│  └────────┬─────────┘  └────────┬─────────┘  └────────────┬─────────────┘   │
+│           │                     │                         │                  │
+│           └─────────────────────┴─────────────────────────┘                  │
+│                                │                                            │
+└────────────────────────────────┼────────────────────────────────────────────┘
+                                 │
+              ┌──────────────────┼──────────────────┐
+              │                  │                  │
+              ▼                  ▼                  ▼
+        ┌──────────┐    ┌──────────────┐    ┌──────────────┐
+        │ Database │    │    Redis     │    │ supervisord  │
+        │ (H2/     │    │ (caching/    │    │ (process     │
+        │ SQLite/  │    │  sessions)   │    │  supervisor) │
+        │ MySQL/   │    └──────────────┘    └──────┬───────┘
+        │ PG)      │                               │
+        └──────────┘                  ┌─────────────┼─────────────┐
+                                      │             │             │
+                                      ▼             ▼             ▼
+                                ┌──────────┐  ┌──────────┐  ┌──────────┐
+                                │ registry │  │ registry │  │ registry │
+                                │ (distri- │  │ (distri- │  │ (distri- │
+                                │ bution)  │  │ bution)  │  │ bution)  │
+                                │ :5000    │  │ :5001    │  │ :5xxx    │
+                                └──────────┘  └──────────┘  └──────────┘
 ```
+
+| Component          | Role                                                                                                     |
+|--------------------|----------------------------------------------------------------------------------------------------------|
+| **Auth Server**    | Docker Registry v2 token authentication; EC/RSA/HMAC JWT signing with ACL-based authorization            |
+| **Event Webhook**  | Receives CNCF Distribution push/pull notifications, ingests manifest/artifact metadata into the database |
+| **Web Management** | Admin UI + REST API for managing registry instances, repositories, artifacts, and accounts               |
+| **Database**       | Persistent storage (H2/SQLite for embedded, MySQL/PostgreSQL for production)                             |
+| **Redis**          | Runtime caching and session store                                                                        |
+| **supervisord**    | Manages registry (Distribution) process lifecycle — start/stop/restart per instance                      |
+| **registry**       | CNCF Distribution binary — the actual OCI/Docker Registry serving pull/push requests                     |
 
 ### 3.2 Container Architecture
 
