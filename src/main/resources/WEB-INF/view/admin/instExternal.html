@@ -7,7 +7,37 @@
     </style>
 </head>
 <body class="layui-layout-body">
-<div class="layui-form">
+<div class="layui-form" style="padding: 15px;">
+
+    <fieldset class="layui-elem-field">
+        <legend>Configuration</legend>
+        <div class="layui-field-box">
+            <div class="layui-row layui-col-space10">
+                <div class="layui-col-md3">
+                    <div class="layui-input-group">
+                        <div class="layui-input-split layui-input-prefix">Port</div>
+                        <input type="text" id="cfgPort" class="layui-input" value="443">
+                    </div>
+                </div>
+                <div class="layui-col-md3">
+                    <div class="layui-input-group">
+                        <div class="layui-input-split layui-input-prefix">Domain</div>
+                        <input type="text" id="cfgDomain" class="layui-input" value="registry.example.com">
+                    </div>
+                </div>
+                <div class="layui-col-md2">
+                    <input type="checkbox" id="cfgSsl" lay-skin="switch" lay-text="SSL|SSL" lay-filter="cfgSwitch">
+                </div>
+                <div class="layui-col-md2">
+                    <input type="checkbox" id="cfgHttp2" lay-skin="switch" lay-text="HTTP2|HTTP2" lay-filter="cfgSwitch">
+                </div>
+                <div class="layui-col-md2">
+                    <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" id="generateBtn">Generate</button>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
     <div class="layui-tabs" id="extTabs" lay-options="{headerMode:'normal'}">
         <ul class="layui-tabs-header">
             <li lay-id="nginx" lay-closable="false">Nginx</li>
