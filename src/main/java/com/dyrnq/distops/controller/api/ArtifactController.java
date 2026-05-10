@@ -255,7 +255,15 @@ public class ArtifactController extends ApiController {
                 c.whereEq(ArtifactManifestOciView.MANIFEST_LIST_ID, manifestId);
             });
             if (ociList != null && !ociList.isEmpty()) {
-                return Result.succeed(ociList);
+                // Deduplicate by child digest: multiple tags can point to the same OCI index
+                java.util.List<ArtifactManifestOciView> deduped = new java.util.ArrayList<>();
+                java.util.Set<String> seen = new java.util.HashSet<>();
+                for (ArtifactManifestOciView oci : ociList) {
+                    if (seen.add(oci.getChildDigest())) {
+                        deduped.add(oci);
+                    }
+                }
+                return Result.succeed(deduped);
             }
 
             // Not an OCI index, return single manifest detail
