@@ -149,6 +149,7 @@ public class AccountController extends ApiController {
             } else {
                 // Keep existing password hash
                 account.setHashpw(null);
+                account.setPassword(null);
             }
 
             accountMapper.updateById(account, true);

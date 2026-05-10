@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.dyrnq.distops.CfgExtractor;
 import com.dyrnq.distops.CookieName;
+import com.dyrnq.distops.Constants;
 import com.dyrnq.utils.VersionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Strings;
@@ -62,6 +63,7 @@ public class AppFilter implements Filter {
         ctx.attrSet("ctx", getCtxStr(ctx));
         ctx.attrSet("currentVersion", VersionUtils.getVersion());
         ctx.attrSet("gitRevision", VersionUtils.getGitRevision());
+        ctx.attrSet("buildDateTime", Constants.BUILD_DATETIME);
         ctx.attrSet("jsrandom", VersionUtils.getVersion() + "." + System.currentTimeMillis());
         ctx.attrSet("cookieMap", ctx.cookieMap());
         try {
