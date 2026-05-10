@@ -83,10 +83,10 @@ layui.use(function() {
                         var elementName = $(this).attr('name');
                         if (elementName in data.data) {
                             var val = data.data[elementName];
-                            if (elementName === 'env' && val) {
-                                // convert comma-separated to newline for textarea
-                                val = val.replace(/,/g, '\n');
-                            }
+                            // if (elementName === 'env' && val) {
+                            //     // convert comma-separated to newline for textarea
+                            //     val = val.replace(/,/g, '\n');
+                            // }
                             $(this).val(val);
                         }
                         console.log(elementName)
@@ -167,11 +167,11 @@ layui.use(function() {
         var formData = $('#addForm1').serializeArray();
 
         // convert env newlines to commas before submit
-        $.each(formData, function() {
-            if (this.name === 'env' && this.value) {
-                this.value = this.value.replace(/\n/g, ',');
-            }
-        });
+        // $.each(formData, function() {
+        //     if (this.name === 'env' && this.value) {
+        //         this.value = this.value.replace(/\n/g, ',');
+        //     }
+        // });
 
         var serializedData = formData.reduce(function(acc, curr) {
             return acc + (acc ? '&' : '') + curr.name + '=' + encodeURIComponent(curr.value);

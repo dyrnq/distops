@@ -161,8 +161,18 @@ public class InstService {
 
         Map<String, Object> data = new HashMap<>();
         data.put("port", String.valueOf(Solon.cfg().serverPort()));
-        data.put("inst", inst);
+
         data.put("app_home", homeDir.getHomeAbsolutePath());
+
+        // Sanitize env for template: do NOT modify inst object (prevents commas persisting to DB)
+        if (StringUtils.isNotBlank(inst.getEnv())) {
+            List<String> lines = IOUtils.readLines(inst.getEnv());
+            String sanitizedEnv = StringUtils.join(lines, ",");
+            inst.setEnv(sanitizedEnv);
+        }
+        data.put("inst", inst);
+
+
 
         // Compute realm URL: use explicit config, or auto-detect from local IP
         String realmUrl = inst.getAuthRealm();

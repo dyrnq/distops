@@ -389,6 +389,9 @@ $('#addOver3').click(function(){
                         {title: commonStr.del, id: 'del'},
                         {title: commonStr.enable, id: 'enable'},
                         {title: commonStr.disable, id: 'disable'},
+                        {title: commonStr.start, id: 'start'},
+                        {title: commonStr.stop, id: 'stop'},
+                        {title: commonStr.restart, id: 'restart'},
                         // {title: commonStr.download, id: 'download'},
                         // {title: commonStr.reset, id: 'reset'},
 
