@@ -37,11 +37,12 @@ function addLink(d) {
     let restartBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="restart">' + commonStr.restart + '</button>'
     let stopBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="stop">' + commonStr.stop + '</button>'
     let startBtn  = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="start">' + commonStr.start + '</button>'
+    let externalBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="external">External</button>'
     let gcBtn = '<button type="button" class="layui-btn layui-btn-warm layui-btn-xs" lay-event="gc">' + commonStr.gc + '</button>'
     let proxyBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit_proxy">proxy</button>'
     let generatedConfigBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="config">' + commonStr.generatedConfig + '</button>'
 
-    return [editBtn, generatedConfigBtn , startBtn, stopBtn, restartBtn, gcBtn, delBtn].join("&nbsp;");
+    return [editBtn, generatedConfigBtn, externalBtn, startBtn, stopBtn, restartBtn, gcBtn, delBtn].join("&nbsp;");
 }
 function addLog(d) {
     if (typeof d !== 'undefined' && d !== null && typeof d.currentJobId !== 'undefined' && d.currentJobId!==null) {
@@ -607,6 +608,18 @@ $('#addOver3').click(function(){
                 shade: 0.8,
                 area: ['60%', '80%'],
                 content: URL,
+                anim: 'slideRight',
+                maxmin: true,
+                skin: 'layui-layer-win10'
+            });
+        }else if(layEvent === 'external'){
+            layer.open({
+                type: 2,
+                title: 'External Config - ' + obj.data.name,
+                shadeClose: true,
+                shade: 0.8,
+                area: ['80%', '80%'],
+                content: ctx + '/admin/instExternal-' + obj.data.id,
                 anim: 'slideRight',
                 maxmin: true,
                 skin: 'layui-layer-win10'

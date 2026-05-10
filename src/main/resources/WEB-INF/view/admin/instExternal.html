@@ -1,0 +1,40 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <#include "common.html"/>
+    <style type="text/css">
+        #editorNginx, #editorApache { height: 500px; }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-form">
+    <div class="layui-tabs" id="extTabs" lay-options="{headerMode:'normal'}">
+        <ul class="layui-tabs-header">
+            <li lay-id="nginx" lay-closable="false">Nginx</li>
+            <li lay-id="apache" lay-closable="false">Apache</li>
+        </ul>
+        <div class="layui-tabs-body">
+            <div class="layui-tabs-item">
+                <div id="editorNginx"></div>
+                <div class="layui-form-item center" style="margin-top: 10px;">
+                    <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" id="copyNginxBtn">Copy</button>
+                </div>
+            </div>
+            <div class="layui-tabs-item">
+                <div id="editorApache"></div>
+                <div class="layui-form-item center" style="margin-top: 10px;">
+                    <button type="button" class="layui-btn layui-btn-normal layui-btn-sm" id="copyApacheBtn">Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<#include "script.html"/>
+
+<script>
+    let id="${id!}"
+</script>
+<script src="${ctx}/js/admin/instExternal/index.js?v=${jsrandom}" type="text/javascript"></script>
+</body>
+</html>
