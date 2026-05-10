@@ -88,6 +88,42 @@ public class InstService {
     }
 
     /**
+     * Auto-detect the local non-loopback IPv4 address.
+     * Used as fallback when auth_realm is not explicitly configured.
+     */
+    private static String getLocalIp() {
+        // try to find first non-loopback, non-link-local IPv4 address
+        try {
+            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                java.net.NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
+                java.util.Enumeration<java.net.InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    java.net.InetAddress addr = addresses.nextElement();
+                    if (addr instanceof java.net.Inet4Address
+                        && !addr.isLoopbackAddress()
+                        && !addr.isLinkLocalAddress()) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+        } catch (Exception ignore) {
+        }
+        // last resort: try InetAddress.getLocalHost with strict loopback check
+        try {
+            java.net.InetAddress localHost = java.net.InetAddress.getLocalHost();
+            if (localHost instanceof java.net.Inet4Address
+                && !localHost.isLoopbackAddress()
+                && !localHost.isLinkLocalAddress()) {
+                return localHost.getHostAddress();
+            }
+        } catch (Exception ignore) {
+        }
+        throw new RuntimeException("Cannot determine local non-loopback IP. Please configure auth_realm explicitly on the instance.");
+    }
+
+    /**
      * Write htpasswd file from Account table (preferred) or Htpasswd table (legacy)
      */
     public void writeHtpasswd(Inst inst) {
@@ -167,11 +203,18 @@ public class InstService {
         // Sanitize env for template: do NOT modify inst object (prevents commas persisting to DB)
         if (StringUtils.isNotBlank(inst.getEnv())) {
             List<String> lines = IOUtils.readLines(inst.getEnv());
-            String sanitizedEnv = StringUtils.join(lines, ",");
+
+            StringBuilder sb = new StringBuilder();
+            for (String line : lines) {
+                String trim_line = StringUtils.trim(line);
+                if (StringUtils.isNotBlank(trim_line) && !trim_line.startsWith("#")) {
+                    sb.append(trim_line).append(",");
+                }
+            }
+            String sanitizedEnv = sb.toString();
             inst.setEnv(sanitizedEnv);
         }
         data.put("inst", inst);
-
 
 
         // Compute realm URL: use explicit config, or auto-detect from local IP
@@ -345,21 +388,6 @@ public class InstService {
     }
 
     /**
-     * Write JWKS file for an instance
-     */
-    private void writeJwksFile(Inst inst, String jwksJson) {
-        File jwksFile = new File(StringUtils.joinWith(File.separator,
-                homeDir.getHomeAbsolutePath(), "registry", inst.getName(), "config", "jwks.json"));
-        try {
-            FileUtils.forceMkdirParent(jwksFile);
-            FileUtils.writeStringToFile(jwksFile, jwksJson, Charset.defaultCharset());
-            log.info("Written JWKS file to {}", jwksFile.getAbsolutePath());
-        } catch (IOException e) {
-            log.error("Failed to write JWKS file", e);
-        }
-    }
-
-    /**
      * Update Registry config.yml with the specified signing algorithm
      */
 //    private void updateRegistrySigningAlgorithms(Inst inst, String algorithm) {
@@ -383,6 +411,21 @@ public class InstService {
 //    }
 
     /**
+     * Write JWKS file for an instance
+     */
+    private void writeJwksFile(Inst inst, String jwksJson) {
+        File jwksFile = new File(StringUtils.joinWith(File.separator,
+                homeDir.getHomeAbsolutePath(), "registry", inst.getName(), "config", "jwks.json"));
+        try {
+            FileUtils.forceMkdirParent(jwksFile);
+            FileUtils.writeStringToFile(jwksFile, jwksJson, Charset.defaultCharset());
+            log.info("Written JWKS file to {}", jwksFile.getAbsolutePath());
+        } catch (IOException e) {
+            log.error("Failed to write JWKS file", e);
+        }
+    }
+
+    /**
      * Update JWKS file for an instance from stored key information
      */
     public void updateJwksFile(Inst inst) {
@@ -390,7 +433,6 @@ public class InstService {
             writeJwksFile(inst, inst.getAuthJwksJson());
         }
     }
-
 
     public ConfigVo getRegistryConfig(Inst inst) {
         ConfigVo vo = new ConfigVo();
@@ -445,7 +487,6 @@ public class InstService {
         return vo;
     }
 
-
     public Map<String, ConfigVo> getInstConfig(Inst inst) {
         Map<String, ConfigVo> all = new LinkedHashMap<>();
 
@@ -485,42 +526,6 @@ public class InstService {
         log.info("Running GC for instance {}: {}", instName, cmd);
         String output = RuntimeUtil.execForStr(cmd);
         log.info("GC output for {}: {}", instName, output);
-    }
-
-    /**
-     * Auto-detect the local non-loopback IPv4 address.
-     * Used as fallback when auth_realm is not explicitly configured.
-     */
-    private static String getLocalIp() {
-        // try to find first non-loopback, non-link-local IPv4 address
-        try {
-            java.util.Enumeration<java.net.NetworkInterface> interfaces = java.net.NetworkInterface.getNetworkInterfaces();
-            while (interfaces.hasMoreElements()) {
-                java.net.NetworkInterface iface = interfaces.nextElement();
-                if (iface.isLoopback() || !iface.isUp()) continue;
-                java.util.Enumeration<java.net.InetAddress> addresses = iface.getInetAddresses();
-                while (addresses.hasMoreElements()) {
-                    java.net.InetAddress addr = addresses.nextElement();
-                    if (addr instanceof java.net.Inet4Address
-                            && !addr.isLoopbackAddress()
-                            && !addr.isLinkLocalAddress()) {
-                        return addr.getHostAddress();
-                    }
-                }
-            }
-        } catch (Exception ignore) {
-        }
-        // last resort: try InetAddress.getLocalHost with strict loopback check
-        try {
-            java.net.InetAddress localHost = java.net.InetAddress.getLocalHost();
-            if (localHost instanceof java.net.Inet4Address
-                    && !localHost.isLoopbackAddress()
-                    && !localHost.isLinkLocalAddress()) {
-                return localHost.getHostAddress();
-            }
-        } catch (Exception ignore) {
-        }
-        throw new RuntimeException("Cannot determine local non-loopback IP. Please configure auth_realm explicitly on the instance.");
     }
 
 }
