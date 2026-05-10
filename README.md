@@ -1,18 +1,28 @@
 # distops
 
+## description
+
 Distops is a collection of tools for operations and maintenance surrounding the Docker registry(CNCF distribution).
 
-Features
+## features
 
 - Multi distribution management with UI
-- Config private registry Or proxy registry
-- Auth server for Multi distribution(registry)
+- Support both private registry Or proxy registry
+- Embedded Auth server for Multi distribution(registry)
 - Auth type include None, silly, htpasswd, and token
-- Create RW, read-only account AND ACL
+- Support RW, read-only account with ACL
 
 Related projects
 
 - [multi-registry-cache](https://github.com/dyrnq/mrc)
+
+## build
+
+```bash
+git clone git@gitee.com:dyrnq/distops.git
+cd distops
+./mvnw clean package -Dmaven.test.skip=true -s ./settings.xml
+```
 
 
 ## ref
