@@ -4,12 +4,11 @@ Distops is a collection of tools for operations and maintenance surrounding the 
 
 Features
 
-- Multi distribution support
+- Multi distribution management with UI
 - Config private registry Or proxy registry
-- Auth server for Multi distribution
-- Auth type include None,silly, htpasswd, and token
-- create jwks dynamic
-- create read-only account dynamic
+- Auth server for Multi distribution(registry)
+- Auth type include None, silly, htpasswd, and token
+- Create RW, read-only account AND ACL
 
 Related projects
 
