@@ -64,6 +64,13 @@ public class AdminController extends BaseController {
         return model;
     }
 
+    @Mapping("accountAclEdit-{id}")
+    public Object accountAclEdit(@Path("id") Long id) {
+        ModelAndView model = new ModelAndView("admin/accountAclEdit.html");
+        model.put("id", id);
+        return model;
+    }
+
     @Mapping("accountEdit")
     public Object accountEdit() {
         ModelAndView model = new ModelAndView("admin/accountEdit.html");

@@ -165,39 +165,7 @@ $('#addOver3').click(function(){
 });
 
 
-$('#addOverAcl').click(function(){
-    var id = $('#acl_account_id').val();
-    var acl = $('#acl_json').val();
 
-    // Validate JSON
-    if (acl && acl.trim()) {
-        try {
-            JSON.parse(acl);
-        } catch (e) {
-            layer.msg('Invalid JSON format: ' + e.message);
-            return;
-        }
-    }
-
-    $.ajax({
-        type : 'POST',
-        url: ctx + '/api/account/acl/update',
-        data : { id: id, acl: acl },
-        dataType : 'json',
-        success : function(data) {
-            if(data.code=='200'){
-                layer.closeAll();
-                layer.msg('ACL updated successfully');
-                table.reload('demo',{});
-            } else {
-                layer.msg(data.description);
-            }
-        },
-        error : function() {
-            layer.alert(commonStr.errorInfo);
-        }
-    });
-});
 
     //执行一个 table 实例
     table.render({
@@ -448,49 +416,18 @@ $('#addOverAcl').click(function(){
                     skin: 'layui-layer-win10'
                 });
             }else if (layEvent === 'acl'){
-                             // Open ACL editor
-                             $.ajax({
-                                 url: ctx + '/api/account/acl/get',
-                                 type:'post',
-                                 contentType: 'application/json',
-                                 data:JSON.stringify({id:obj.data.id}),
-                                 success:function (data,statusText) {
-                                     if(data.code=='200'){
-                                         $('#acl_account_id').val(data.data.id);
-                                         $('#acl_username').val(data.data.username);
-                                         $('#acl_json').val(data.data.acl || '');
-
-                                         layer.open({
-                                             type: 1,
-                                             area: ['900px', '700px'],
-                                             title: 'Edit ACL - ' + data.data.username,
-                                             content : $('#aclDiv'),
-                                             anim: 'slideRight',
-                                             shade: 0.6,
-                                             shadeClose: true,
-                                             maxmin: true,
-                                             skin: 'layui-layer-win10'
-                                         });
-
-                                         // Re-render code demo
-                                         layui.code({
-                                             elem: '.code-demo',
-                                             wordWrap: false,
-                                             layout: ['code'],
-                                             ln: false,
-                                             lang: 'json',
-                                             preview: false,
-                                             header: true
-                                         });
-                                     }else{
-                                         layer.msg(data.description);
-                                     }
-                                 },
-                                 'error':function () {
-                                     layer.msg(commonStr.errorInfo);
-                                 }
-                             });
-                         }
+                layer.open({
+                    type: 2,
+                    title: 'Edit ACL - ' + obj.data.username,
+                    shadeClose: true,
+                    shade: 0.8,
+                    area: ['800px', '600px'],
+                    content: ctx + '/admin/accountAclEdit-' + obj.data.id,
+                    anim: 'slideRight',
+                    maxmin: true,
+                    skin: 'layui-layer-win10'
+                });
+            }
 
 
     });

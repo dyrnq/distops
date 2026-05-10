@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <#include "common.html"/>
+    <style type="text/css">
+        #editorAcl { height: 450px; }
+    </style>
+</head>
+<body class="layui-layout-body">
+<div class="layui-form">
+<form id="aclForm">
+    <div class="layui-form-item">
+        <label class="layui-form-label">Username</label>
+        <div class="layui-input-block">
+            <input type="text" id="acl_username" class="layui-input" disabled>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">ACL JSON</label>
+        <div class="layui-input-block">
+            <div id="editorAcl"></div>
+        </div>
+    </div>
+
+    <div class="layui-form-item center" style="margin-top: 15px;">
+        <button type="button" class="layui-btn layui-btn-normal" id="saveBtn">${i18n.get("commonStr.submit")}</button>
+    </div>
+</form>
+</div>
+
+<#include "script.html"/>
+
+<script>
+    let id="${id!}"
+</script>
+<script src="${ctx}/js/admin/accountAclEdit/index.js?v=${jsrandom}" type="text/javascript"></script>
+</body>
+</html>
