@@ -24,6 +24,49 @@ cd distops
 ./mvnw clean package -Dmaven.test.skip=true -s ./settings.xml
 ```
 
+## run with docker
+
+
+```bash
+
+mkdir /data/distops/persistent_data
+chown 1000:1000 /data/distops/persistent_data
+# 产生一个新的jwt secret 替换默认的 IDP32XTulsVIUZU+srFEUC9Lhu1wV+nd8iCJPoPA2zSFVAtWhCgpMEymxy5wFAZKMB9yROX31UjDzjwL66r1RA==
+docker run -it --rm --entrypoint="" dyrnq/distops:latest bash -c "java -jar /distops.jar cli jwt"
+docker \
+run \
+--detach \
+--restart always \
+--name distops \
+--network host \
+-e TZ=Asia/Shanghai \
+-e SERVER_PORT="8080" \
+-e SERVER_SESSION_TIMEOUT="172800" \
+-e JWT_SECRET="__REPLACEME__" \
+-e JAVA_OPTS="-server -Xms256m -Xms256m -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai -Djava.net.preferIPv4Stack=true -Dspring.flyway.enabled=true" \
+-v /data/distops/persistent_data:/data \
+dyrnq/distops:latest
+
+```
+
+now,you can use browser open http://127.0.0.1:8080, default user password(admin/admin).
+
+default database use sqlite.
+
+
+Supports environment variables
+
+| Variable Name                        | Meaning                                       | Default Value    |
+|--------------------------------------|-----------------------------------------------|------------------|
+| SERVER_PORT                          | Server port                                   | 12680            |
+| PROJECT_HOME                         | Data directory                                | $HOME/apisixWeb  |
+| SPRING_DATABASE_TYPE                 | Database type (h2, mysql, sqlite, postgresql) | sqlite           |
+| SPRING_DATASOURCE_URL                | Database URL                                  |                  |
+| SPRING_DATASOURCE_USERNAME           | Database username                             |                  |
+| SPRING_DATASOURCE_PASSWORD           | Database password                             |                  |
+| JWT_SECRET                           | jwt secret                                    |                  |
+| SEVER_SESSION_TIMEOUT                | session timeout                               | 7200             |
+
 
 ## ref
 
