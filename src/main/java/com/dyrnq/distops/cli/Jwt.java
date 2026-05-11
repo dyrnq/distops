@@ -1,4 +1,5 @@
-package cli;
+package com.dyrnq.distops.cli;
+
 
 
 import io.jsonwebtoken.Jwts;

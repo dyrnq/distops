@@ -23,6 +23,12 @@ import java.util.Set;
 public class WebApp {
 
     public static void main(String[] args) {
+        // CLI dispatch: "java -jar distops.jar cli jwt" runs CLI without starting server
+        if (args.length > 0 && "cli".equals(args[0])) {
+            String[] cliArgs = java.util.Arrays.copyOfRange(args, 1, args.length);
+            System.exit(new picocli.CommandLine(new com.dyrnq.distops.cli.CliMain()).execute(cliArgs));
+        }
+
         Solon.start(WebApp.class, args, app -> {
             Set<String> allNodes = Solon.cfg().stringPropertyNames();
             for (String entry : allNodes) {
