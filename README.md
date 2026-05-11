@@ -49,7 +49,7 @@ dyrnq/distops:latest
 
 ```
 
-now,you can use browser open http://127.0.0.1:8080, default user password(admin/admin).
+now, you can use browser open http://127.0.0.1:8080, default user password(admin/admin).
 
 default database use sqlite.
 
@@ -66,6 +66,18 @@ Supports environment variables
 | SPRING_DATASOURCE_PASSWORD           | Database password                             |                  |
 | JWT_SECRET                           | jwt secret                                    |                  |
 | SEVER_SESSION_TIMEOUT                | session timeout                               | 7200             |
+
+
+## registry proxy
+
+when using registry proxy e.g. `https://registry.k8s.io`, you may need config env `HTTPS_PROXY` and `NO_PROXY`.
+
+e.g.
+
+```bash
+HTTPS_PROXY=http://192.168.66.1:7890
+NO_PROXY=127.0.0.1,192.168.66.100
+```
 
 
 ## ref
