@@ -1,0 +1,20 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+# shellcheck disable=SC1091
+# shellcheck disable=SC2086
+
+
+
+echo "${DIST_HOME}"
+echo_supervisord_conf | grep -v -e '^\s*;' -e '^\s*$' >/etc/supervisord.conf;
+sed -i '/\[unix_http_server\]/a\chmod=0777' /etc/supervisord.conf
+sed -i -e "s@/tmp/supervisor.sock@/var/run/supervisor.sock@g" -e "s@/tmp/supervisord.pid@/var/run/supervisord.pid@g" /etc/supervisord.conf
+
+
+(
+echo "[include]" >> /etc/supervisord.conf;
+echo "files = /etc/supervisor/conf.d/*.ini ${DIST_HOME}/distops/supervisor/conf.d/*.ini"
+) >> /etc/supervisord.conf;
+chown -R dist:dist "${DIST_HOME}"
+
+exec supervisord --nodaemon --logfile /dev/stdout --logfile_maxbytes 0 --configuration /etc/supervisord.conf

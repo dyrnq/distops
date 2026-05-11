@@ -1,0 +1,23 @@
+#!/command/with-contenv bash
+
+# shellcheck shell=bash
+# shellcheck disable=SC1091
+# shellcheck disable=SC2086
+echo "${DIST_HOME}"
+redis_databases="${REDIS_DATABASES:-16}"
+redis_port="${REDIS_PORT:-6379}"
+
+redis_data="${DIST_HOME}"/redis/data
+redis_log="${DIST_HOME}"/redis/log
+redis_conf="${DIST_HOME}"/redis/redis.conf
+mkdir -p "${redis_data}"
+mkdir -p "${redis_log}"
+chown -R dist:dist "${redis_data}"
+chown -R dist:dist "${redis_log}"
+if [ ! -f "${redis_conf}" ]; then
+  cp --verbose --force /etc/redis/redis.conf "${redis_conf}"
+  sed -i -e '/^dir/d' -e '/^logfile/d' -e "s|^databases.*|databases ${redis_databases}|g" "${redis_conf}"
+  chown -R dist:dist "${redis_conf}"
+fi
+
+exec gosu dist redis-server "${redis_conf}" --daemonize no --protected-mode no --appendonly yes --bind "* -::*" --dir ${redis_data} --logfile "${redis_log}/redis-server.log" --port ${redis_port}

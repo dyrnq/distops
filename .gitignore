@@ -53,13 +53,10 @@ CALL.md
 
 rg.sh
 go.sh
-buildx.sh
-build.sh
 chmod.sh
 config.yaml
 config_patch.yaml
 gen.sh
 reload.sh
 run.sh
-docker/rootfs/*.jar
 .qwen

@@ -1,0 +1,71 @@
+#!/command/with-contenv bash
+
+# shellcheck shell=bash
+# shellcheck disable=SC1091
+# shellcheck disable=SC2086
+
+
+
+
+
+
+
+
+function parseJvmOptionsFile()
+{
+  JVM_OPTIONS_FILE=$1
+#   if [ ! -r "$JVM_OPTIONS_FILE" ]; then
+#     echo "Cannot find $JVM_OPTIONS_FILE"
+#     echo "This file is needed to run the Axon.ivy Engine"
+#     exit 1
+#   fi
+  # 1) skip empty lines, 2) skip comments, 3) replace new lines with space
+  JAVA_OPTS_IVY=$(sed '/^[[:space:]]*$/d' $JVM_OPTIONS_FILE \
+     | sed '/^[[:blank:]]*#/d;s/#.*//' \
+     | tr '\n' ' ')
+  #export JAVA_OPTS_IVY
+  echo "$JAVA_OPTS_IVY"
+}
+
+jvm_version=$(java --version | sed '1!d' | awk '{print $2}')
+if [[ "$jvm_version" =~ ^21.* ]]; then
+    JAVA_OPTS="-XX:+IgnoreUnrecognizedVMOptions $JAVA_OPTS"
+fi
+
+if [ -r "/etc/jvm.options" ]; then
+    JAVA_OPTS="$JAVA_OPTS $(parseJvmOptionsFile /etc/jvm.options)"
+fi
+
+
+
+echo $JAVA_OPTS
+
+# read JAVA_OPTS and JENKINS_OPTS into arrays to avoid need for eval (and associated vulnerabilities)
+java_opts_array=()
+while IFS= read -r -d '' item; do
+java_opts_array+=( "$item" )
+done < <([[ $JAVA_OPTS ]] && xargs printf '%s\0' <<<"$JAVA_OPTS")
+
+
+
+if [[ "$DEBUG" ]] ; then
+java_opts_array+=( \
+    '-Xdebug' \
+    '-Xrunjdwp:server=y,transport=dt_socket,address=5005,suspend=y' \
+)
+fi
+
+
+
+
+
+
+
+
+
+jenkins_opts_array=( )
+while IFS= read -r -d '' item; do
+jenkins_opts_array+=( "$item" )
+done < <([[ $JENKINS_OPTS ]] && xargs printf '%s\0' <<<"$JENKINS_OPTS")
+
+exec gosu dist java -Duser.home="$DIST_HOME" "${java_opts_array[@]}" -jar /distops.jar "${jenkins_opts_array[@]}" "$@"
