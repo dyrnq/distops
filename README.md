@@ -58,16 +58,16 @@ default database use sqlite.
 
 Supports environment variables
 
-| Variable Name                        | Meaning                                       | Default Value    |
-|--------------------------------------|-----------------------------------------------|------------------|
-| SERVER_PORT                          | Server port                                   | 12680            |
-| PROJECT_HOME                         | Data directory                                | $HOME/apisixWeb  |
-| SPRING_DATABASE_TYPE                 | Database type (h2, mysql, sqlite, postgresql) | sqlite           |
-| SPRING_DATASOURCE_URL                | Database URL                                  |                  |
-| SPRING_DATASOURCE_USERNAME           | Database username                             |                  |
-| SPRING_DATASOURCE_PASSWORD           | Database password                             |                  |
-| JWT_SECRET                           | jwt secret                                    |                  |
-| SEVER_SESSION_TIMEOUT                | session timeout                               | 7200             |
+| Variable Name                        | Meaning                                      | Default Value    |
+|--------------------------------------|----------------------------------------------|------------------|
+| SERVER_PORT                          | Server port                                  | 12680            |
+| PROJECT_HOME                         | Data directory                               | $HOME/apisixWeb  |
+| SPRING_DATABASE_TYPE                 | Database type (mysql, sqlite, postgresql)    | sqlite           |
+| SPRING_DATASOURCE_URL                | Database URL                                 |                  |
+| SPRING_DATASOURCE_USERNAME           | Database username                            |                  |
+| SPRING_DATASOURCE_PASSWORD           | Database password                            |                  |
+| JWT_SECRET                           | jwt secret                                   |                  |
+| SEVER_SESSION_TIMEOUT                | session timeout                              | 7200             |
 
 
 ## registry proxy
