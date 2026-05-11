@@ -263,6 +263,9 @@ public static final String CONFIG_DIGEST="config_digest";
 **/
 
 //Customize BEGIN
+    @org.noear.wood.annotation.Column("inst_name")
+    public String instName;
+
 
 //Customize END
 
