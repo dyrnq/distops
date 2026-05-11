@@ -187,3 +187,11 @@ INDEX idx_enabled (enabled)
 INSERT INTO `account` (id,enabled,inst_id,username,password,hashpw,acl) VALUES (1,1,1,'admin','test','$2b$12$heObQDRTYvL8MR.xOPumWOWjrt2/P8YddPMTnZ202JxVQUPimW8D6','{"rules":[{"match":{"type":"repository","name":"*"},"actions":["*"],"comment":"管理员访问所有仓库"}]}');
 INSERT INTO `account` (id,enabled,inst_id,username,password,hashpw,acl) VALUES (2,1,1,'test','test','$2b$12$heObQDRTYvL8MR.xOPumWOWjrt2/P8YddPMTnZ202JxVQUPimW8D6','{"rules":[{"match":{"type":"repository","name":"*"},"actions":["*"],"comment":"管理员访问所有仓库"}]}');
 INSERT INTO `account` (id,enabled,inst_id,username,password,hashpw,acl) VALUES (3,1,1,'read','test','$2b$12$heObQDRTYvL8MR.xOPumWOWjrt2/P8YddPMTnZ202JxVQUPimW8D6','{"rules":[{"match":{"type":"repository","name":"*"},"actions":["pull"],"comment":"read只读"}]}');
+
+
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10000,'proxy-docker-io',                15000,'info','https://registry-1.docker.io',      '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10001,'proxy-registry-k8s-io',          15001,'info','https://registry.k8s.io',           '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10002,'proxy-k8s-gcr-io',               15002,'info','https://k8s.gcr.io',                '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10003,'proxy-gcr-io',                   15003,'info','https://gcr.io',                    '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10004,'proxy-ghcr-io',                  15004,'info','https://ghcr.io',                   '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10005,'proxy-quay-io',                  15005,'info','https://quay.io',                   '168h');

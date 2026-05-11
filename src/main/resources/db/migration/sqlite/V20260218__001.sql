@@ -191,3 +191,11 @@ FROM artifact a
 WHERE m.media_type IN (
                        'application/vnd.oci.image.index.v1+json','application/vnd.docker.distribution.manifest.list.v2+json'
     );
+
+
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10000,'proxy-docker-io',                15000,'info','https://registry-1.docker.io',      '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10001,'proxy-registry-k8s-io',          15001,'info','https://registry.k8s.io',           '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10002,'proxy-k8s-gcr-io',               15002,'info','https://k8s.gcr.io',                '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10003,'proxy-gcr-io',                   15003,'info','https://gcr.io',                    '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10004,'proxy-ghcr-io',                  15004,'info','https://ghcr.io',                   '168h');
+insert into `inst` (id,name,port,log_level,proxy_remoteurl,proxy_ttl) VALUES (10005,'proxy-quay-io',                  15005,'info','https://quay.io',                   '168h');
