@@ -203,8 +203,10 @@ fun_misc() {
     echo "root:vagrant" | sudo chpasswd
     timedatectl set-timezone "Asia/Shanghai"
     echo "${HOSTNAME}"
+if command -v apt >/dev/null 2>&1; then
     DEBIAN_FRONTEND=noninteractive apt update;
     DEBIAN_FRONTEND=noninteractive apt install -y jq wget curl vim git net-tools netcat-openbsd gosu aria2;
+fi
     if [ -f "/etc/ssh/sshd_config.d/60-cloudimg-settings.conf" ]; then
         sed -i "s|^PasswordAuthentication.*|PasswordAuthentication yes|g" /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
         systemctl restart sshd
@@ -214,15 +216,32 @@ fun_misc() {
 
 
 
-if command -v apt ; then
-if      grep -q ubuntu /etc/os-release; then mysql_client_pkg="mysql-client-core-8.0";
-elif    grep -q debian /etc/os-release; then mysql_client_pkg="mariadb-client-core";    fi
+if command -v apt >/dev/null 2>&1; then
+
+OS_ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
+
+case "$OS_ID" in
+    "ubuntu")
+        mysql_client_pkg="mysql-client-core-8.0"
+        ;;
+    "debian")
+        mysql_client_pkg="mariadb-client-core"
+        ;;
+    *)
+        # 默认处理（可选）
+        echo "Unsupported OS: $OS_ID"
+        ;;
+esac
+
+
+
 DEBIAN_FRONTEND=noninteractive apt update;
 DEBIAN_FRONTEND=noninteractive apt install "${mysql_client_pkg}" -y;
+DEBIAN_FRONTEND=noninteractive apt install openjdk-21-jdk-headless openjdk-21-jre-headless -y
 fi
 
 
-DEBIAN_FRONTEND=noninteractive apt install openjdk-21-jdk-headless openjdk-21-jre-headless -y
+
 
 SKOPEO_VER=v1.22.2
 curl --retry 100 -# -fSL https://ghfast.top/github.com/dyrnq/skopeo-binary/releases/download/${SKOPEO_VER}/skopeo-linux-amd64.tar.xz | tar -xvJ -C /usr/local/bin
