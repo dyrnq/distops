@@ -1,5 +1,7 @@
 # distops
 
+<img src="https://a.dyrnq.com/distops/images/logo.png" alt="distribution" width="300" height="300"></img>
+
 ## description
 
 Distops is a collection of tools for operations and maintenance surrounding the Docker registry(CNCF distribution).
@@ -79,6 +81,20 @@ HTTPS_PROXY=http://192.168.66.1:7890
 NO_PROXY=127.0.0.1,192.168.66.100
 ```
 
+
+## screenshot
+
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-03-03%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-03-32%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-03-48%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-04-03%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-04-10%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-04-23%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-04-35%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-04-41%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-04-56%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-05-17%20distops.png" width="589" height="310" alt="distribution"></img>
+<img src="http://a.dyrnq.com/distops/images/Screenshot%202026-05-11%20at%2011-05-25%20distops.png" width="589" height="310" alt="distribution"></img>
 
 ## ref
 
