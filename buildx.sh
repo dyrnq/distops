@@ -6,6 +6,7 @@ version="${version:-}";
 push="${push:-false}"
 repo="${repo:-dyrnq}"
 image_name="${image_name:-distops}"
+local_build="${local_build:-false}"
 platforms="${platforms:-linux/amd64,linux/arm64/v8}"
 curl_opts="${curl_opts:-}"
 S6_OVERLAY_VERSION="3.2.3.0"
@@ -40,6 +41,9 @@ while [ $# -gt 0 ]; do
         --image-name|--image)
             image_name="$2"
             shift
+            ;;
+        --local|--local-build)
+            local_build="true"
             ;;
         --*)
             echo "Illegal option $1"
