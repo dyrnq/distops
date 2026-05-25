@@ -60,3 +60,5 @@ run.sh
 .dev
 codex.sh
 oc.sh
+__pycache__/
+scripts/tests/__pycache__/
