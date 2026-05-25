@@ -1,4 +1,5 @@
 package com.dyrnq.distops;
+import com.dyrnq.utils.VersionUtils;
 
 import cn.hutool.system.SystemUtil;
 import freemarker.template.Configuration;
@@ -92,7 +93,7 @@ public class WebApp {
                 });
             }
 
-            log.info("version: {} , build_date: {} ", Constants.VERSION, Constants.BUILD_DATETIME);
+            log.info("version: {} , build_date: {} ", VersionUtils.getVersion(), VersionUtils.getBuildDateTime());
 
         });
     }

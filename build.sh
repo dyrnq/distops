@@ -3,10 +3,7 @@
 
 ver=$(cat pom.xml|grep \<version\> | head -n1 | sed 's/.*>\(.*\)<.*/\1/')
 echo "ver=${ver}"
-current_time=$(date +"%Y-%m-%d %H:%M:%S")
 
-sed -i "s@String VERSION.*@String VERSION = \"v$ver\";@" src/main/java/com/dyrnq/distops/Constants.java
-sed -i "s@String BUILD_DATETIME.*@String BUILD_DATETIME =\"$current_time\";@g"  src/main/java/com/dyrnq/distops/Constants.java
 cat src/main/java/com/dyrnq/distops/Constants.java
 #export JAVA_HOME=/usr/lib/jvm/corretto21
 #export PATH=$PATH:${JAVA_HOME}/bin
