@@ -44,11 +44,8 @@ hs_err_pid*
 .event/
 schema/
 _db/
-docs/
 dbops.jar
 *.log
-distribution.github.io
-distribution
 CALL.md
 
 rg.sh
@@ -60,3 +57,6 @@ gen.sh
 reload.sh
 run.sh
 .qwen
+.dev
+codex.sh
+oc.sh
