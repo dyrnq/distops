@@ -1,6 +1,6 @@
 # distops
 
-![distribution](docs/images/logo.png)
+<img src="docs/images/logo.png" alt="distribution" width="300" height="300">
 
 ## description
 
@@ -84,17 +84,17 @@ NO_PROXY=127.0.0.1,192.168.66.100
 
 ## screenshot
 
-![distribution](docs/images/Screenshot 2026-05-11 at 11-03-03 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-03-32 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-03-48 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-04-03 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-04-10 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-04-23 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-04-35 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-04-41 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-04-56 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-05-17 distops.png)
-![distribution](docs/images/Screenshot 2026-05-11 at 11-05-25 distops.png)
+<img src="docs/images/Screenshot 2026-05-11 at 11-03-03 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-03-32 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-03-48 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-04-03 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-04-10 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-04-23 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-04-35 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-04-41 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-04-56 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-05-17 distops.png" width="589" height="310" alt="distribution">
+<img src="docs/images/Screenshot 2026-05-11 at 11-05-25 distops.png" width="589" height="310" alt="distribution">
 
 ## ref
 
