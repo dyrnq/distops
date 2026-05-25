@@ -57,7 +57,7 @@ public class AuthController {
         return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
-    @Mapping("/auth/{instName}")
+    @Mapping("/auth/{instName}/?")
     public TokenResponse authByInst(Context ctx,
                                     @Path("instName") String instName,
                                     @Param(required = false) String account,
