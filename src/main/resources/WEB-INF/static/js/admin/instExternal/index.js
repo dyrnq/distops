@@ -69,8 +69,7 @@ function nginxConfig(inst, cfg) {
         conf += '        proxy_set_header X-Real-IP $remote_addr;\n';
         conf += '        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;\n';
         conf += '        proxy_set_header X-Forwarded-Proto $scheme;\n';
-        conf += '        proxy_pass_request_body off;\n';
-        conf += '        proxy_set_header Content-Length "";\n';
+
         conf += '    }\n\n';
     }
 
