@@ -20,6 +20,20 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean package -Dmaven.test.skip=true
 
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v4
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Inspect builder
+        run: |
+          echo "Name:      ${{ steps.buildx.outputs.name }}"
+          echo "Endpoint:  ${{ steps.buildx.outputs.endpoint }}"
+          echo "Status:    ${{ steps.buildx.outputs.status }}"
+          echo "Flags:     ${{ steps.buildx.outputs.flags }}"
+          echo "Platforms: ${{ steps.buildx.outputs.platforms }}"
+
       - name: Build local test image
         run: |
           ./buildx.sh --push false --repo ${{ secrets.DOCKER_USERNAME }} --image-name distops --tag test
@@ -40,20 +54,6 @@ jobs:
       - name: Integration test (Mode 1 - Direct)
         run: |
           IMAGE=dyrnq/distops:test python3 scripts/tests/run.py
-
-      - name: Set up QEMU
-        id: qemu
-        uses: docker/setup-qemu-action@v4
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v4
-      - name: Inspect builder
-        run: |
-          echo "Name:      ${{ steps.buildx.outputs.name }}"
-          echo "Endpoint:  ${{ steps.buildx.outputs.endpoint }}"
-          echo "Status:    ${{ steps.buildx.outputs.status }}"
-          echo "Flags:     ${{ steps.buildx.outputs.flags }}"
-          echo "Platforms: ${{ steps.buildx.outputs.platforms }}"
 
       - name: Build docker image (local, no push)
         run: |
