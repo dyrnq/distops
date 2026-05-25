@@ -53,7 +53,7 @@ jobs:
 
       - name: Integration test (Mode 1 - Direct)
         run: |
-          IMAGE=dyrnq/distops:test python3 scripts/tests/run.py
+          IMAGE=${{ secrets.DOCKER_USERNAME }}/distops:latest python3 scripts/tests/run.py
 
       - name: Build docker image (local, no push)
         run: |

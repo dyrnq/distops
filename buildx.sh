@@ -73,7 +73,13 @@ fi
 latest_tag="--tag $repo/$image_name:latest"
 
 ## Compatible with local Docker builds
-if docker buildx version >/dev/null 2>&1; then
+if [ "${local_build}" = "true" ]; then
+  docker build \
+  --file "${docker_file}" ./docker \
+  --build-arg SKOPEO_VER="${SKOPEO_VER}" \
+  --build-arg S6_OVERLAY_VERSION="${S6_OVERLAY_VERSION}" \
+  ${latest_tag}
+elif docker buildx version >/dev/null 2>&1; then
   docker buildx build \
   --platform ${platforms} \
   --output "type=image,push=$push" \
