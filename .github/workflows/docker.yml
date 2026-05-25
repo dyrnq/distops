@@ -36,7 +36,7 @@ jobs:
 
       - name: Build local test image
         run: |
-          ./buildx.sh --push false --repo ${{ secrets.DOCKER_USERNAME }} --image-name distops --tag test
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/distops:test ./docker
 
       - name: Install test tools (regctl, skopeo)
         run: |
