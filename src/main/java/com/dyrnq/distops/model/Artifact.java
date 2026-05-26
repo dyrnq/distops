@@ -103,6 +103,13 @@ public java.time.LocalDateTime lastPushed;
 public java.time.LocalDateTime lastPulled;
 
 
+@Column("updated_at")
+// 更新时间
+// DATETIME
+// 26
+public java.time.LocalDateTime updatedAt;
+
+
 
 
 public static final String ID="id";
@@ -115,6 +122,7 @@ public static final String FULL_NAME="full_name";
 public static final String CREATED="created";
 public static final String LAST_PUSHED="last_pushed";
 public static final String LAST_PULLED="last_pulled";
+public static final String UPDATED_AT="updated_at";
 
 /** GEN layui column
 , {field: 'id', title: 'id'}

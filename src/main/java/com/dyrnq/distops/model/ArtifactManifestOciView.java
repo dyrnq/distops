@@ -104,6 +104,14 @@ public String parentMediaType;
 public Long manifestListSize;
 
 
+@com.fasterxml.jackson.databind.annotation.JsonSerialize(using = com.fasterxml.jackson.databind.ser.std.ToStringSerializer.class)
+@Column("manifest_list_compressed_size")
+// 镜像所有layer压缩后的总大小
+// BIGINT
+// 19
+public Long manifestListCompressedSize;
+
+
 @Column("manifest_list_created")
 //@Schema(description = "镜像创建时间")
 // 镜像创建时间
@@ -222,6 +230,7 @@ public static final String MANIFEST_LIST_ID="manifest_list_id";
 public static final String MANIFEST_LIST_DIGEST="manifest_list_digest";
 public static final String PARENT_MEDIA_TYPE="parent_media_type";
 public static final String MANIFEST_LIST_SIZE="manifest_list_size";
+public static final String MANIFEST_LIST_COMPRESSED_SIZE="manifest_list_compressed_size";
 public static final String MANIFEST_LIST_CREATED="manifest_list_created";
 public static final String CHILD_MANIFEST_ID="child_manifest_id";
 public static final String CHILD_DIGEST="child_digest";

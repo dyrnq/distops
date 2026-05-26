@@ -213,6 +213,13 @@ public String proxyRemoteurl;
 public String env;
 
 
+@Column("updated_at")
+// 更新时间
+// DATETIME
+// 26
+public java.time.LocalDateTime updatedAt;
+
+
 
 
 public static final String ID="id";
@@ -239,6 +246,7 @@ public static final String PROXY_PASSWORD="proxy_password";
 public static final String PROXY_TTL="proxy_ttl";
 public static final String PROXY_REMOTEURL="proxy_remoteurl";
 public static final String ENV="env";
+public static final String UPDATED_AT="updated_at";
 
 /** GEN layui column
 , {field: 'id', title: 'id'}

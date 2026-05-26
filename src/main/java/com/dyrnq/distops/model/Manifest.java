@@ -71,6 +71,14 @@ public String mediaType;
 public Long size;
 
 
+@com.fasterxml.jackson.databind.annotation.JsonSerialize(using = com.fasterxml.jackson.databind.ser.std.ToStringSerializer.class)
+@Column("compressed_size")
+// 镜像所有layer压缩后的总大小
+// BIGINT
+// 19
+public Long compressedSize;
+
+
 @Column("os_arch")
 //@Schema(description = "CPU 架构 (amd64, arm64, etc)")
 // CPU 架构 (amd64, arm64, etc)
@@ -159,6 +167,13 @@ public String configDigest;
 public String pushedBy;
 
 
+@Column("updated_at")
+// 更新时间
+// DATETIME
+// 26
+public java.time.LocalDateTime updatedAt;
+
+
 @Column("push_count")
 //@Schema(description = "被推送/引用次数")
 // 被推送/引用次数
@@ -186,6 +201,8 @@ public static final String LAST_PUSHED="last_pushed";
 public static final String ANNOTATIONS="annotations";
 public static final String CONFIG_DIGEST="config_digest";
 public static final String PUSHED_BY="pushed_by";
+public static final String COMPRESSED_SIZE="compressed_size";
+public static final String UPDATED_AT="updated_at";
 public static final String PUSH_COUNT="push_count";
 
 /** GEN layui column

@@ -77,6 +77,7 @@ public static final String REPO_NAME="repo_name";
 public static final String ARTIFACT_COUNT="artifact_count";
 public static final String LAST_PUSHED="last_pushed";
 public static final String DESCRIPTION="description";
+public static final String UPDATED_AT="updated_at";
 
 /** GEN layui column
 , {field: 'id', title: 'id'}

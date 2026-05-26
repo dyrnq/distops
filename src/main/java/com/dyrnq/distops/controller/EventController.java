@@ -8,10 +8,14 @@ import com.dyrnq.distops.HomeDir;
 import com.dyrnq.distops.dso.ArtifactMapper;
 import com.dyrnq.distops.dso.InstMapper;
 import com.dyrnq.distops.dso.ManifestMapper;
+import com.dyrnq.distops.dso.BlobMapper;
+import com.dyrnq.distops.dso.ManifestBlobMapper;
 import com.dyrnq.distops.dso.RepoMapper;
 import com.dyrnq.distops.model.Artifact;
 import com.dyrnq.distops.model.Inst;
 import com.dyrnq.distops.model.Manifest;
+import com.dyrnq.distops.model.Blob;
+import com.dyrnq.distops.model.ManifestBlob;
 import com.dyrnq.distops.model.Repo;
 import com.dyrnq.utils.IDUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +48,12 @@ public class EventController {
 
     @Inject
     ArtifactMapper artifactMapper;
+
+    @Inject
+    BlobMapper blobMapper;
+
+    @Inject
+    ManifestBlobMapper manifestBlobMapper;
 
     @Mapping("/{instName}")
     public String event(@Body String o, @Path("instName") String instName) throws IOException {
@@ -155,90 +165,123 @@ public class EventController {
                     repoMapper.insert(repo, true);
                 }
 
-                // Process main manifest and tag - using new manifest/tag tables
-                // Process manifest - create or update manifest record
-                Manifest manifest = manifestMapper.findByInstIdAndDigest(instId, digest);
-                if (manifest == null || manifest.getId() == null) {
-                    // New manifest - create record
-                    manifest = new Manifest();
-                    manifest.setId(IDUtils.getLongID());
-                    manifest.setInstId(instId);
-                    manifest.setRepoId(repo.getId());
-                    manifest.setDigest(digest);
-                    manifest.setMediaType(mediaType);
-                    manifest.setSize(size);
-                    manifest.setLastPushed(lastPushed);
-                    manifestMapper.insert(manifest, true);
-                    log.info("Inserted manifest: repo={}, digest={}", repository, digest);
-                } else {
-                    // Existing manifest - update info
-                    manifest.setSize(size);
-                    manifest.setLastPushed(lastPushed);
-                    manifestMapper.updateById(manifest, true);
+                // Determine if this event is for a blob (layer) or manifest
+                boolean isLayer = false;
+                if (mediaType != null) {
+                    String mt = mediaType.toLowerCase();
+                    isLayer = mt.contains("octet-stream") || mt.contains("tar") ||
+                              mt.contains("gzip") || mt.contains("layer") ||
+                              mt.contains("rootfs") || mt.contains("container.image");
                 }
 
-                // Process artifact - create or update artifact record
-                if (StringUtils.isNotBlank(tag)) {
-                    Artifact artifactRecord = artifactMapper.findByInstIdAndRepoIdAndTagName(instId, repo.getId(), tag);
-                    if (artifactRecord == null || artifactRecord.getId() == null) {
-                        // New artifact - create record
-                        artifactRecord = new Artifact();
-                        artifactRecord.setId(IDUtils.getLongID());
-                        artifactRecord.setInstId(instId);
-                        artifactRecord.setRepoId(repo.getId());
-                        artifactRecord.setRepoName(repository); // 冗余字段
-                        artifactRecord.setManifestId(manifest.getId());
-                        artifactRecord.setTagName(tag);
-                        artifactRecord.setFullName(repository + (tag != null ? ":" + tag : ""));
-                        if ("push".equals(action)) {
-                            artifactRecord.setLastPushed(lastPushed);
-                        } else if ("pull".equals(action)) {
-                            artifactRecord.setLastPulled(lastPushed);
-                        }
-                        artifactMapper.insert(artifactRecord, true);
-                        log.info("Inserted artifact: repo={}, tag={}, manifestId={}", repository, tag, manifest.getId());
+                if (isLayer) {
+                    // Store blob (layer) record
+                    Blob blob = blobMapper.findByInstIdAndDigest(instId, digest);
+                    if (blob == null || blob.getId() == null) {
+                        blob = new Blob();
+                        blob.setId(IDUtils.getLongID());
+                        blob.setInstId(instId);
+                        blob.setDigest(digest);
+                        blob.setSize(size);
+                        blob.setMediaType(mediaType);
+                        blob.setCreated(lastPushed);
+                        blobMapper.insert(blob, true);
+                        log.info("Inserted blob: repo={}, digest={}, size={}", repository, digest, size);
                     } else {
-                        // Existing artifact - update manifest reference
-                        artifactRecord.setManifestId(manifest.getId());
-                        if ("push".equals(action)) {
-                            artifactRecord.setLastPushed(lastPushed);
-                        } else if ("pull".equals(action)) {
-                            artifactRecord.setLastPulled(lastPushed);
-                        }
-                        artifactMapper.updateById(artifactRecord, true);
-                    }
-
-                    // Update artifact_count: count distinct non-null tag names for this repo
-                    Integer newTagCount = artifactMapper.countDistinctArtifactsByRepoId(repo.getId());
-                    if (!Objects.equals(repo.getArtifactCount(), newTagCount)) {
-                        repo.setArtifactCount(newTagCount);
-                        repoMapper.updateById(repo, true);
-                        log.info("Updated artifact_count for repo={}: count={}", repository, newTagCount);
+                        blob.setSize(size);
+                        blobMapper.updateById(blob, true);
                     }
                 }
 
-                // Process multi-arch references if this is a manifest list
-                if (isManifestList) {
-                    processReferences(target, instId, repo.getId(), manifest.getDigest(), lastPushed);
-                } else {
-                    // For single-arch images, extract os/arch from target
-                    JSONObject platform = target.getJSONObject("platform");
-                    if (platform != null) {
-                        String osArch = platform.getStr("architecture");
-                        String os = platform.getStr("os");
-                        String variant = platform.getStr("variant");
-
-                        // Update manifest with os/arch info
-                        if (StringUtils.isNotBlank(osArch)) {
-                            manifest.setOsArch(osArch);
-                        }
-                        if (StringUtils.isNotBlank(os)) {
-                            manifest.setOs(os);
-                        }
-                        if (StringUtils.isNotBlank(variant)) {
-                            manifest.setVariant(variant);
-                        }
+                // Manifest variable for non-layer events
+                Manifest manifest = null;
+                if (!isLayer) {
+                    // Process manifest - create or update manifest record
+                    manifest = manifestMapper.findByInstIdAndDigest(instId, digest);
+                    if (manifest == null || manifest.getId() == null) {
+                        // New manifest - create record
+                        manifest = new Manifest();
+                        manifest.setId(IDUtils.getLongID());
+                        manifest.setInstId(instId);
+                        manifest.setRepoId(repo.getId());
+                        manifest.setDigest(digest);
+                        manifest.setMediaType(mediaType);
+                        manifest.setSize(size);
+                        manifest.setLastPushed(lastPushed);
+                        manifestMapper.insert(manifest, true);
+                        log.info("Inserted manifest: repo={}, digest={}", repository, digest);
+                    } else {
+                        // Existing manifest - update info
+                        manifest.setSize(size);
+                        manifest.setLastPushed(lastPushed);
                         manifestMapper.updateById(manifest, true);
+                    }
+                }
+
+                // Process artifact, references, platform info (only for non-layer manifests)
+                if (!isLayer) {
+                    // Process artifact - create or update artifact record
+                    if (StringUtils.isNotBlank(tag)) {
+                        Artifact artifactRecord = artifactMapper.findByInstIdAndRepoIdAndTagName(instId, repo.getId(), tag);
+                        if (artifactRecord == null || artifactRecord.getId() == null) {
+                            // New artifact - create record
+                            artifactRecord = new Artifact();
+                            artifactRecord.setId(IDUtils.getLongID());
+                            artifactRecord.setInstId(instId);
+                            artifactRecord.setRepoId(repo.getId());
+                            artifactRecord.setRepoName(repository); // 冗余字段
+                            artifactRecord.setManifestId(manifest.getId());
+                            artifactRecord.setTagName(tag);
+                            artifactRecord.setFullName(repository + (tag != null ? ":" + tag : ""));
+                            if ("push".equals(action)) {
+                                artifactRecord.setLastPushed(lastPushed);
+                            } else if ("pull".equals(action)) {
+                                artifactRecord.setLastPulled(lastPushed);
+                            }
+                            artifactMapper.insert(artifactRecord, true);
+                            log.info("Inserted artifact: repo={}, tag={}, manifestId={}", repository, tag, manifest.getId());
+                        } else {
+                            // Existing artifact - update manifest reference
+                            artifactRecord.setManifestId(manifest.getId());
+                            if ("push".equals(action)) {
+                                artifactRecord.setLastPushed(lastPushed);
+                            } else if ("pull".equals(action)) {
+                                artifactRecord.setLastPulled(lastPushed);
+                            }
+                            artifactMapper.updateById(artifactRecord, true);
+                        }
+
+                        // Update artifact_count
+                        Integer newTagCount = artifactMapper.countDistinctArtifactsByRepoId(repo.getId());
+                        if (!Objects.equals(repo.getArtifactCount(), newTagCount)) {
+                            repo.setArtifactCount(newTagCount);
+                            repoMapper.updateById(repo, true);
+                            log.info("Updated artifact_count for repo={}: count={}", repository, newTagCount);
+                        }
+                    }
+
+                    // Process multi-arch references if this is a manifest list
+                    if (isManifestList) {
+                        processReferences(target, instId, repo.getId(), manifest.getDigest(), lastPushed);
+                    } else {
+                        // For single-arch images, extract os/arch from target
+                        JSONObject platform = target.getJSONObject("platform");
+                        if (platform != null) {
+                            String osArch = platform.getStr("architecture");
+                            String os = platform.getStr("os");
+                            String variant = platform.getStr("variant");
+
+                            if (StringUtils.isNotBlank(osArch)) {
+                                manifest.setOsArch(osArch);
+                            }
+                            if (StringUtils.isNotBlank(os)) {
+                                manifest.setOs(os);
+                            }
+                            if (StringUtils.isNotBlank(variant)) {
+                                manifest.setVariant(variant);
+                            }
+                            manifestMapper.updateById(manifest, true);
+                        }
                     }
                 }
 
@@ -340,6 +383,22 @@ public class EventController {
                 existingManifest.setParentDigest(parentDigest);
                 manifestMapper.updateById(existingManifest, true);
                 log.info("Updated reference manifest: digest={}, arch={}, os={}", refDigest, osArch, os);
+            }
+        }
+
+        // Update parent manifest list's compressed_size to sum of all child manifest sizes
+        long totalSize = references.stream()
+                .mapToLong(ref -> {
+                    Long s = ((JSONObject) ref).getLong("size");
+                    return s != null ? s : 0L;
+                })
+                .sum();
+        if (totalSize > 0) {
+            Manifest parent = manifestMapper.findByInstIdAndDigest(instId, parentDigest);
+            if (parent != null && parent.getId() != null) {
+                parent.setCompressedSize(totalSize);
+                manifestMapper.updateById(parent, true);
+                log.info("Updated parent manifest list {} compressed_size: {} bytes", parentDigest, totalSize);
             }
         }
     }

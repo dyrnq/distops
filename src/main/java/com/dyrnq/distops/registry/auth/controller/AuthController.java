@@ -42,7 +42,7 @@ public class AuthController {
                               @Param(required = false) String service,
                               @Param(required = false) List<String> scope,
                               @Header(value = "Authorization", required = false) String authorization) {
-        Inst inst = instMapper.selectById(1L);
+        Inst inst = resolveInst(service);
         return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
@@ -53,7 +53,7 @@ public class AuthController {
                                    @Param(required = false) List<String> scope,
                                    @Header(value = "Authorization", required = false) String authorization
     ) {
-        Inst inst = instMapper.selectById(1L);
+        Inst inst = resolveInst(service);
         return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
@@ -89,6 +89,21 @@ public class AuthController {
         return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
+    /**
+     * Resolve instance by service parameter (format: "name:port") or fallback to default (id=1)
+     */
+    private Inst resolveInst(String service) {
+        if (service != null && !service.isEmpty()) {
+            // service format: "instName:port" or just "instName"
+            String instName = service.contains(":") ? service.substring(0, service.lastIndexOf(":")) : service;
+            Inst inst = instMapper.findByName(instName);
+            if (inst != null) {
+                return inst;
+            }
+            log.debug("Instance not found by service '{}', falling back to default", service);
+        }
+        return instMapper.selectById(1L);
+    }
 
     public TokenResponse authenticate(Context ctx,
                                       Inst inst,
