@@ -173,8 +173,8 @@ function loadChildManifests(ociList) {
             , {field: 'childDigest', title: 'Digest', width: 500, templet: function(d){
                 return '<span style="font-family: monospace; font-size: 11px;">' + (d.childDigest || '-') + '</span>';
             }}
-            , {field: 'childSize', title: 'Size', width: 120, templet: function(d){
-                return formatSize(d.childSize);
+            , {field: 'childCompressedSize', title: 'Compressed Size', width: 140, templet: function(d){
+                return formatSize(d.childCompressedSize);
             }}
             , {field: 'childMediaType', title: 'Media Type', width: 280, templet: function(d){
                 return '<span style="font-size: 10px;">' + (d.childMediaType || '-') + '</span>';

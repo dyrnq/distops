@@ -170,6 +170,14 @@ public String variant;
 public Long childSize;
 
 
+@com.fasterxml.jackson.databind.annotation.JsonSerialize(using = com.fasterxml.jackson.databind.ser.std.ToStringSerializer.class)
+@Column("child_compressed_size")
+// 镜像压缩总大小 (config + layers)
+// BIGINT
+// 19
+public Long childCompressedSize;
+
+
 @Column("child_media_type")
 //@Schema(description = "MIME 类型")
 // MIME 类型
@@ -238,6 +246,7 @@ public static final String OS_ARCH="os_arch";
 public static final String OS="os";
 public static final String VARIANT="variant";
 public static final String CHILD_SIZE="child_size";
+public static final String CHILD_COMPRESSED_SIZE="child_compressed_size";
 public static final String CHILD_MEDIA_TYPE="child_media_type";
 public static final String OS_VERSION="os_version";
 public static final String FEATURES="features";

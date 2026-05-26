@@ -4,6 +4,8 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
 import com.dyrnq.distops.HomeDir;
 import com.dyrnq.distops.dso.ArtifactMapper;
 import com.dyrnq.distops.dso.InstMapper;
@@ -283,6 +285,15 @@ public class EventController {
                             manifestMapper.updateById(manifest, true);
                         }
                     }
+
+                    // Fetch manifest body to compute compressed_size (sum of layer sizes)
+                    if ("push".equals(action) && manifest != null && manifest.getId() != null) {
+                        try {
+                            fetchAndUpdateCompressedSize(inst, repository, manifest.getDigest(), manifest.getId());
+                        } catch (Exception e) {
+                            log.warn("Failed to compute compressed_size for {}: {}", digest, e.getMessage());
+                        }
+                    }
                 }
 
                 log.info("Processed event: action={}, repository={}, digest={}, tag={}, isManifestList={}",
@@ -386,20 +397,88 @@ public class EventController {
             }
         }
 
-        // Update parent manifest list's compressed_size to sum of all child manifest sizes
-        long totalSize = references.stream()
-                .mapToLong(ref -> {
-                    Long s = ((JSONObject) ref).getLong("size");
-                    return s != null ? s : 0L;
-                })
-                .sum();
-        if (totalSize > 0) {
+        // Sum compressed_size from child manifests in DB
+        long totalCompressedSize = 0;
+        for (int i = 0; i < references.size(); i++) {
+            JSONObject ref = references.getJSONObject(i);
+            String refDigest = ref.getStr("digest");
+            if (StringUtils.isNotBlank(refDigest)) {
+                Manifest child = manifestMapper.findByInstIdAndDigest(instId, refDigest);
+                if (child != null && child.getCompressedSize() != null) {
+                    totalCompressedSize += child.getCompressedSize();
+                }
+            }
+        }
+        if (totalCompressedSize > 0) {
             Manifest parent = manifestMapper.findByInstIdAndDigest(instId, parentDigest);
             if (parent != null && parent.getId() != null) {
-                parent.setCompressedSize(totalSize);
+                parent.setCompressedSize(totalCompressedSize);
                 manifestMapper.updateById(parent, true);
-                log.info("Updated parent manifest list {} compressed_size: {} bytes", parentDigest, totalSize);
+                log.info("Updated parent manifest list {} compressed_size: {} bytes (from {} children)", parentDigest, totalCompressedSize, references.size());
             }
         }
     }
+
+    /**
+     * Fetch manifest body from registry and compute compressed_size (sum of config + layers size)
+     */
+    private void fetchAndUpdateCompressedSize(Inst inst, String repository, String digest, Long manifestId) {
+        int registryPort = inst.getPort() != null ? inst.getPort() : 5000;
+        String url = "http://127.0.0.1:" + registryPort + "/v2/" + repository + "/manifests/" + digest;
+        String acceptHeader = "application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json";
+        try (HttpResponse response = HttpRequest.of(url)
+                .header("Accept", acceptHeader)
+                .execute()) {
+            if (!response.isOk()) {
+                log.warn("Failed to fetch manifest {}: HTTP {}", digest, response.getStatus());
+                return;
+            }
+            String body = response.body();
+            if (StringUtils.isBlank(body)) {
+                return;
+            }
+            JSONObject manifestJson = JSONUtil.parseObj(body);
+            long totalSize = 0;
+
+            // OCI image manifest or Docker v2 manifest: config.size + sum(layers[].size)
+            if (manifestJson.containsKey("config") && manifestJson.containsKey("layers")) {
+                JSONObject config = manifestJson.getJSONObject("config");
+                if (config != null) {
+                    Long configSize = config.getLong("size");
+                    totalSize += (configSize != null ? configSize : 0);
+                }
+                JSONArray layers = manifestJson.getJSONArray("layers");
+                if (layers != null) {
+                    for (int i = 0; i < layers.size(); i++) {
+                        JSONObject layer = layers.getJSONObject(i);
+                        Long layerSize = layer.getLong("size");
+                        totalSize += (layerSize != null ? layerSize : 0);
+                    }
+                }
+            }
+            // OCI image index / Docker manifest list: sum of referenced manifests
+            else if (manifestJson.containsKey("manifests")) {
+                JSONArray manifests = manifestJson.getJSONArray("manifests");
+                if (manifests != null) {
+                    for (int i = 0; i < manifests.size(); i++) {
+                        JSONObject m = manifests.getJSONObject(i);
+                        Long mSize = m.getLong("size");
+                        totalSize += (mSize != null ? mSize : 0);
+                    }
+                }
+            }
+
+            if (totalSize > 0) {
+                Manifest existing = manifestMapper.selectById(manifestId);
+                if (existing != null) {
+                    existing.setCompressedSize(totalSize);
+                    manifestMapper.updateById(existing, true);
+                    log.info("Updated compressed_size for manifest {}: {} bytes", digest, totalSize);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Error computing compressed_size for {}: {}", digest, e.getMessage());
+        }
+    }
+
 }

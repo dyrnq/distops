@@ -128,6 +128,14 @@ public String mediaType;
 public Long size;
 
 
+@com.fasterxml.jackson.databind.annotation.JsonSerialize(using = com.fasterxml.jackson.databind.ser.std.ToStringSerializer.class)
+@Column("compressed_size")
+// 镜像压缩总大小 (config + layers)
+// BIGINT
+// 19
+public Long compressedSize;
+
+
 @Column("os_arch")
 //@Schema(description = "CPU 架构 (amd64, arm64, etc)")
 // CPU 架构 (amd64, arm64, etc)
@@ -239,6 +247,7 @@ public static final String MANIFEST_ID="manifest_id";
 public static final String DIGEST="digest";
 public static final String MEDIA_TYPE="media_type";
 public static final String SIZE="size";
+public static final String COMPRESSED_SIZE="compressed_size";
 public static final String OS_ARCH="os_arch";
 public static final String OS="os";
 public static final String OS_VERSION="os_version";
