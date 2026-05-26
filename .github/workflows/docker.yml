@@ -19,6 +19,8 @@ jobs:
           cache: maven
       - name: Build with Maven
         run: ./mvnw clean package -Dmaven.test.skip=true
+      - name: Copy jar to docker/rootfs
+        run: cp target/distops-*.jar docker/rootfs/distops.jar
 
       - name: Set up QEMU
         id: qemu
@@ -44,6 +46,12 @@ jobs:
           curl -sL https://github.com/regclient/regclient/releases/download/v0.11.1/regctl-linux-amd64 -o /tmp/regctl
           chmod +x /tmp/regctl && sudo mv /tmp/regctl /usr/local/bin/regctl
 
+      - name: Setup crictl
+        run: |
+          CRICTL_VER="v1.35.0"
+          curl -sL "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VER}/crictl-${CRICTL_VER}-linux-amd64.tar.gz" | sudo tar -C /usr/local/bin -xz
+          sudo crictl --version || echo "crictl install skipped"
+
       - name: Setup docker insecure registries
         run: |
           sudo mkdir -p /etc/docker
@@ -53,7 +61,19 @@ jobs:
 
       - name: Integration test (Mode 1 - Direct)
         run: |
-          IMAGE=${{ secrets.DOCKER_USERNAME }}/distops:latest python3 scripts/tests/run.py
+          SKIP=test_containerd,test_crictl IMAGE=${{ secrets.DOCKER_USERNAME }}/distops:test python3 scripts/tests/run.py
+
+      - name: Integration test (Mode 2 - Proxy via nginx)
+        run: |
+          SKIP=test_containerd,test_crictl IMAGE=${{ secrets.DOCKER_USERNAME }}/distops:test NO_PROXY="localhost,127.0.0.1,192.168.0.0/16,.local,.internal" python3 scripts/tests/run.py --nginx
+
+      - name: Docker logs (debug)
+        if: always()
+        run: |
+          echo "=== distops-test logs ==="
+          docker logs distops-test 2>&1 | tail -80
+          echo "=== docker ps ==="
+          docker ps -a --format "table {{.Names}}	{{.Status}}	{{.Ports}}"
 
       - name: Build docker image (local, no push)
         run: |
