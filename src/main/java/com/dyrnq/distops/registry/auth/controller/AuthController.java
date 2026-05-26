@@ -126,6 +126,11 @@ public class AuthController {
 
 
         try {
+            // Anonymous access: no Authorization header -> grant pull-only
+            if (authorization == null || authorization.isBlank()) {
+                return handleAnonymous(inst, account, service, scope, ctx);
+            }
+
             AuthRequest authRequest = parseRequest(account, service, scope, authorization, ctx);
 
             log.info("Auth request: user={}, account={}, service={}, scopes={}", authRequest.getUser(), authRequest.getAccount(), authRequest.getService(), authRequest.getScopes());
@@ -142,24 +147,10 @@ public class AuthController {
 
             List<JWTPayload.ResourceAccess> accessList = authorizeScopes(authRequest);
 
-            String auth = inst.getAuthKeyType();
+            ITokenService tokenService = getTokenService(inst);
 
-            ITokenService tokenService = null;
-            switch (auth) {
-                case "EC":
-                    tokenService = new ECTokenServiceImpl(inst);
-                    break;
-                case "RSA":
-                    tokenService = new RSATokenServiceImpl(inst);
-                    break;
-                case "HMAC":
-                    tokenService = new HMACTokenServiceImpl(inst);
-                    break;
-                default:
-                    log.warn(auth);
-            }
             if (tokenService == null) {
-                log.error("tokenService not found");
+                log.error("tokenService not found for inst: {}", inst.getName());
                 throw new RuntimeException("tokenService not found");
             }
 
@@ -428,5 +419,64 @@ public class AuthController {
         }
 
         return accessList;
+    }
+
+    private TokenResponse handleAnonymous(Inst inst, String accountName, String service, java.util.List<String> scopes, Context ctx) {
+        try {
+            // Anonymous user: use special "anonymous" account with its own ACL rules
+            java.util.List<JWTPayload.ResourceAccess> accessList = new java.util.ArrayList<>();
+            if (scopes != null && !scopes.isEmpty()) {
+                java.util.List<AuthRequest.Scope> parsedScopes = new java.util.ArrayList<>();
+                for (String s : scopes) {
+                    parsedScopes.addAll(parseScopes(s));
+                }
+                for (AuthRequest.Scope ps : parsedScopes) {
+                    java.util.Set<String> requestedActions = new java.util.HashSet<>(ps.getActions());
+                    // Only allow pull for anonymous (read-only)
+                    java.util.Set<String> authorizedActions = authService.getAuthorizedActions(
+                            "anonymous",
+                            ps.getType(),
+                            ps.getName(),
+                            requestedActions,
+                            null
+                    );
+                    if (!authorizedActions.isEmpty()) {
+                        accessList.add(JWTPayload.ResourceAccess.builder()
+                                .type(ps.getType())
+                                .name(ps.getName())
+                                .actions(new java.util.ArrayList<>(authorizedActions))
+                                .build());
+                    }
+                }
+            }
+
+            ITokenService tokenService = getTokenService(inst);
+            if (tokenService == null) {
+                ctx.status(500);
+                return null;
+            }
+            String token = tokenService.createToken("anonymous", service, accessList);
+            log.info("Anonymous token issued for service={}, scopes={}, access={}", service, scopes, accessList.size());
+            TokenResponse resp = new TokenResponse();
+            resp.setToken(token);
+            resp.setAccessToken(token);
+            return resp;
+        } catch (Exception e) {
+            log.error("Anonymous token generation failed", e);
+            ctx.status(500);
+            return null;
+        }
+    }
+
+    private ITokenService getTokenService(Inst inst) {
+        String auth = inst.getAuthKeyType();
+        switch (auth) {
+            case "EC": return new ECTokenServiceImpl(inst);
+            case "RSA": return new RSATokenServiceImpl(inst);
+            case "HMAC": return new HMACTokenServiceImpl(inst);
+            default:
+                log.warn("Unknown auth key type: {}", auth);
+                return null;
+        }
     }
 }
