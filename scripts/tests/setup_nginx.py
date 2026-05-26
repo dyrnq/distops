@@ -49,7 +49,7 @@ def gen_nginx_conf():
         "  client_max_body_size 0;\n"
         "  chunked_transfer_encoding on;\n"
         "\n"
-        "  location /auth/default/ {\n"
+        "  location /auth/default {\n"
         "    proxy_pass http://api;\n"
         "    proxy_set_header Host $http_host;\n"
         "    proxy_set_header X-Real-IP $remote_addr;\n"

@@ -7,6 +7,7 @@ import json
 import os
 import re
 import subprocess
+import time
 
 HOST = os.environ.get("HOST", "localhost")
 API = os.environ.get("API", f"{HOST}:12680")
@@ -28,15 +29,19 @@ def run(port):
     realm = realm.rstrip("/") + "/"
     svc = svc_m.group(1) if svc_m else "registry.docker.io"
 
-    r2 = subprocess.run(
-        f'curl -s -u "{TU}:{TP}" "{realm}token?service={svc}&scope=repository:library/alpine:pull"',
-        shell=True, timeout=10, capture_output=True, text=True,
-    )
     token = ""
-    try:
-        token = json.loads(r2.stdout).get("token", "")
-    except json.JSONDecodeError:
-        pass
+    for attempt in range(5):
+        r2 = subprocess.run(
+            f'curl -s -u "{TU}:{TP}" "{realm}token/?service={svc}&scope=repository:library/alpine:pull"',
+            shell=True, timeout=10, capture_output=True, text=True,
+        )
+        try:
+            token = json.loads(r2.stdout).get("token", "")
+        except json.JSONDecodeError:
+            pass
+        if token and token != "null":
+            break
+        time.sleep(2)
 
     ok1 = bool(token) and token != "null"
     results.append(("Token obtained", ok1))

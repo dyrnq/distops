@@ -24,6 +24,7 @@ RP = int(os.environ.get("RP", 5000))
 PP = int(os.environ.get("PP", 34000))
 
 PASS = 0
+skip = set()
 FAIL = 0
 TESTS_RUN = []
 
@@ -51,6 +52,10 @@ def load_module(name):
 
 def run_module(name, label, port=None, **kwargs):
     global PASS, FAIL
+    if name in skip:
+        print(f"\n--- {label} ---")
+        print(f"  [SKIP] {label} (in SKIP list)")
+        return
     mod = load_module(name)
     if mod is None:
         FAIL += 1
@@ -95,6 +100,8 @@ def main():
         list_modules()
         return
 
+    global skip; skip = set(os.environ.get("SKIP", "").split(",")) if os.environ.get("SKIP") else set()
+
     mode1 = not args.nginx or args.all
     mode2 = args.nginx or args.all
 
@@ -114,6 +121,10 @@ def main():
         run_module("test_skopeo", "skopeo", port=RP)
         run_module("test_jwt", "JWT CLI")
         run_module("test_admin", "Admin API", port=RP)
+        run_module("test_oauth", "OAuth2 POST Endpoint", port=RP)
+        run_module("test_oauth_errors", "OAuth2 Error Handling")
+        run_module("test_containerd", "containerd ctr Pull via OAuth2")
+        run_module("test_crictl", "crictl Pull")
         run_module("test_proxy", "Proxy Registry")
         run_module("test_proxy_push_denied", "Proxy Registry Push Denied")
 
@@ -135,6 +146,10 @@ def main():
         run_module("test_docker", "Docker Push via Proxy", port=PP_LOCAL)
         run_module("test_regctl", "regctl via Proxy", port=PP_LOCAL)
         run_module("test_skopeo", "skopeo via Proxy", port=PP_LOCAL)
+        run_module("test_oauth", "OAuth2 POST Endpoint via Proxy")
+        run_module("test_oauth_errors", "OAuth2 Error Handling via Proxy")
+        run_module("test_containerd", "containerd ctr Pull via OAuth2", port=PP_LOCAL)
+        run_module("test_crictl", "crictl Pull", port=PP_LOCAL)
         run_module("test_proxy", "Proxy Registry via Nginx", proxy_ports=[35000,35001,35002,35003,35004,35005])
         run_module("test_proxy_push_denied", "Proxy Push Denied via Nginx", proxy_ports=[35000,35001,35002,35003,35004,35005])
 
@@ -145,6 +160,16 @@ def main():
         print("  All tests passed!")
     else:
         print(f"  {FAIL} test(s) failed")
+        # Print container logs on failure for debugging
+        import subprocess
+        print("")
+        print("=== distops container logs (last 60 lines) ===")
+        subprocess.run(
+            f"docker logs {os.environ.get('DISTOPS_CONTAINER', 'distops-test')} --tail 60 2>&1 || true",
+            shell=True, timeout=10,
+        )
+        print("=== docker ps ===")
+        subprocess.run("docker ps -a --format 'table {{.Names}}\t{{.Status}}' 2>&1 || true", shell=True, timeout=10)
     print(f"  {time.strftime('%Y-%m-%d %H:%M:%S')}")
 
     sys.exit(1 if FAIL > 0 else 0)
