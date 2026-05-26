@@ -18,7 +18,7 @@
     <parent>
         <groupId>org.noear</groupId>
         <artifactId>solon-parent</artifactId>
-        <version>3.10.4</version>
+        <version>3.10.7</version>
     </parent>
     <packaging>jar</packaging>
 
@@ -105,7 +105,7 @@
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
-            <version>5.8.44</version>
+            <version>5.8.46</version>
         </dependency>
 
 
@@ -162,13 +162,13 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>12.6.0</version>
+            <version>12.6.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
-            <version>12.6.0</version>
+            <version>12.6.2</version>
         </dependency>
 
         <dependency>
@@ -245,7 +245,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-common</artifactId>
-            <version>4.1.119.Final</version>
+            <version>5.0.0.Alpha2</version>
         </dependency>
 
 
