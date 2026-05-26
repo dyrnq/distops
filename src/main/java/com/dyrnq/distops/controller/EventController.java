@@ -187,10 +187,15 @@ public class EventController {
                         blob.setSize(size);
                         blob.setMediaType(mediaType);
                         blob.setCreated(lastPushed);
+                        blob.setStatus("active");
                         blobMapper.insert(blob, true);
                         log.info("Inserted blob: repo={}, digest={}, size={}", repository, digest, size);
                     } else {
                         blob.setSize(size);
+                        if (!"active".equals(blob.getStatus())) {
+                            blob.setStatus("active");
+                            log.info("Re-activated orphan blob: repo={}, digest={}", repository, digest);
+                        }
                         blobMapper.updateById(blob, true);
                     }
                 }
@@ -512,6 +517,22 @@ public class EventController {
                         JSONObject layer = layers.getJSONObject(i);
                         Long layerSize = layer.getLong("size");
                         totalSize += (layerSize != null ? layerSize : 0);
+
+                        // Build manifest_blob association
+                        String layerDigest = layer.getStr("digest");
+                        if (StringUtils.isNotBlank(layerDigest)) {
+                            Blob layerBlob = blobMapper.findByInstIdAndDigest(inst.getId(), layerDigest);
+                            if (layerBlob != null && layerBlob.getId() != null) {
+                                ManifestBlob mb = manifestBlobMapper.findByManifestIdAndBlobId(manifestId, layerBlob.getId());
+                                if (mb == null || mb.getId() == null) {
+                                    mb = new ManifestBlob();
+                                    mb.setId(IDUtils.getLongID());
+                                    mb.setManifestId(manifestId);
+                                    mb.setBlobId(layerBlob.getId());
+                                    manifestBlobMapper.insert(mb, true);
+                                }
+                            }
+                        }
                     }
                 }
             }

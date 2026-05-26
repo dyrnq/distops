@@ -33,10 +33,14 @@ public class Blob implements Serializable {
     @Column("created")
     public java.time.LocalDateTime created;
 
+    @Column("status")
+    public String status;
+
     public static final String ID = "id";
     public static final String INST_ID = "inst_id";
     public static final String DIGEST = "digest";
     public static final String SIZE = "size";
     public static final String MEDIA_TYPE = "media_type";
     public static final String CREATED = "created";
+    public static final String STATUS = "status";
 }
