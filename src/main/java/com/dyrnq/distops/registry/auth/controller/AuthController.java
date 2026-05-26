@@ -63,6 +63,7 @@ public class AuthController {
                                     @Param(required = false) String account,
                                     @Param(required = false) String service,
                                     @Param(required = false) List<String> scope,
+                                    @Param(required = false) String grant_type,
                                     @Header(value = "Authorization", required = false) String authorization) {
         Inst inst = instMapper.findByName(instName);
         if (inst == null) {
@@ -70,6 +71,20 @@ public class AuthController {
             ctx.status(404);
             return null;
         }
+        // OAuth2: POST with grant_type parameter
+        if ("POST".equalsIgnoreCase(ctx.method()) && grant_type != null && !grant_type.isBlank()) {
+            java.util.Map<String, String> oauthParams = new java.util.LinkedHashMap<>();
+            oauthParams.put("grant_type", grant_type);
+            oauthParams.put("username", ctx.param("username"));
+            oauthParams.put("password", ctx.param("password"));
+            oauthParams.put("service", service);
+            if (scope != null && !scope.isEmpty()) oauthParams.put("scope", scope.get(0));
+            oauthParams.put("client_id", ctx.param("client_id") != null ? ctx.param("client_id") : "docker");
+            oauthParams.put("access_type", ctx.param("access_type"));
+            oauthParams.put("refresh_token", ctx.param("refresh_token"));
+            return authOAuthInternal(ctx, inst, oauthParams);
+        }
+        
         return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
@@ -104,6 +119,128 @@ public class AuthController {
         }
         return instMapper.selectById(1L);
     }
+
+
+    /**
+     * Internal OAuth2 token handler (called from authByInst when POST with grant_type)
+     */
+    private TokenResponse authOAuthInternal(Context ctx, Inst inst, java.util.Map<String, String> params) {
+        try {
+            String grantType = params.get("grant_type");
+            String service = params.get("service");
+            String scopeStr = params.get("scope");
+            String accessType = params.get("access_type");
+
+            if (grantType == null || grantType.isBlank()) {
+                ctx.status(400);
+                return null;
+            }
+
+            java.util.List<String> scopes = new java.util.ArrayList<>();
+            if (scopeStr != null && !scopeStr.isBlank()) {
+                scopes.add(scopeStr);
+            }
+
+            String username;
+            String password;
+
+            if ("password".equals(grantType)) {
+                username = params.get("username");
+                password = params.get("password");
+                if (username == null || username.isBlank()) {
+                    ctx.status(401);
+                    return null;
+                }
+
+                if (!authService.authenticate(username, password)) {
+                    log.warn("OAuth authentication failed for user: {}", username);
+                    ctx.status(401);
+                    return null;
+                }
+
+                AuthRequest authRequest = parseRequest(username, service, scopes, null, ctx);
+                List<JWTPayload.ResourceAccess> accessList = authorizeScopes(authRequest);
+                return buildOAuthResponse(inst, username, service, accessList, "offline".equals(accessType));
+            }
+
+            if ("refresh_token".equals(grantType)) {
+                String refreshToken = params.get("refresh_token");
+                if (refreshToken == null || refreshToken.isBlank()) {
+                    ctx.status(400);
+                    return null;
+                }
+
+                String decoded;
+                try {
+                    decoded = new String(java.util.Base64.getUrlDecoder().decode(refreshToken));
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid refresh_token encoding");
+                    ctx.status(401);
+                    return null;
+                }
+                String[] parts = decoded.split(":", 3);
+                if (parts.length < 3) {
+                    ctx.status(401);
+                    return null;
+                }
+                username = parts[0];
+                long expires;
+                try {
+                    expires = Long.parseLong(parts[1]);
+                } catch (NumberFormatException e) {
+                    log.warn("Invalid refresh_token expiry");
+                    ctx.status(401);
+                    return null;
+                }
+
+                if (System.currentTimeMillis() / 1000 > expires) {
+                    log.warn("Refresh token expired for user: {}", username);
+                    ctx.status(401);
+                    return null;
+                }
+
+                AuthRequest authRequest = parseRequest(username, service, scopes, null, ctx);
+                List<JWTPayload.ResourceAccess> accessList = authorizeScopes(authRequest);
+                return buildOAuthResponse(inst, username, service, accessList, "offline".equals(accessType));
+            }
+
+            ctx.status(400);
+            return null;
+        } catch (Exception e) {
+            log.error("OAuth token error", e);
+            ctx.status(500);
+            return null;
+        }
+    }
+
+    private TokenResponse buildOAuthResponse(Inst inst, String username, String service,
+                                              List<JWTPayload.ResourceAccess> accessList,
+                                              boolean includeRefreshToken) {
+        ITokenService tokenService = getTokenService(inst);
+        if (tokenService == null) {
+            throw new RuntimeException("tokenService not found");
+        }
+
+        String accessToken = tokenService.createToken(username, service, accessList);
+
+        TokenResponse resp = new TokenResponse();
+        resp.setAccessToken(accessToken);
+        resp.setToken(accessToken);
+        resp.setExpiresIn(36000);
+        resp.setIssuedAt(java.time.Instant.now().toString());
+
+        if (includeRefreshToken) {
+            long refreshExpires = System.currentTimeMillis() / 1000 + 86400 * 30;
+            String refreshPayload = username + ":" + refreshExpires + ":refresh";
+            String refreshToken = java.util.Base64.getUrlEncoder().withoutPadding()
+                    .encodeToString(refreshPayload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            resp.setRefreshToken(refreshToken);
+        }
+
+        log.info("OAuth token issued: grant_type=password, user={}, service={}", username, service);
+        return resp;
+    }
+
 
     public TokenResponse authenticate(Context ctx,
                                       Inst inst,

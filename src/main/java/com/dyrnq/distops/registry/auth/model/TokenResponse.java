@@ -27,4 +27,8 @@ public class TokenResponse {
     @JsonProperty("issued_at")
     @ONodeAttr(name="issued_at")
     private String issuedAt;
+
+    @JsonProperty("refresh_token")
+    @ONodeAttr(name="refresh_token")
+    private String refreshToken;
 }

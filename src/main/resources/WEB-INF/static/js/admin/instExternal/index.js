@@ -63,7 +63,7 @@ function nginxConfig(inst, cfg) {
 
     if (authType === 'token') {
         conf += '    # Auth endpoint - proxy to distops auth server\n';
-        conf += '    location /auth/' + name + '/ {\n';
+        conf += '    location /auth/' + name + ' {\n';
         conf += '        proxy_pass http://127.0.0.1:' + distopsPort + ';\n';
         conf += '        proxy_set_header Host $host;\n';
         conf += '        proxy_set_header X-Real-IP $remote_addr;\n';
@@ -115,7 +115,7 @@ function apacheConfig(inst, cfg) {
 
     if (authType === 'token') {
         conf += '    # Auth endpoint - proxy to distops auth server\n';
-        conf += '    <Location /auth/' + name + '/>\n';
+        conf += '    <Location /auth/' + name + '>\n';
         conf += '        ProxyPass http://127.0.0.1:' + distopsPort + '\n';
         conf += '        ProxyPassReverse http://127.0.0.1:' + distopsPort + '\n';
         conf += '    </Location>\n\n';
