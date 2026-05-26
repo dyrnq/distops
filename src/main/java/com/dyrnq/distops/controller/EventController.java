@@ -395,6 +395,23 @@ public class EventController {
                 manifestMapper.updateById(existingManifest, true);
                 log.info("Updated reference manifest: digest={}, arch={}, os={}", refDigest, osArch, os);
             }
+
+            // Compute compressed_size for each child manifest
+            try {
+                Inst inst = instMapper.selectById(instId);
+                Repo repo = repoMapper.selectById(repoId);
+                if (inst != null && repo != null) {
+                    Long refManifestId = null;
+                    if (existingManifest != null && existingManifest.getId() != null) {
+                        refManifestId = existingManifest.getId();
+                    }
+                    if (refManifestId != null) {
+                        fetchAndUpdateCompressedSize(inst, repo.getRepoName(), refDigest, refManifestId);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("Failed to compute compressed_size for child {}: {}", refDigest, e.getMessage());
+            }
         }
 
         // Sum compressed_size from child manifests in DB
@@ -423,17 +440,20 @@ public class EventController {
      * Fetch manifest body from registry and compute compressed_size (sum of config + layers size)
      */
     private void fetchAndUpdateCompressedSize(Inst inst, String repository, String digest, Long manifestId) {
-        int registryPort = inst.getPort() != null ? inst.getPort() : 5000;
-        String url = "http://127.0.0.1:" + registryPort + "/v2/" + repository + "/manifests/" + digest;
-        String acceptHeader = "application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json";
-        try (HttpResponse response = HttpRequest.of(url)
-                .header("Accept", acceptHeader)
-                .execute()) {
-            if (!response.isOk()) {
-                log.warn("Failed to fetch manifest {}: HTTP {}", digest, response.getStatus());
+        try {
+            // Read manifest body from local registry storage filesystem (avoids auth issues)
+            String instName = inst.getName();
+            String blobBasePath = StringUtils.joinWith(File.separator,
+                    homeDir.getHomeAbsolutePath(), "registry", instName, "data", "docker", "registry", "v2", "blobs", "sha256");
+            String digestHex = digest.replace("sha256:", "");
+            String blobPath = StringUtils.joinWith(File.separator,
+                    blobBasePath, digestHex.substring(0, 2), digestHex, "data");
+            File blobFile = new File(blobPath);
+            if (!blobFile.exists()) {
+                log.warn("Manifest blob not found for {}: {}", digest, blobPath);
                 return;
             }
-            String body = response.body();
+            String body = org.apache.commons.io.FileUtils.readFileToString(blobFile, java.nio.charset.StandardCharsets.UTF_8);
             if (StringUtils.isBlank(body)) {
                 return;
             }
@@ -447,6 +467,45 @@ public class EventController {
                     Long configSize = config.getLong("size");
                     totalSize += (configSize != null ? configSize : 0);
                 }
+
+                // Extract platform from config blob for Docker v2 manifests (distribution doesn't send platform in v2 events)
+                Manifest existingForPlatform = manifestMapper.selectById(manifestId);
+                if (existingForPlatform != null && StringUtils.isBlank(existingForPlatform.getOsArch())) {
+                    try {
+                        String configDigest = config != null ? config.getStr("digest") : null;
+                        if (StringUtils.isNotBlank(configDigest)) {
+                            String configHex = configDigest.replace("sha256:", "");
+                            String configPath = StringUtils.joinWith(File.separator,
+                                    blobBasePath, configHex.substring(0, 2), configHex, "data");
+                            File configFile = new File(configPath);
+                            if (configFile.exists()) {
+                                String configBody = org.apache.commons.io.FileUtils.readFileToString(configFile, java.nio.charset.StandardCharsets.UTF_8);
+                                if (StringUtils.isNotBlank(configBody)) {
+                                    JSONObject configJson = JSONUtil.parseObj(configBody);
+                                    String cfgOs = configJson.getStr("os");
+                                    String cfgArch = configJson.getStr("architecture");
+                                    String cfgVariant = configJson.getStr("variant");
+                                    if (StringUtils.isNotBlank(cfgArch)) {
+                                        existingForPlatform.setOsArch(cfgArch);
+                                    }
+                                    if (StringUtils.isNotBlank(cfgOs)) {
+                                        existingForPlatform.setOs(cfgOs);
+                                    }
+                                    if (StringUtils.isNotBlank(cfgVariant)) {
+                                        existingForPlatform.setVariant(cfgVariant);
+                                    }
+                                    if (StringUtils.isNotBlank(cfgArch) || StringUtils.isNotBlank(cfgOs)) {
+                                        manifestMapper.updateById(existingForPlatform, true);
+                                        log.info("Updated platform for manifest {}: {}/{}/{}", digest, cfgArch, cfgOs, cfgVariant);
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.warn("Failed to extract platform for {}: {}", digest, e.getMessage());
+                    }
+                }
+
                 JSONArray layers = manifestJson.getJSONArray("layers");
                 if (layers != null) {
                     for (int i = 0; i < layers.size(); i++) {

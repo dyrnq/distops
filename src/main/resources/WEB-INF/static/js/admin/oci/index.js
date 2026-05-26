@@ -71,7 +71,8 @@ function loadManifestListInfo(oci, ociList) {
     $('#full_name').text(oci.fullName || '-');
     $('#manifest_list_digest').text(oci.manifestListDigest || '-');
     $('#parent_media_type').text(oci.parentMediaType || '-');
-    $('#manifest_list_size').text(formatSize(oci.manifestListSize));
+    var parentSize = (oci.manifestListCompressedSize && oci.manifestListCompressedSize > 0) ? oci.manifestListCompressedSize : oci.manifestListSize;
+    $('#manifest_list_size').text(formatSize(parentSize));
     $('#manifest_list_created').text(oci.manifestListCreated ? layui.util.toDateString(oci.manifestListCreated, 'yyyy-MM-dd HH:mm:ss') : '-');
     $('#config_digest').text(oci.configDigest || '-');
     $('#arch_count').text(ociList.length);
@@ -92,7 +93,8 @@ function loadSingleManifestDetail(manifest) {
     $('#full_name').text(tagName || '-');
     $('#manifest_list_digest').text(manifest.digest || '-');
     $('#parent_media_type').text(manifest.mediaType || '-');
-    $('#manifest_list_size').text(formatSize(manifest.size));
+    var showSize = (manifest.compressedSize && manifest.compressedSize > 0) ? manifest.compressedSize : manifest.size;
+    $('#manifest_list_size').text(formatSize(showSize));
     window._currentRepoName = (tagName ? tagName.split(':')[0] : 'repo');
     $('#manifest_list_created').text(manifest.created ? layui.util.toDateString(manifest.created, 'yyyy-MM-dd HH:mm:ss') : '-');
     $('#config_digest').text(manifest.configDigest || '-');
@@ -110,7 +112,11 @@ function loadSingleManifestDetail(manifest) {
     detailHtml += '<tr><td><strong>Platform</strong></td><td><span style="color: green; font-weight: bold;">' + platform + '</span></td></tr>';
     detailHtml += '<tr><td><strong>Digest</strong></td><td style="font-family: monospace; font-size: 12px;">' + (manifest.digest || '-') + '</td></tr>';
     detailHtml += '<tr><td><strong>Media Type</strong></td><td style="font-size: 12px;">' + (manifest.mediaType || '-') + '</td></tr>';
-    detailHtml += '<tr><td><strong>Size</strong></td><td>' + formatSize(manifest.size) + '</td></tr>';
+    var sizeText = formatSize(manifest.size);
+    if (manifest.compressedSize && manifest.compressedSize > 0) {
+        sizeText = formatSize(manifest.compressedSize) + ' <span style="color: #999; font-size: 11px;">(compressed)</span>';
+    }
+    detailHtml += '<tr><td><strong>Size</strong></td><td>' + sizeText + '</td></tr>';
     detailHtml += '<tr><td><strong>Created</strong></td><td>' + (manifest.created ? layui.util.toDateString(manifest.created, 'yyyy-MM-dd HH:mm:ss') : '-') + '</td></tr>';
     detailHtml += '<tr><td><strong>Config Digest</strong></td><td style="font-family: monospace; font-size: 12px;">' + (manifest.configDigest || '-') + '</td></tr>';
 
@@ -124,16 +130,7 @@ function loadSingleManifestDetail(manifest) {
     }
     detailHtml += '</tbody></table>';
 
-    if (manifest.annotations) {
-        try {
-            var annObj = JSON.parse(manifest.annotations);
-            detailHtml += '<fieldset class="layui-elem-field" style="margin-top: 15px;"><legend>Annotations</legend><div class="layui-field-box">';
-            layui.each(annObj, function(key, value) {
-                detailHtml += '<p style="margin: 4px 0;"><strong style="color: #1E9FFF;">' + key + ':</strong> ' + value + '</p>';
-            });
-            detailHtml += '</div></fieldset>';
-        } catch(e) {}
-    }
+    
     detailHtml += '</div>';
 
     $('#demo').html(detailHtml);
@@ -185,8 +182,7 @@ function loadChildManifests(ociList) {
             , {field: 'upstream', title: 'Operation', fixed: 'right', templet: function(d){
                 let copyBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="copy">Copy</button>'
                 let pullBtn = '<button type="button" class="layui-btn layui-btn-warm layui-btn-xs" lay-event="pull">Pull</button>'
-                let detailBtn = '<button type="button" class="layui-btn layui-btn-primary layui-btn-xs" lay-event="detail">Annotations</button>'
-                return [copyBtn, pullBtn, detailBtn].join("&nbsp;");
+                return [copyBtn, pullBtn].join("&nbsp;");
             }}
         ]]
         , done: function(res, curr, count){
@@ -272,33 +268,7 @@ function showPullCommand(digest, repoName) {
 
 
 
-// 显示 Annotations
-function showAnnotations(annotations) {
-    if (!annotations) {
-        layer.msg('No annotations');
-        return;
-    }
 
-    try {
-        var annObj = JSON.parse(annotations);
-        var content = '<div style="padding: 10px; max-height: 400px; overflow-y: auto;">';
-        layui.each(annObj, function(key, value) {
-            content += '<p style="margin: 5px 0;"><strong style="color: #1E9FFF;">' + key + ':</strong> ' + value + '</p>';
-        });
-        content += '</div>';
-
-        layer.open({
-            type: 1,
-            area: ['600px', '500px'],
-            title: 'Annotations',
-            content: content,
-            shade: 0.6,
-            shadeClose: true
-        });
-    } catch (e) {
-        layer.msg('Invalid annotations JSON');
-    }
-}
 
 // 监听工具条事件
 table.on('tool(test)', function(obj){
@@ -309,8 +279,7 @@ table.on('tool(test)', function(obj){
         copyDigest(data.childDigest);
     } else if (layEvent === 'pull') {
         showPullCommand(data.childDigest, data.repoName);
-    } else if (layEvent === 'detail') {
-        showAnnotations(data.annotations);
+
     }
 });
 
