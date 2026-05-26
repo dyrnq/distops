@@ -65,7 +65,8 @@ public class AuthService {
      * @return Set of authorized actions
      */
     public Set<String> getAuthorizedActions(String username, String resourceType,
-                                            String resourceName, Set<String> requestedActions) {
+                                            String resourceName, Set<String> requestedActions,
+                                            String clientIp) {
         // Get account from database
         Account account = accountMapper.selectByInstIdAndUsernameAndEnabled(1L, username, 1);
         if (account == null || account.getId() == null) {
@@ -78,7 +79,7 @@ public class AuthService {
             List<AclConfig.AclRule> aclRules = parseAcl(account.getAcl());
             if (!aclRules.isEmpty()) {
                 Set<String> authorizedActions = matchAclRules(aclRules, username, resourceType,
-                        resourceName, requestedActions);
+                        resourceName, requestedActions, clientIp);
                 if (!authorizedActions.isEmpty()) {
                     log.debug("Authorized actions for user {}: {}", username, authorizedActions);
                     return authorizedActions;
@@ -120,11 +121,11 @@ public class AuthService {
      */
     private Set<String> matchAclRules(List<AclConfig.AclRule> rules,
                                       String username, String resourceType, String resourceName,
-                                      Set<String> requestedActions) {
+                                      Set<String> requestedActions, String clientIp) {
         Set<String> authorizedActions = new HashSet<>();
 
         for (AclConfig.AclRule rule : rules) {
-            if (matchesRule(rule, username, resourceType, resourceName)) {
+            if (matchesRule(rule, username, resourceType, resourceName, clientIp)) {
                 if (rule.getActions() == null || rule.getActions().isEmpty()) {
                     log.debug("ACL rule matched but no actions defined for user: {}", username);
                     return Collections.emptySet();
@@ -163,23 +164,23 @@ public class AuthService {
      * @param resourceName Resource name
      * @return true if rule matches, false otherwise
      */
-    private boolean matchesRule(AclConfig.AclRule rule, String username, String resourceType, String resourceName) {
+    private boolean matchesRule(AclConfig.AclRule rule, String username, String resourceType, String resourceName, String clientIp) {
         AclConfig.AclRule.Match match = rule.getMatch();
         if (match == null) {
             return false;
         }
 
-        // Match resource type
+        // type
         if (match.getType() != null && !match.getType().equals(resourceType)) {
             return false;
         }
 
-        // Match account/username
+        // account
         if (match.getAccount() != null && !matchValue(match.getAccount(), username)) {
             return false;
         }
 
-        // Match resource name (with variable expansion)
+        // name
         if (match.getName() != null) {
             String expandedName = expandVariables(match.getName(), username);
             if (!matchValue(expandedName, resourceName)) {
@@ -187,15 +188,21 @@ public class AuthService {
             }
         }
 
-        // Match IP (optional - not implemented yet)
+        // ip (comma-separated, all must match)
         if (match.getIp() != null) {
-            // TODO: Implement IP matching
-            log.warn("IP matching not yet implemented");
+            if (clientIp == null) {
+                return false;
+            }
+            for (String ipPattern : match.getIp().split(",")) {
+                String trimmed = ipPattern.trim();
+                if (!trimmed.isEmpty() && !matchIp(trimmed, clientIp)) {
+                    return false;
+                }
+            }
         }
 
-        // Match service (optional)
+        // service (optional - not implemented yet)
         if (match.getService() != null) {
-            // TODO: Implement service matching
             log.warn("Service matching not yet implemented");
         }
 
@@ -271,5 +278,72 @@ public class AuthService {
             pattern = pattern.replace("${account}", username);
         }
         return pattern;
+    }
+
+    /**
+     * Match client IP against a CIDR pattern or single IP
+     * Supports: "192.168.1.0/24", "10.0.0.1", "0.0.0.0/0" (matches all)
+     * Prefix "!" for deny: "!10.0.0.0/8" (returns false if IP matches)
+     *
+     * @param pattern  CIDR pattern or single IP (optionally prefixed with ! for deny)
+     * @param clientIp Client IP address
+     * @return true if IP matches the allow/deny rule
+     */
+    private boolean matchIp(String pattern, String clientIp) {
+        boolean deny = false;
+        String cidr = pattern;
+        if (pattern.startsWith("!")) {
+            deny = true;
+            cidr = pattern.substring(1);
+        }
+
+        boolean matched;
+        if (cidr.contains("/")) {
+            matched = matchCidr(cidr, clientIp);
+        } else {
+            matched = cidr.equals(clientIp);
+        }
+
+        boolean result = deny ? !matched : matched;
+        log.debug("IP match: pattern={} clientIp={} result={}", pattern, clientIp, result);
+        return result;
+    }
+
+    /**
+     * Check if client IP is within a CIDR range (supports IPv4 and IPv6)
+     */
+    private boolean matchCidr(String cidr, String ip) {
+        try {
+            String[] parts = cidr.split("/");
+            if (parts.length != 2) return false;
+            int prefixLen = Integer.parseInt(parts[1]);
+
+            byte[] cidrBytes = ipToBytes(parts[0]);
+            byte[] ipBytes = ipToBytes(ip);
+            if (cidrBytes.length != ipBytes.length) return false;
+
+            int fullBytes = prefixLen / 8;
+            int remainingBits = prefixLen % 8;
+
+            for (int i = 0; i < fullBytes; i++) {
+                if (cidrBytes[i] != ipBytes[i]) return false;
+            }
+            if (remainingBits > 0 && fullBytes < cidrBytes.length) {
+                int mask = (0xFF << (8 - remainingBits)) & 0xFF;
+                if ((cidrBytes[fullBytes] & mask) != (ipBytes[fullBytes] & mask)) return false;
+            }
+            return true;
+        } catch (Exception e) {
+            log.warn("Invalid CIDR or IP: cidr={} ip={}", cidr, ip, e);
+            return false;
+        }
+    }
+
+    /**
+     * Convert IP string to byte array (supports IPv4 and IPv6)
+     */
+    private byte[] ipToBytes(String ip) throws java.net.UnknownHostException {
+        java.net.InetAddress addr = java.net.InetAddress.getByName(ip);
+        return addr.getAddress();
     }
 }

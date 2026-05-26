@@ -370,7 +370,8 @@ public class AuthController {
                     authRequest.getAccount(),
                     scope.getType(),
                     scope.getName(),
-                    requestedActions
+                    requestedActions,
+                    authRequest.getRemoteAddr()
             );
 
             log.info("Scope: type={}, name={}, requestedActions={}, authorizedActions={}",
