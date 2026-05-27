@@ -1,16 +1,3 @@
-function cleanData(d) {
-    console.log(d)
-    $('#addForm1 input, #addForm1 select, #addForm1 textarea, #addForm1 checkbox').val('');
-    if (d === true) {
-        $("#div_id").hide();
-        $('#addForm1 input[name="u"]').val("update");
-    } else {
-        $('#addForm1 input[name="u"]').val("add");
-        $("#div_id").show();
-    }
-    layui.form.render('select');
-    layui.form.render('checkbox');
-}
 
 layui.use(function() {
 
@@ -84,11 +71,7 @@ layui.use(function() {
             success: function(data) {
                 if (data.code == '200') {
                     layer.msg(commonStr.success);
-                    setTimeout(function() {
-                        var index = parent.layer.getFrameIndex(window.name);
-                        parent.layer.close(index);
-                        parent.layui.table.reload('demo', {});
-                    }, 1000);
+                    setTimeout(function() { reloadParentTable(); }, 1000);
                 } else {
                     layer.msg(data.description);
                 }

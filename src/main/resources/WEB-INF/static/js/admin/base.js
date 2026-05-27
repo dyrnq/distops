@@ -398,3 +398,36 @@ function onTableDone(res, curr, count) {
         table.reload('demo', { page: { curr: curr - 1 } });
     }
 }
+
+/**
+ * 关闭弹窗并刷新父页面 table（用于 edit 页面）
+ * 用法：setTimeout(function(){ reloadParentTable(); }, 1000);
+ */
+function reloadParentTable() {
+    var index = parent.layer.getFrameIndex(window.name);
+    parent.layer.close(index);
+    parent.layui.table.reload('demo', {});
+}
+
+/**
+ * 清空编辑表单（用于 add/edit 弹窗）
+ * @param {boolean} isUpdate - true=编辑模式, false=新增模式
+ * @param {object} [defaults] - 新增时的默认值，如 {logLevel: "info"}
+ */
+function cleanData(isUpdate, defaults) {
+    $('#addForm1 input, #addForm1 select, #addForm1 textarea, #addForm1 checkbox').val('');
+    if (isUpdate === true) {
+        $("#div_id").hide();
+        $('#addForm1 input[name="u"]').val("update");
+    } else {
+        $('#addForm1 input[name="u"]').val("add");
+        $("#div_id").show();
+        if (defaults) {
+            Object.keys(defaults).forEach(function(key) {
+                $('select[name="' + key + '"]').val(defaults[key]);
+            });
+        }
+    }
+    layui.form.render('select');
+    layui.form.render('checkbox');
+}

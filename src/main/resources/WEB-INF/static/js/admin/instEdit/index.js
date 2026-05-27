@@ -1,24 +1,3 @@
-function cleanData(d){
-    console.log(d)
-    $('#addForm1 input, #addForm1 select, #addForm1 textarea, #addForm1 checkbox').val('');
-    if( d === true ){
-        $("#div_id").hide();
-        $('#addForm1 input[name="u"]').val("update");
-    }else{
-        $('#addForm1 input[name="u"]').val("add");
-        $("#div_id").show();
-        // set defaults for new records
-        $('#addForm1 select[name="logLevel"]').val('info');
-    }
-    layui.form.render('select');
-    layui.form.render('checkbox');
-
-//    console.log($('#addForm1 input[name="autoJob"]').val())
-    $('#addForm1 input[name="autoJob"]').prop('checked', true);
-
-}
-
-
 
 
 layui.use(function() {
@@ -66,7 +45,8 @@ layui.use(function() {
         }
     });
 
-    cleanData(id ? true : false);
+    cleanData(id ? true : false, { logLevel: "info" });
+    $("#addForm1 input[name=\"autoJob\"]").prop("checked", true);
 
     if (id) {
         $.ajax({
@@ -185,11 +165,7 @@ layui.use(function() {
                 if(data.code=='200'){
                     layer.msg(commonStr.success);
                     // close the iframe/layer and go back
-                    setTimeout(function(){
-                        var index = parent.layer.getFrameIndex(window.name);
-                        parent.layer.close(index);
-                        parent.layui.table.reload('demo',{});
-                    }, 1000);
+                    setTimeout(function(){ reloadParentTable(); }, 1000);
                 } else {
                     layer.msg(data.description);
                 }

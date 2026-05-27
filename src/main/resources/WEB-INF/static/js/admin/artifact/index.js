@@ -1,16 +1,5 @@
-function cleanData(d){
-    console.log(d)
-    $('#addForm1 input, #addForm1 select, #addForm1 textarea, #addForm1 checkbox').val('');
-    if( d === true ){
-        $("#div_id").hide();
-        $('#addForm1 input[name="u"]').val("update");
-    }else{
-        $('#addForm1 input[name="u"]').val("add");
-        $("#div_id").show();
-    }
-    layui.form.render('select');
-    layui.form.render('checkbox');
-}
+
+
 
 function addLink(d) {
     // 根据 media_type 判断是 manifest list 还是单 manifest

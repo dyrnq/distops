@@ -1,17 +1,4 @@
-function cleanData(d){
-    console.log(d)
-    $('#addForm1 input, #addForm1 select, #addForm1 textarea, #addForm1 checkbox').val('');
-    if( d === true ){
-        $("#div_id").hide();
-        $('#addForm1 input[name="u"]').val("update");
-    }else{
-        $('#addForm1 input[name="u"]').val("add");
-        $("#div_id").show();
-    }
-    layui.form.render('select');
-    layui.form.render('checkbox');
-    $('#addForm1 input[name="isManifestList"]').prop('checked', true);
-}
+// keep cleanData calls, but function now lives in base.js
 
 function addLink(d) {
     let editBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">' + commonStr.edit + '</button>'
