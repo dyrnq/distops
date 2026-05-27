@@ -76,10 +76,6 @@ var table = layui.table;
 var form = layui.form;
 var upload = layui.upload;
 
-var default_limit = localStorage.getItem('pageLimit');
-if ('' == default_limit || null == default_limit || undefined == default_limit) {
-    default_limit = cfg.pageLimit;
-}
 
 
 
@@ -243,7 +239,7 @@ $('#addOver3').click(function(){
         , url: ctx + '/api/inst' //数据接口
         , title: '用户表'
         , page: true //开启分页
-        , limit: default_limit
+        , limit: getPageLimit()
         , limits: cfg.pageLimits
         , toolbar: '#toolbarDemo' //开启工具栏，此处显示默认图标，可以自定义模板，详见文档
         , defaultToolbar: ['filter', 'exports', 'print', { //自定义头部工具栏右侧图标。如无需自定义，去除该参数即可
@@ -282,18 +278,8 @@ $('#addOver3').click(function(){
 
 
             // 获取配置项
-            var thisOptions = table.getOptions('demo');
-            //console.log(thisOptions);
-            localStorage.setItem("pageLimit", this.limit);
-
-
-            if(res.data && res.data.length == 0){
-                if(curr>1){
-                    toPage=curr-1;
-                    //console.log(toPage);
-                    table.reload('demo',{page: {curr:toPage}});
-                }
-            }
+            // common done callback: save pageLimit + empty data fallback
+            onTableDone(res, curr, count);
         }
         , response: {
             statusCode: 200

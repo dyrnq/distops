@@ -353,3 +353,48 @@ function showHelp() {
     console.log("showHelp");
 }
 
+
+// ========== 公共 table 分页配置 ==========
+
+/**
+ * 获取默认每页条数（优先 localStorage，其次 cfg.pageLimit）
+ */
+function getPageLimit() {
+    var limit = localStorage.getItem('pageLimit');
+    if (!limit || limit === 'null' || limit === 'undefined' || limit === '') {
+        limit = cfg.pageLimit || 50;
+    }
+    return parseInt(limit);
+}
+
+/**
+ * 获取 table 基础配置（page/limit/limits）
+ * 用法：var tableIns = table.render($.extend({url: '...', cols: [...]}, tablePageConfig()));
+ */
+function tablePageConfig() {
+    return {
+        page: true,
+        limit: getPageLimit(),
+        limits: cfg.pageLimits || [50, 100, 500, 1000]
+    };
+}
+
+/**
+ * table limit 切换时保存到 localStorage
+ * 在 table done 回调中调用：savePageLimit(this.limit);
+ */
+function savePageLimit(limit) {
+    if (limit) {
+        localStorage.setItem('pageLimit', limit);
+    }
+}
+
+/**
+ * layui table 通用 done 回调（保存分页 + 空数据回到首页）
+ */
+function onTableDone(res, curr, count) {
+    savePageLimit(this.limit || curr);
+    if (res.data && res.data.length === 0 && curr > 1) {
+        table.reload('demo', { page: { curr: curr - 1 } });
+    }
+}

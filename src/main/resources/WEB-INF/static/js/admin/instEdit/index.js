@@ -30,10 +30,7 @@ layui.use(function() {
     var upload = layui.upload;
     var element = layui.element;
 
-    var default_limit = localStorage.getItem('pageLimit');
-    if ('' == default_limit || null == default_limit || undefined == default_limit) {
-        default_limit = cfg.pageLimit;
-    }
+
 
     form.on('switch(demo-checkbox-filter)', function(data){
         var elem = data.elem;

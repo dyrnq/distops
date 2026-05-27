@@ -28,10 +28,6 @@ var table = layui.table;
 var form = layui.form;
 var upload = layui.upload;
 
-var default_limit = localStorage.getItem('pageLimit');
-if ('' == default_limit || null == default_limit || undefined == default_limit) {
-    default_limit = cfg.pageLimit;
-}
 
 form.on('switch(demo-checkbox-filter)', function(data){
     var elem = data.elem;
@@ -80,7 +76,7 @@ $('#add').click(function(){
         , url: ctx + '/api/repo'
         , title: 'repo 表'
         , page: true
-        , limit: default_limit
+        , limit: getPageLimit()
         , limits: cfg.pageLimits
         , toolbar: '#toolbarDemo'
         , defaultToolbar: ['filter', 'exports', 'print', {
@@ -100,13 +96,8 @@ $('#add').click(function(){
         ]]
         , done: function (res, curr, count){
             var thisOptions = table.getOptions('demo');
-            localStorage.setItem("pageLimit", this.limit);
-            if(res.data && res.data.length == 0){
-                if(curr>1){
-                    toPage=curr-1;
-                    table.reload('demo',{page: {curr:toPage}});
-                }
-            }
+            // common done callback: save pageLimit + empty data fallback
+            onTableDone(res, curr, count);
         }
         , response: {
             statusCode: 200

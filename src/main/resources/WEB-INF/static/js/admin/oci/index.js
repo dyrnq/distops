@@ -186,7 +186,7 @@ function loadChildManifests(ociList) {
             }}
         ]]
         , done: function(res, curr, count){
-            localStorage.setItem('pageLimit', this.limit);
+            savePageLimit(this.limit);
         }
         , response: {
             statusCode: 200
