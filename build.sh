@@ -5,6 +5,19 @@ ver=$(cat pom.xml|grep \<version\> | head -n1 | sed 's/.*>\(.*\)<.*/\1/')
 echo "ver=${ver}"
 
 cat src/main/java/com/dyrnq/distops/Constants.java
+
+# ========== JS syntax check ==========
+echo "Checking JS syntax..."
+js_errors=0
+while IFS= read -r jsfile; do
+  node -c "$jsfile" 2>/dev/null || { echo "  FAIL: $jsfile"; js_errors=$((js_errors + 1)); }
+done < <(find src/main/resources/WEB-INF/static/js -name '*.js')
+if [ "$js_errors" -gt 0 ]; then
+  echo "ERROR: $js_errors JS file(s) have syntax errors, aborting build."
+  exit 1
+fi
+echo "JS syntax check passed."
+
 #export JAVA_HOME=/usr/lib/jvm/corretto21
 #export PATH=$PATH:${JAVA_HOME}/bin
 # -Xms4G -Xmx4G
