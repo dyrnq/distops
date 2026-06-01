@@ -24,7 +24,7 @@
 | Layer                   | Technology                                                                        |
 |-------------------------|-----------------------------------------------------------------------------------|
 | **Language**            | Java 21                                                                           |
-| **Framework**           | [Solon](https://solon.noear.org/) 3.10.4 (lightweight alternative to Spring Boot) |
+| **Framework**           | [Solon](https://solon.noear.org/) 3.10.7 (lightweight alternative to Spring Boot) |
 | **ORM**                 | [Wood](https://github.com/noear/wood) (lightweight ORM by Noear)                  |
 | **Templating**          | [FreeMarker](https://freemarker.apache.org/) for views and config generation      |
 | **Database**            | H2 (embedded, default), SQLite (embedded), MySQL, PostgreSQL                      |
@@ -781,9 +781,51 @@ The `scripts/` directory contains end-to-end shell scripts:
 | `ch-docker-daemon.sh`   | Configure Docker daemon mirrors + insecure registries |
 | `bump-layui.sh`         | Update Layui frontend library                       |
 
----
+### 17.3 Python Integration Test Suite
 
-## 18. Build Output Structure
+Located in `scripts/tests/`. Uses `run.py` as entry point, supports Mode 1 (direct) and Mode 2 (nginx proxy).
+
+| Module                 | Tests                                                    |
+|------------------------|----------------------------------------------------------|
+| `test_api.py`          | Registry /v2/ health, /v2/\_catalog access               |
+| `test_token.py`        | Token auth: obtain token, catalog access denied          |
+| `test_docker.py`       | docker login/push/pull, read-only account enforcement    |
+| `test_regctl.py`       | regctl manifest head                                     |
+| `test_skopeo.py`       | skopeo inspect                                           |
+| `test_jwt.py`          | JWT CLI token generation and verification                |
+| `test_admin.py`        | Admin API: login, list instances/accounts/repos/artifacts |
+| `test_oauth.py`        | OAuth2 password/offline/refresh_token grant              |
+| `test_oauth_errors.py` | OAuth2 error handling: 400, 401, invalid tokens          |
+| `test_containerd.py`   | containerd ctr pull via OAuth2 POST                     |
+| `test_crictl.py`       | crictl pull (K8s kubelet scenario)                      |
+| `test_proxy.py`        | Proxy registry pull-through, port status                |
+| `test_proxy_push_denied.py` | Proxy registry push rejection verification         |
+| `reset.py`             | Container reset, data cleanup                           |
+
+Usage:
+```bash
+# Mode 1 (direct to registry)
+python3 scripts/tests/run.py
+
+# Mode 2 (via nginx proxy)
+python3 scripts/tests/run.py --nginx
+
+# Both modes
+python3 scripts/tests/run.py --all
+```
+
+### 17.4 Frontend JS Tests
+
+JS syntax validation via `node -c` is integrated into `build.sh`. All admin JS files are checked before Maven packaging.
+
+Shared functions extracted to `base.js`:
+- `getPageLimit()` / `tablePageConfig()` — pagination defaults from localStorage
+- `onTableDone()` — save page limit + empty-data fallback
+- `savePageLimit()` — persist page limit preference
+- `reloadParentTable()` — close edit popup and refresh parent table
+- `cleanData(isUpdate, defaults)` — form reset with optional defaults
+
+
 
 The Maven build produces a JAR with embedded FreeMarker views and static assets:
 

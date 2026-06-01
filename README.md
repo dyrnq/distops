@@ -8,8 +8,8 @@ Distops is a collection of tools for operations and maintenance surrounding the 
 
 ## features
 
-- Multi distribution management with UI
-- Support both private registry Or proxy registry
+- ACL-based access control with anonymous pull support
+- Support both private registry and proxy (pull-through cache) registry
 - Embedded Auth server for Multi distribution(registry)
 - Auth type include None, silly, htpasswd, and token
 - Support RW, read-only account with ACL
@@ -61,13 +61,18 @@ Supports environment variables
 | Variable Name                        | Meaning                                      | Default Value    |
 |--------------------------------------|----------------------------------------------|------------------|
 | SERVER_PORT                          | Server port                                  | 12680            |
-| PROJECT_HOME                         | Data directory                               | $HOME/apisixWeb  |
-| SPRING_DATABASE_TYPE                 | Database type (mysql, sqlite, postgresql)    | sqlite           |
+| PROJECT_HOME                         | Data directory                               | $HOME/distops    |
+| SPRING_DATABASE_TYPE                 | Database type (h2, sqlite, mysql, postgresql)| h2               |
 | SPRING_DATASOURCE_URL                | Database URL                                 |                  |
 | SPRING_DATASOURCE_USERNAME           | Database username                            |                  |
 | SPRING_DATASOURCE_PASSWORD           | Database password                            |                  |
-| JWT_SECRET                           | jwt secret                                   |                  |
-| SEVER_SESSION_TIMEOUT                | session timeout                              | 7200             |
+| JWT_SECRET                           | JWT secret (default in app.yml)               | (set via env)    |
+| SERVER_SESSION_TIMEOUT               | Session timeout                              | 7200             |
+| JAVA_OPTS                            | JVM options                                  |                  |
+| OTEL_TRACES_EXPORTER                 | OpenTelemetry traces exporter                | none             |
+| TZ                                   | Timezone                                     | UTC              |
+| HTTPS_PROXY                          | HTTPS proxy for proxy registries             |                  |
+| NO_PROXY                             | No-proxy bypass list for proxy registries    |                  |
 
 
 ## registry proxy
