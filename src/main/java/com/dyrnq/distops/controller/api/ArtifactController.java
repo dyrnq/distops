@@ -91,7 +91,7 @@ public class ArtifactController extends ApiController {
             params.add(start);
             params.add(limit);
             List<ArtifactManifestView> artifactList = instMapper.db().sql(sql.toString(), params.toArray()).getList(ArtifactManifestView.class);
-            long count = instMapper.db().sql(countSql.toString(), params.subList(0, params.size() - 2).toArray()).getCount();
+            long count = instMapper.db().sql(countSql.toString(), countParams(params)).getCount();
             return PageResult.succeed(artifactList, count);
         } catch (Exception e) {
             log.error("Failed to query artifacts", e);

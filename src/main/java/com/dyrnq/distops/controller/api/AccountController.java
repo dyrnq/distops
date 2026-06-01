@@ -67,7 +67,7 @@ public class AccountController extends ApiController {
             params.add(start);
             params.add(limit);
             List<Account> list = instMapper.db().sql(sql.toString(), params.toArray()).getList(Account.class);
-            long count = instMapper.db().sql(countSql.toString(), params.subList(0, params.size() - 2).toArray()).getCount();
+            long count = instMapper.db().sql(countSql.toString(), countParams(params)).getCount();
             return PageResult.succeed(list, count);
         } catch (Exception e) {
             log.error("Failed to query accounts", e);
