@@ -53,17 +53,21 @@ public class AccountController extends ApiController {
     public PageResult query(Context ctx, int page, int limit, AccountQuery query) {
         try {
             int start = PageUtil.getStart(page - 1, limit);
-            StringBuilder sql = new StringBuilder("select a.*, b.name as inst_name from account as a, inst as b where a.inst_id = b.id");
-            StringBuilder countSql = new StringBuilder("select count(*) from account as a, inst as b where a.inst_id = b.id");
+            StringBuilder sql = new StringBuilder("select a.*, b.name as inst_name from account as a, inst as b where 1=1");
+            StringBuilder countSql = new StringBuilder("select count(*) from account as a, inst as b where 1=1");
+
+            java.util.List<Object> params = new java.util.ArrayList<>();
 
             if (StrUtil.isNotBlank(query.getInstName())) {
-                String like = " and b.name like '%" + query.getInstName() + "%'";
-                sql.append(like);
-                countSql.append(like);
+                sql.append(" and b.name like ?");
+                countSql.append(" and b.name like ?");
+                params.add("%" + query.getInstName() + "%");
             }
-            sql.append(" LIMIT ?,?");
-            List<Account> list = instMapper.db().sql(sql.toString(), start, limit).getList(Account.class);
-            long count = instMapper.db().sql(countSql.toString()).getCount();
+            sql.append(" ORDER BY a.id DESC LIMIT ?,?");
+            params.add(start);
+            params.add(limit);
+            List<Account> list = instMapper.db().sql(sql.toString(), params.toArray()).getList(Account.class);
+            long count = instMapper.db().sql(countSql.toString(), params.subList(0, params.size() - 2).toArray()).getCount();
             return PageResult.succeed(list, count);
         } catch (Exception e) {
             log.error("Failed to query accounts", e);

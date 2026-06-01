@@ -36,22 +36,26 @@ public class RepoController extends ApiController {
     public PageResult query(Context ctx, int page, int limit, RepoQuery query) {
         try {
             int start = PageUtil.getStart(page - 1, limit);
-            StringBuilder sql = new StringBuilder("select r.*, i.name as inst_name from repo as r, inst as i where r.inst_id = i.id");
-            StringBuilder countSql = new StringBuilder("select count(*) from repo as r, inst as i where r.inst_id = i.id");
+            StringBuilder sql = new StringBuilder("select r.*, i.name as inst_name from repo as r, inst as i where 1=1");
+            StringBuilder countSql = new StringBuilder("select count(*) from repo as r, inst as i where 1=1");
+
+            java.util.List<Object> params = new java.util.ArrayList<>();
 
             if (query != null && StrUtil.isNotBlank(query.getInstName())) {
-                String like = " and i.name like '%" + query.getInstName() + "%'";
-                sql.append(like);
-                countSql.append(like);
+                sql.append(" and i.name like ?");
+                countSql.append(" and i.name like ?");
+                params.add("%" + query.getInstName() + "%");
             }
             if (query != null && StrUtil.isNotBlank(query.getRepoName())) {
-                String like = " and r.repo_name like '%" + query.getRepoName() + "%'";
-                sql.append(like);
-                countSql.append(like);
+                sql.append(" and r.repo_name like ?");
+                countSql.append(" and r.repo_name like ?");
+                params.add("%" + query.getRepoName() + "%");
             }
-            sql.append(" LIMIT ?,?");
-            List<Repo> repoList = instMapper.db().sql(sql.toString(), start, limit).getList(Repo.class);
-            long count = instMapper.db().sql(countSql.toString()).getCount();
+            sql.append(" ORDER BY r.id DESC LIMIT ?,?");
+            params.add(start);
+            params.add(limit);
+            List<Repo> repoList = instMapper.db().sql(sql.toString(), params.toArray()).getList(Repo.class);
+            long count = instMapper.db().sql(countSql.toString(), params.subList(0, params.size() - 2).toArray()).getCount();
             return PageResult.succeed(repoList, count);
         } catch (Exception e) {
             log.error("Failed to query repos", e);
@@ -82,8 +86,10 @@ public class RepoController extends ApiController {
     @Mapping("del")
     public Result del(Context ctx, Long... id) {
         try {
-            for (Long i : id) {
-                repoMapper.deleteById(i);
+            if (id != null) {
+                for (Long i : id) {
+                    repoMapper.deleteById(i);
+                }
             }
             return Result.succeed("ok");
         } catch (Exception e) {
@@ -120,3 +126,4 @@ public class RepoController extends ApiController {
         }
     }
 }
+

@@ -81,8 +81,10 @@ public class ManifestController extends ApiController {
     @Mapping("del")
     public Result del(Context ctx, Long... id) {
         try {
-            for (Long i : id) {
-                manifestMapper.deleteById(i);
+            if (id != null) {
+                for (Long i : id) {
+                    manifestMapper.deleteById(i);
+                }
             }
             return Result.succeed("ok");
         } catch (Exception e) {
@@ -98,6 +100,7 @@ public class ManifestController extends ApiController {
     public PageResult queryChildren(Context ctx, String parentDigest, int page, int limit) {
         try {
             int start = PageUtil.getStart(page - 1, limit);
+
             Long instId = ctx.param("instId") != null ? Long.valueOf(ctx.param("instId")) : 1L;
 
             IPage<Manifest> p = manifestMapper.selectPage(start, limit, c ->

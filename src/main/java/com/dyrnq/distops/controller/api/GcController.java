@@ -1,5 +1,6 @@
 package com.dyrnq.distops.controller.api;
 
+import com.dyrnq.distops.controller.ApiController;
 import com.dyrnq.distops.service.GcService;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Controller;
@@ -9,7 +10,7 @@ import org.noear.solon.core.handle.Result;
 
 @Controller
 @Slf4j
-public class GcController {
+public class GcController extends ApiController {
 
     @Inject
     GcService gcService;

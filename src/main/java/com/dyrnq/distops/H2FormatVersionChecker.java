@@ -21,12 +21,18 @@ public class H2FormatVersionChecker {
         byte[] header = new byte[512];
         try {
             fis = new FileInputStream(filePath);
-            fis.read(header);
+            int total = 0;
+            while (total < header.length) {
+                int count = fis.read(header, total, header.length - total);
+                if (count == -1) break;
+                total += count;
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         } finally {
             IOUtils.closeQuietly(fis);
         }
+
 
         String fileHeader = new String(header);
         return StringUtils.contains(fileHeader, "format:" + ver);
