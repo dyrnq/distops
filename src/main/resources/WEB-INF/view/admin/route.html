@@ -27,7 +27,7 @@ input[name='param']{
 
 
         <!-- 内容主体区域 -->
-        <div style="padding: 15px">
+        <div class="panel-padding">
             <fieldset class="layui-elem-field layui-field-title">
                 <legend>${i18n.get("menu.route")}</legend>
             </fieldset>
@@ -95,9 +95,9 @@ input[name='param']{
 </div>
 
 
-<div style="height: 500px; width: 300px; overflow: hidden;">
+<div class="code-editor-container">
     <!-- 弹出框 -->
-    <div class="layui-form" id="windowDiv" style="padding: 15px; display: none">
+    <div class="layui-form" id="windowDiv" class="panel-padding hidden-panel">
         <form id="addForm1">
 
 
@@ -141,12 +141,12 @@ input[name='param']{
 
             <div class="layui-form-item center">
                 <button type="button" class="layui-btn layui-btn-normal" id="addOver">${i18n.get("commonStr.submit")}</button>
-                <button type="button" class="layui-btn" onclick="layer.closeAll()">${i18n.get("commonStr.close")}</button>
+                <button type="button" class="layui-btn" >${i18n.get("commonStr.close")}</button>
             </div>
         </form>
     </div>
 
-    <div class="layui-form" id="viewDiv" style="padding: 15px; display: none">
+    <div class="layui-form" id="viewDiv" class="panel-padding hidden-panel">
         <pre id="viewEditor" class=".json-editor"></pre>
     </div>
 
@@ -158,7 +158,7 @@ input[name='param']{
 
         <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add"><i class="layui-icon  layui-icon-add-1"></i></button>
 
-        <button class="layui-btn layui-btn-sm" lay-event="getCheckData" style="display: none">获取选中行数据</button>
+        <button class="layui-btn layui-btn-sm" lay-event="getCheckData" class="hidden-panel">获取选中行数据</button>
 <!--        <button class="layui-btn layui-btn-sm" lay-event="deleteSelected"><i class="layui-icon  layui-icon-delete"></i></button>-->
 <!--        <button class="layui-btn layui-btn-sm" lay-event="statusAll1">${i18n.get("commonStr.batchEnable")}</button>-->
 <!--        <button class="layui-btn layui-btn-sm" lay-event="statusAll0">${i18n.get("commonStr.batchDisable")}</button>-->

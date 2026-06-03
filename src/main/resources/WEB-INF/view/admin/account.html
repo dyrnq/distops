@@ -27,7 +27,7 @@
 
 
         <!-- 内容主体区域 -->
-        <div style="padding: 15px">
+        <div class="panel-padding">
             <fieldset class="layui-elem-field layui-field-title">
                 <legend>${i18n.get("menu.account")}</legend>
             </fieldset>
@@ -58,7 +58,7 @@
 
 
 
-                    <!--                    <hr class="layui-border-orange" style="border-color:rgba(255, 183, 0, 0)  !important">-->
+                    <!--                    <hr class="layui-border-orange" class="status-color-warning">-->
 
 
                     <!--                    <div class="layui-col-md2"><div class="grid-demo">-->
@@ -93,7 +93,7 @@
                     <!--                        </div>-->
                     <!--                    </div></div>-->
 
-                    <hr class="layui-border-orange" style="border-color:rgba(255, 183, 0, 0)  !important">
+                    <hr class="layui-border-orange" class="status-color-warning">
                     <!--                    <div class="layui-col-md2"><div class="grid-demo">-->
                     <!--                        <div class="layui-input-group">-->
                     <!--                            <div class="layui-input-split layui-input-prefix">label</div>-->
@@ -103,7 +103,7 @@
 
 
 
-                    <div class="layui-col-md2" style="margin-top:10px;margin-bottom:10px;"><div class="grid-demo">
+                    <div class="layui-col-md2" class="grid-demo-margin"><div class="grid-demo">
                         <div class="layui-btn-container layui-col-xs12">
 
                             <button class="layui-btn layui-btn-sm" lay-submit lay-filter="demo-table-search">${i18n.get("commonStr.search")}</button>
@@ -127,21 +127,21 @@
 </div>
 
 
-<div style="height: 500px; width: 300px; overflow: hidden;">
+<div class="code-editor-container">
     <!-- 弹出框 -->
-    <div class="layui-form" id="windowDiv" style="padding: 15px; display: none">
+    <div class="layui-form" id="windowDiv" class="panel-padding hidden-panel">
         <form id="addForm1">
             <input type="hidden" name="u">
 
 
-            <div class="layui-form-item" id="div_id" style="display: none">
+            <div class="layui-form-item" id="div_id" class="hidden-panel">
                 <label class="layui-form-label">id</label>
                 <div class="layui-input-block">
                     <input type="text" name="id" class="layui-input">
                 </div>
             </div>
 
-            <div class="layui-form-item" id="div_instId" style="display: none">
+            <div class="layui-form-item" id="div_instId" class="hidden-panel">
                 <label class="layui-form-label">instId</label>
                 <div class="layui-input-block">
                     <input type="text" name="instId" class="layui-input">
@@ -202,12 +202,12 @@
 
             <div class="layui-form-item center">
                 <button type="button" class="layui-btn layui-btn-normal" id="addOver">${i18n.get("commonStr.submit")}</button>
-                <button type="button" class="layui-btn" onclick="layer.closeAll()">${i18n.get("commonStr.close")}</button>
+                <button type="button" class="layui-btn" >${i18n.get("commonStr.close")}</button>
             </div>
         </form>
     </div>
 
-    <div class="layui-form" id="guideDiv" style="padding: 15px; display: none;">
+    <div class="layui-form" id="guideDiv" class="panel-padding hidden-panel">
         <form id="addForm3">
 
             <div class="layui-form-item">
@@ -231,7 +231,7 @@ rocketmq,https://archive.apache.org/dist/rocketmq/4.9.8/rocketmq-all-4.9.8-bin-r
 
             <div class="layui-form-item center">
                 <button type="button" class="layui-btn layui-btn-normal" id="addOver3">${i18n.get("commonStr.submit")}</button>
-                <button type="button" class="layui-btn" onclick="layer.closeAll()">${i18n.get("commonStr.close")}</button>
+                <button type="button" class="layui-btn" >${i18n.get("commonStr.close")}</button>
             </div>
 
         </form>
@@ -251,11 +251,11 @@ rocketmq,https://archive.apache.org/dist/rocketmq/4.9.8/rocketmq-all-4.9.8-bin-r
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm layui-btn-normal" lay-event="add"><i class="layui-icon  layui-icon-add-1"></i></button>
         <button class="layui-btn layui-btn-sm" lay-event="more">${i18n.get("commonStr.batch")}<i class="layui-icon layui-icon-down layui-font-12"></i></button>
-        <button class="layui-btn layui-btn-sm" lay-event="deleteSelected" style="display: none"><i class="layui-icon  layui-icon-delete"></i></button>
-        <button class="layui-btn layui-btn-sm" lay-event="getCheckData" style="display: none">获取选中行数据</button>
+        <button class="layui-btn layui-btn-sm" lay-event="deleteSelected" class="hidden-panel"><i class="layui-icon  layui-icon-delete"></i></button>
+        <button class="layui-btn layui-btn-sm" lay-event="getCheckData" class="hidden-panel">获取选中行数据</button>
         <!--        <button class="layui-btn layui-btn-sm" lay-event="batchAdd">批量新增</button>-->
-        <button class="layui-btn layui-btn-sm" lay-event="statusAll0" style="display: none">${i18n.get("commonStr.batchDisable")}</button>
-        <span id="jwtDiv" class="layui-btn layui-btn-danger layui-btn-sm layui-btn-radius" style="display: none"></span>
+        <button class="layui-btn layui-btn-sm" lay-event="statusAll0" class="hidden-panel">${i18n.get("commonStr.batchDisable")}</button>
+        <span id="jwtDiv" class="layui-btn layui-btn-danger layui-btn-sm layui-btn-radius" class="hidden-panel"></span>
     </div>
 </script>
 
