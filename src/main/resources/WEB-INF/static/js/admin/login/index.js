@@ -31,7 +31,7 @@ layui.use(['form'], function(){
                 }
             },
             error: function() {
-                layer.alert(commonStr.errorInfo);
+                handleAjaxError();
             }
         });
         return false;

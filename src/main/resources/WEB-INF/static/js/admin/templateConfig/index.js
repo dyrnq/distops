@@ -56,7 +56,7 @@ layui.use(function() {
             }
         },
         error: function() {
-            layer.alert(commonStr.errorInfo);
+            handleAjaxError();
         }
     });
 
@@ -99,7 +99,7 @@ layui.use(function() {
             error: function() {
                 if (!hasError) {
                     hasError = true;
-                    layer.alert(commonStr.errorInfo);
+                    handleAjaxError();
                 }
             }
         });
@@ -127,7 +127,7 @@ layui.use(function() {
             error: function() {
                 if (!hasError) {
                     hasError = true;
-                    layer.alert(commonStr.errorInfo);
+                    handleAjaxError();
                 }
             }
         });
