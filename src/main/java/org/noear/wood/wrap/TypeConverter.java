@@ -1,13 +1,12 @@
 package org.noear.wood.wrap;
 
-import org.apache.commons.lang3.StringUtils;
-import org.noear.wood.utils.IOUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import org.apache.commons.lang3.StringUtils;
+import org.noear.wood.utils.IOUtils;
 
 public class TypeConverter {
     /**
@@ -80,11 +79,13 @@ public class TypeConverter {
             }
 
             if (val instanceof LocalDateTime) {
-                return Date.from(((LocalDateTime) val).atZone(ZoneId.systemDefault()).toInstant());
+                return Date.from(
+                        ((LocalDateTime) val).atZone(ZoneId.systemDefault()).toInstant());
             }
 
             if (val instanceof LocalDate) {
-                return Date.from(((LocalDate) val).atStartOfDay(ZoneId.systemDefault()).toInstant());
+                return Date.from(
+                        ((LocalDate) val).atStartOfDay(ZoneId.systemDefault()).toInstant());
             }
         }
 
@@ -94,10 +95,10 @@ public class TypeConverter {
             }
 
             if (val instanceof String) {
-                if (StringUtils.containsAny((String)val,"T")) {
+                if (StringUtils.containsAny((String) val, "T")) {
                     return LocalDateTime.parse((String) val);
-                }else{
-                    return LocalDateTime.parse((String)val, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                } else {
+                    return LocalDateTime.parse((String) val, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 }
             }
         }
