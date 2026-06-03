@@ -1,15 +1,13 @@
 package com.dyrnq.utils;
 
-import io.netty.util.NetUtil;
-
-import java.net.*;
-
 import static java.util.Objects.requireNonNull;
+
+import io.netty.util.NetUtil;
+import java.net.*;
 
 public class AddressUtils {
 
-    private AddressUtils() {
-    }
+    private AddressUtils() {}
 
     /**
      * Creates InetSocketAddress instance. Numeric IP addresses will be detected and
@@ -112,8 +110,8 @@ public class AddressUtils {
         if (!inetSocketAddress.isUnresolved()) {
             return inetSocketAddress;
         }
-        InetSocketAddress inetAddressForIpString = createForIpString(
-                inetSocketAddress.getHostString(), inetSocketAddress.getPort());
+        InetSocketAddress inetAddressForIpString =
+                createForIpString(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
         if (inetAddressForIpString != null) {
             return inetAddressForIpString;
         } else {
@@ -140,7 +138,6 @@ public class AddressUtils {
             return new InetSocketAddress(inetSocketAddress.getHostString(), inetSocketAddress.getPort());
         }
     }
-
 
     static InetAddress attemptParsingIpString(String hostname) {
         byte[] ipAddressBytes = NetUtil.createByteArrayFromIpAddressString(hostname);

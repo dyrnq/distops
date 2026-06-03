@@ -5,7 +5,6 @@ import java.security.cert.X509Certificate;
 
 public class X509Holder {
 
-
     private String cert;
     private String key;
 

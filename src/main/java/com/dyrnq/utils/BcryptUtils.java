@@ -4,12 +4,13 @@ import com.dyrnq.distops.Constants;
 import com.password4j.BcryptFunction;
 import com.password4j.Password;
 import com.password4j.types.Bcrypt;
-
 import java.util.regex.Matcher;
 
 public class BcryptUtils {
     public static String hashPw(String plainPassword) {
-        return Password.hash(plainPassword).with(BcryptFunction.getInstance(Constants.BCRYPT_COST)).getResult();
+        return Password.hash(plainPassword)
+                .with(BcryptFunction.getInstance(Constants.BCRYPT_COST))
+                .getResult();
     }
 
     public static boolean checkPw(String plainPassword, String hash) {
@@ -23,8 +24,7 @@ public class BcryptUtils {
                 case "2a" -> Bcrypt.A;
                 case "2x" -> Bcrypt.X;
                 case "2y" -> Bcrypt.Y;
-                default -> Bcrypt.B;
-            };
+                default -> Bcrypt.B;};
         }
 
         return Password.check(plainPassword, hash).with(BcryptFunction.getInstance(ver, cost));

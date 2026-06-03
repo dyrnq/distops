@@ -1,10 +1,9 @@
 package com.dyrnq.utils;
 
+import java.io.File;
 import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
-
-import java.io.File;
 
 public class PathUtils {
 

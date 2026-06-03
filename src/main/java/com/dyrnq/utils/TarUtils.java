@@ -1,14 +1,12 @@
 package com.dyrnq.utils;
 
+import java.io.*;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
-
-import java.io.*;
-
 
 public class TarUtils {
     /**
@@ -40,7 +38,8 @@ public class TarUtils {
         }
     }
 
-    private static void addFileToTarGz(TarArchiveOutputStream tarArchiveOutputStream, String base, File file) throws IOException {
+    private static void addFileToTarGz(TarArchiveOutputStream tarArchiveOutputStream, String base, File file)
+            throws IOException {
         String entryName = base + file.getName();
         TarArchiveEntry tarEntry = new TarArchiveEntry(file, entryName);
         tarArchiveOutputStream.putArchiveEntry(tarEntry);
@@ -62,7 +61,6 @@ public class TarUtils {
             }
         }
     }
-
 
     /**
      * 解压缩tar.gz文件
@@ -101,5 +99,4 @@ public class TarUtils {
         }
         tais.close();
     }
-
 }

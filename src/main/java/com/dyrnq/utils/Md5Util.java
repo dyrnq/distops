@@ -1,11 +1,12 @@
 package com.dyrnq.utils;
 
-
 import java.security.MessageDigest;
 
 public class Md5Util {
 
-    private static final String[] HEX_DIGITS = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};
+    private static final String[] HEX_DIGITS = {
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"
+    };
 
     private static String byteArrayToHexString(byte[] b) {
         StringBuilder resultSb = new StringBuilder();
@@ -35,5 +36,4 @@ public class Md5Util {
             return null;
         }
     }
-
 }

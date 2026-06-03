@@ -8,15 +8,13 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Date;
+import javax.crypto.SecretKey;
 import org.noear.solon.Solon;
 import org.noear.solon.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.crypto.SecretKey;
-import java.security.Key;
-import java.util.Date;
-
 
 public class JwtUtils {
     static final Logger log = LoggerFactory.getLogger(JwtUtils.class);
@@ -24,11 +22,10 @@ public class JwtUtils {
     private static final String TOKEN_HEADER = "Bearer ";
 
     public static String createKey() {
-        //Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+        // Key key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
         Key key = Jwts.SIG.HS512.key().build();
         return Encoders.BASE64.encode(key.getEncoded());
     }
-
 
     /**
      * 构建令牌
@@ -46,13 +43,14 @@ public class JwtUtils {
         JwtBuilder builder;
         if (expire > 0) {
             builder = Jwts.builder()
-                    .claims().empty().add(claims).and()
+                    .claims()
+                    .empty()
+                    .add(claims)
+                    .and()
                     .issuedAt(new Date())
                     .expiration(new Date(System.currentTimeMillis() + expire));
         } else {
-            builder = Jwts.builder()
-                    .claims().empty().add(claims).and()
-                    .issuedAt(new Date());
+            builder = Jwts.builder().claims().empty().add(claims).and().issuedAt(new Date());
         }
 
         if (Utils.isNotEmpty(Solon.cfg().appName())) {
@@ -66,7 +64,6 @@ public class JwtUtils {
         }
     }
 
-
     /**
      * 解析令牌
      *
@@ -76,7 +73,6 @@ public class JwtUtils {
      */
     public static Claims parseJwt(String token, String jwt_secret, String jwt_prefix) {
 
-
         byte[] keyBytes = Decoders.BASE64.decode(jwt_secret);
         SecretKey signKey = Keys.hmacShaKeyFor(keyBytes);
 
@@ -85,7 +81,8 @@ public class JwtUtils {
         }
         // %20 为空格URLEncoding
         if (token.startsWith(StrUtil.replace(TOKEN_HEADER, " ", "%20"))) {
-            token = token.substring(StrUtil.replace(TOKEN_HEADER, " ", "%20").length()).trim();
+            token = token.substring(StrUtil.replace(TOKEN_HEADER, " ", "%20").length())
+                    .trim();
         }
 
         if (Utils.isNotEmpty(jwt_prefix) && token.startsWith(jwt_prefix)) {
@@ -106,5 +103,4 @@ public class JwtUtils {
 
         return null;
     }
-
 }
