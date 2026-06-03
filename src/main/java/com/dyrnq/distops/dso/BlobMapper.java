@@ -12,7 +12,8 @@ public class BlobMapper {
 
     public Blob findByInstIdAndDigest(Long instId, String digest) {
         try {
-            return dbContext.table(Blob.TABLE_NAME)
+            return dbContext
+                    .table(Blob.TABLE_NAME)
                     .whereEq(Blob.INST_ID, instId)
                     .andEq(Blob.DIGEST, digest)
                     .selectItem("*", Blob.class);
@@ -31,7 +32,11 @@ public class BlobMapper {
 
     public void updateById(Blob blob, boolean replace) {
         try {
-            dbContext.table(Blob.TABLE_NAME).setEntity(blob).whereEq(Blob.ID, blob.getId()).update();
+            dbContext
+                    .table(Blob.TABLE_NAME)
+                    .setEntity(blob)
+                    .whereEq(Blob.ID, blob.getId())
+                    .update();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -39,7 +44,8 @@ public class BlobMapper {
 
     public java.util.List<Blob> listByInstId(Long instId) {
         try {
-            return dbContext.table(Blob.TABLE_NAME)
+            return dbContext
+                    .table(Blob.TABLE_NAME)
                     .whereEq(Blob.INST_ID, instId)
                     .selectList("*", Blob.class);
         } catch (Exception e) {
@@ -53,7 +59,8 @@ public class BlobMapper {
      */
     public java.util.List<Blob> listByInstIdPaged(Long instId, long lastId, int pageSize) {
         try {
-            return dbContext.table(Blob.TABLE_NAME)
+            return dbContext
+                    .table(Blob.TABLE_NAME)
                     .whereEq(Blob.INST_ID, instId)
                     .andGt(Blob.ID, lastId)
                     .orderBy(Blob.ID + " ASC")
@@ -66,8 +73,7 @@ public class BlobMapper {
 
     public java.util.List<Blob> listAll() {
         try {
-            return dbContext.table(Blob.TABLE_NAME)
-                    .selectList("*", Blob.class);
+            return dbContext.table(Blob.TABLE_NAME).selectList("*", Blob.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -75,9 +81,7 @@ public class BlobMapper {
 
     public Blob selectById(Long id) {
         try {
-            return dbContext.table(Blob.TABLE_NAME)
-                    .whereEq(Blob.ID, id)
-                    .selectItem("*", Blob.class);
+            return dbContext.table(Blob.TABLE_NAME).whereEq(Blob.ID, id).selectItem("*", Blob.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -85,9 +89,7 @@ public class BlobMapper {
 
     public boolean deleteById(Long id) {
         try {
-            return dbContext.table(Blob.TABLE_NAME)
-                    .whereEq(Blob.ID, id)
-                    .delete() > 0;
+            return dbContext.table(Blob.TABLE_NAME).whereEq(Blob.ID, id).delete() > 0;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

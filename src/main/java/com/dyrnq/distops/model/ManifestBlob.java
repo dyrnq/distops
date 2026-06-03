@@ -1,11 +1,10 @@
 package com.dyrnq.distops.model;
 
+import java.io.Serializable;
 import lombok.Data;
 import org.noear.wood.annotation.Column;
 import org.noear.wood.annotation.PrimaryKey;
 import org.noear.wood.annotation.Table;
-
-import java.io.Serializable;
 
 @Table("manifest_blob")
 @Data
@@ -15,7 +14,8 @@ public class ManifestBlob implements Serializable {
 
     @PrimaryKey
     @Column("id")
-    @com.fasterxml.jackson.databind.annotation.JsonSerialize(using = com.fasterxml.jackson.databind.ser.std.ToStringSerializer.class)
+    @com.fasterxml.jackson.databind.annotation.JsonSerialize(
+            using = com.fasterxml.jackson.databind.ser.std.ToStringSerializer.class)
     public Long id;
 
     @Column("manifest_id")
