@@ -1,7 +1,6 @@
 package com.dyrnq.distops.registry.auth.service;
 
 import com.dyrnq.distops.registry.auth.model.JWTPayload;
-
 import java.util.List;
 
 /**
@@ -29,6 +28,4 @@ public interface ITokenService {
      * @return Signed JWT token
      */
     String createToken(String subject, String audience, List<JWTPayload.ResourceAccess> accessList);
-
-
 }

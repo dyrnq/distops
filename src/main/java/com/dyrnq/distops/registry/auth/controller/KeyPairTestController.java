@@ -1,17 +1,16 @@
 package com.dyrnq.distops.registry.auth.controller;
 
-import com.dyrnq.distops.registry.auth.KeyPairInfo;
-import com.dyrnq.distops.registry.auth.KeyPairManager;
 import com.dyrnq.distops.dso.InstMapper;
 import com.dyrnq.distops.model.Inst;
+import com.dyrnq.distops.registry.auth.KeyPairInfo;
+import com.dyrnq.distops.registry.auth.KeyPairManager;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
 import org.noear.solon.annotation.Param;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Test controller for key pair generation
@@ -69,8 +68,11 @@ public class KeyPairTestController {
             result.put("data", keyPair);
             result.put("message", "Key pair generated and saved successfully");
 
-            log.info("Generated and saved {} key pair for instance {} (id={})",
-                    keyPair.getKeyType(), inst.getName(), inst.getId());
+            log.info(
+                    "Generated and saved {} key pair for instance {} (id={})",
+                    keyPair.getKeyType(),
+                    inst.getName(),
+                    inst.getId());
 
         } catch (Exception e) {
             log.error("Failed to generate and save key pair", e);

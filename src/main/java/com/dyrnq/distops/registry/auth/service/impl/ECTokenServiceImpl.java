@@ -1,15 +1,14 @@
 package com.dyrnq.distops.registry.auth.service.impl;
 
+import com.dyrnq.distops.model.Inst;
 import com.dyrnq.distops.registry.auth.model.JWTPayload;
 import com.dyrnq.distops.registry.auth.service.ITokenService;
 import com.dyrnq.distops.registry.auth.util.NimbusJwtService;
-import com.dyrnq.distops.model.Inst;
 import com.nimbusds.jose.JOSEException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * ECDSA Token Service Implementation using Nimbus JOSE+JWT
@@ -22,7 +21,6 @@ public class ECTokenServiceImpl implements ITokenService {
 
     private final NimbusJwtService nimbusJwtService = new NimbusJwtService();
 
-
     private String algorithm;
 
     @Override
@@ -34,7 +32,6 @@ public class ECTokenServiceImpl implements ITokenService {
     public String getAlgorithm() {
         return inst.getAuthKeyAlg();
     }
-
 
     @Override
     public String createToken(String subject, String audience, List<JWTPayload.ResourceAccess> accessList) {
@@ -73,7 +70,6 @@ public class ECTokenServiceImpl implements ITokenService {
             throw new RuntimeException("Failed to initialize EC token service", e);
         }
 
-
         try {
             log.info("Creating token with algorithm: {}", algorithm);
 
@@ -87,13 +83,7 @@ public class ECTokenServiceImpl implements ITokenService {
                 accessMaps.add(accessMap);
             }
 
-            String token = nimbusJwtService.createToken(
-                    subject,
-                    audience,
-                    accessMaps,
-                    issuer,
-                    expiration
-            );
+            String token = nimbusJwtService.createToken(subject, audience, accessMaps, issuer, expiration);
 
             log.info("New ECDSA token for subject: {}, audience: {}", subject, audience);
 

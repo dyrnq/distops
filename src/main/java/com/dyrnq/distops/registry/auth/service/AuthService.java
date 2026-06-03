@@ -1,17 +1,15 @@
 package com.dyrnq.distops.registry.auth.service;
 
-
 import com.dyrnq.distops.dso.AccountMapper;
 import com.dyrnq.distops.model.Account;
 import com.dyrnq.distops.registry.auth.model.AclConfig;
 import com.dyrnq.utils.BcryptUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.noear.solon.annotation.Component;
-import org.noear.solon.annotation.Inject;
-
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
+import org.noear.solon.annotation.Component;
+import org.noear.solon.annotation.Inject;
 
 /**
  * Authentication Service for Docker Registry
@@ -23,6 +21,7 @@ public class AuthService {
 
     private static final Pattern GLOB_PATTERN = Pattern.compile("[?*\\[\\]]");
     private static final Pattern REGEX_PATTERN = Pattern.compile("^/(.+)/$");
+
     @Inject
     private AccountMapper accountMapper;
 
@@ -64,9 +63,8 @@ public class AuthService {
      * @param requestedActions Requested actions (pull, push, delete, *)
      * @return Set of authorized actions
      */
-    public Set<String> getAuthorizedActions(String username, String resourceType,
-                                            String resourceName, Set<String> requestedActions,
-                                            String clientIp) {
+    public Set<String> getAuthorizedActions(
+            String username, String resourceType, String resourceName, Set<String> requestedActions, String clientIp) {
         // Get account from database
         Account account = accountMapper.selectByInstIdAndUsernameAndEnabled(1L, username, 1);
         if (account == null || account.getId() == null) {
@@ -78,8 +76,8 @@ public class AuthService {
         if (account.getAcl() != null && !account.getAcl().trim().isEmpty()) {
             List<AclConfig.AclRule> aclRules = parseAcl(account.getAcl());
             if (!aclRules.isEmpty()) {
-                Set<String> authorizedActions = matchAclRules(aclRules, username, resourceType,
-                        resourceName, requestedActions, clientIp);
+                Set<String> authorizedActions =
+                        matchAclRules(aclRules, username, resourceType, resourceName, requestedActions, clientIp);
                 if (!authorizedActions.isEmpty()) {
                     log.debug("Authorized actions for user {}: {}", username, authorizedActions);
                     return authorizedActions;
@@ -119,9 +117,13 @@ public class AuthService {
      * @param requestedActions Requested actions
      * @return Set of authorized actions
      */
-    private Set<String> matchAclRules(List<AclConfig.AclRule> rules,
-                                      String username, String resourceType, String resourceName,
-                                      Set<String> requestedActions, String clientIp) {
+    private Set<String> matchAclRules(
+            List<AclConfig.AclRule> rules,
+            String username,
+            String resourceType,
+            String resourceName,
+            Set<String> requestedActions,
+            String clientIp) {
         Set<String> authorizedActions = new HashSet<>();
 
         for (AclConfig.AclRule rule : rules) {
@@ -164,7 +166,8 @@ public class AuthService {
      * @param resourceName Resource name
      * @return true if rule matches, false otherwise
      */
-    private boolean matchesRule(AclConfig.AclRule rule, String username, String resourceType, String resourceName, String clientIp) {
+    private boolean matchesRule(
+            AclConfig.AclRule rule, String username, String resourceType, String resourceName, String clientIp) {
         AclConfig.AclRule.Match match = rule.getMatch();
         if (match == null) {
             return false;
@@ -255,10 +258,7 @@ public class AuthService {
      * @return true if match successful, false otherwise
      */
     private boolean globMatch(String pattern, String text) {
-        String regex = pattern
-                .replace(".", "\\.")
-                .replace("*", ".*")
-                .replace("?", ".");
+        String regex = pattern.replace(".", "\\.").replace("*", ".*").replace("?", ".");
         return text.matches(regex);
     }
 

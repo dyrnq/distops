@@ -13,22 +13,22 @@ import org.noear.snack4.annotation.ONodeAttr;
 @AllArgsConstructor
 public class TokenResponse {
     @JsonProperty("access_token")
-    @ONodeAttr(name="access_token")
+    @ONodeAttr(name = "access_token")
     private String accessToken;
-    
+
     @JsonProperty("token")
-    @ONodeAttr(name="token")
+    @ONodeAttr(name = "token")
     private String token;
 
     @JsonProperty("expires_in")
-    @ONodeAttr(name="expires_in")
+    @ONodeAttr(name = "expires_in")
     private Integer expiresIn;
 
     @JsonProperty("issued_at")
-    @ONodeAttr(name="issued_at")
+    @ONodeAttr(name = "issued_at")
     private String issuedAt;
 
     @JsonProperty("refresh_token")
-    @ONodeAttr(name="refresh_token")
+    @ONodeAttr(name = "refresh_token")
     private String refreshToken;
 }

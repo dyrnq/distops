@@ -1,15 +1,14 @@
 package com.dyrnq.distops.registry.auth.service.impl;
 
+import com.dyrnq.distops.model.Inst;
 import com.dyrnq.distops.registry.auth.model.JWTPayload;
 import com.dyrnq.distops.registry.auth.service.ITokenService;
 import com.dyrnq.distops.registry.auth.util.NimbusJwtService;
-import com.dyrnq.distops.model.Inst;
 import com.nimbusds.jose.JOSEException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * RSA Token Service Implementation using Nimbus JOSE+JWT
@@ -30,8 +29,6 @@ public class RSATokenServiceImpl implements ITokenService {
     public String getAlgorithm() {
         return inst.getAuthKeyAlg();
     }
-
-
 
     @Override
     public String createToken(String subject, String audience, List<JWTPayload.ResourceAccess> accessList) {
@@ -80,13 +77,7 @@ public class RSATokenServiceImpl implements ITokenService {
                 accessMaps.add(accessMap);
             }
 
-            String token = nimbusJwtService.createToken(
-                    subject,
-                    audience,
-                    accessMaps,
-                    issuer,
-                    expiration
-            );
+            String token = nimbusJwtService.createToken(subject, audience, accessMaps, issuer, expiration);
 
             log.info("New RSA token for subject: {}, audience: {}, algorithm: {}", subject, audience, algorithm);
 

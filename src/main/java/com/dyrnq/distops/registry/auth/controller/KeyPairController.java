@@ -2,14 +2,13 @@ package com.dyrnq.distops.registry.auth.controller;
 
 import com.dyrnq.distops.registry.auth.KeyPairInfo;
 import com.dyrnq.distops.registry.auth.KeyPairManager;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
 import org.noear.solon.annotation.Param;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * REST Controller for key pair generation and management
@@ -55,8 +54,11 @@ public class KeyPairController {
             result.put("data", keyPair);
             result.put("message", "Key pair generated successfully");
 
-            log.info("Generated {} key pair with algorithm {} and kid {}",
-                    keyPair.getKeyType(), keyPair.getAlgorithm(), keyPair.getKid());
+            log.info(
+                    "Generated {} key pair with algorithm {} and kid {}",
+                    keyPair.getKeyType(),
+                    keyPair.getAlgorithm(),
+                    keyPair.getKid());
 
         } catch (Exception e) {
             log.error("Failed to generate key pair", e);
@@ -92,8 +94,7 @@ public class KeyPairController {
      */
     @Mapping(value = "/jwks")
     public Map<String, Object> generateJwks(
-            @Param(name = "public_key") String publicKeyPem,
-            @Param(name = "algorithm") String algorithm) {
+            @Param(name = "public_key") String publicKeyPem, @Param(name = "algorithm") String algorithm) {
 
         Map<String, Object> result = new HashMap<>();
 

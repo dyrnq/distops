@@ -1,11 +1,10 @@
 package com.dyrnq.distops.registry.auth.model;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Data
 @Builder
@@ -18,7 +17,7 @@ public class AuthRequest {
     private String service;
     private String remoteAddr;
     private List<Scope> scopes;
-    
+
     @Data
     @Builder
     @NoArgsConstructor

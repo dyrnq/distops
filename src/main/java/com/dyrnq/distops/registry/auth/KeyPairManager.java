@@ -1,11 +1,10 @@
 package com.dyrnq.distops.registry.auth;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Component;
 import org.noear.solon.annotation.Inject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Key pair management service for token authentication
@@ -20,7 +19,7 @@ public class KeyPairManager {
 
     @Inject
     private RSAKeyPairGenerator rsaKeyPairGenerator;
-    
+
     @Inject
     private HMACKeyGenerator hmacKeyGenerator;
 
@@ -41,17 +40,17 @@ public class KeyPairManager {
         if (algorithm.startsWith("HS")) {
             return generateHMACKeyPair(algorithm);
         }
-        
+
         // Handle RSA algorithms (including RSA-PSS)
         if (algorithm.startsWith("RS") || algorithm.startsWith("PS")) {
             return generateRSAKeyPair(algorithm);
         }
-        
+
         // Handle EC algorithms
         if (algorithm.startsWith("ES")) {
             return generateECKeyPair(algorithm);
         }
-        
+
         throw new IllegalArgumentException("Unsupported algorithm: " + algorithm);
     }
 
@@ -83,7 +82,7 @@ public class KeyPairManager {
         jwk.put("k", secretKey); // HMAC uses 'k' for shared secret
 
         Map<String, Object> jwks = new HashMap<>();
-        jwks.put("keys", new Object[] { jwk });
+        jwks.put("keys", new Object[] {jwk});
 
         keyPairInfo.setJwksJson(serializeJWKS(jwks));
 
@@ -91,7 +90,7 @@ public class KeyPairManager {
 
         return keyPairInfo;
     }
-    
+
     /**
      * Serialize JWKS to JSON string
      */
@@ -104,7 +103,7 @@ public class KeyPairManager {
             return "{}";
         }
     }
-    
+
     /**
      * Generate a new EC key pair with default algorithm (ES256)
      * @return KeyPairInfo containing keys and JWKS
@@ -112,7 +111,7 @@ public class KeyPairManager {
     public KeyPairInfo generateECKeyPair() {
         return ecKeyPairGenerator.generateKeyPair();
     }
-    
+
     /**
      * Generate a new EC key pair with specified algorithm
      * @param algorithm EC algorithm (ES256, ES384, ES512)
@@ -121,7 +120,7 @@ public class KeyPairManager {
     public KeyPairInfo generateECKeyPair(String algorithm) {
         return ecKeyPairGenerator.generateKeyPair(algorithm);
     }
-    
+
     /**
      * Generate a new RSA key pair with default algorithm (RS256)
      * @return KeyPairInfo containing keys and JWKS
@@ -129,7 +128,7 @@ public class KeyPairManager {
     public KeyPairInfo generateRSAKeyPair() {
         return rsaKeyPairGenerator.generateKeyPair();
     }
-    
+
     /**
      * Generate a new RSA key pair with specified algorithm
      * @param algorithm RSA algorithm (RS256, RS384, RS512)
@@ -138,7 +137,7 @@ public class KeyPairManager {
     public KeyPairInfo generateRSAKeyPair(String algorithm) {
         return rsaKeyPairGenerator.generateKeyPair(algorithm);
     }
-    
+
     /**
      * Get supported algorithms
      * @return Map of key type to array of supported algorithms
@@ -149,7 +148,7 @@ public class KeyPairManager {
         supported.put("RSA", rsaKeyPairGenerator.getSupportedAlgorithms());
         return supported;
     }
-    
+
     /**
      * Get generator for the specified algorithm
      */
@@ -157,13 +156,13 @@ public class KeyPairManager {
         if (algorithm == null) {
             return null;
         }
-        
+
         if (algorithm.startsWith("ES")) {
             return ecKeyPairGenerator;
         } else if (algorithm.startsWith("RS")) {
             return rsaKeyPairGenerator;
         }
-        
+
         return null;
     }
 }

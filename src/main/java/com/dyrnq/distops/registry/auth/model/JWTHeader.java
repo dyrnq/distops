@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 public class JWTHeader {
     @JsonProperty("typ")
     private String type;
-    
+
     @JsonProperty("alg")
     private String algorithm;
-    
+
     @JsonProperty("kid")
     private String keyId;
 }

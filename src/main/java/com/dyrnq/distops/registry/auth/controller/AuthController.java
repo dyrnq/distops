@@ -1,8 +1,9 @@
 package com.dyrnq.distops.registry.auth.controller;
 
-
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.json.JSONUtil;
+import com.dyrnq.distops.dso.InstMapper;
+import com.dyrnq.distops.model.Inst;
 import com.dyrnq.distops.registry.auth.model.AuthRequest;
 import com.dyrnq.distops.registry.auth.model.JWTPayload;
 import com.dyrnq.distops.registry.auth.model.TokenResponse;
@@ -11,18 +12,15 @@ import com.dyrnq.distops.registry.auth.service.ITokenService;
 import com.dyrnq.distops.registry.auth.service.impl.ECTokenServiceImpl;
 import com.dyrnq.distops.registry.auth.service.impl.HMACTokenServiceImpl;
 import com.dyrnq.distops.registry.auth.service.impl.RSATokenServiceImpl;
-import com.dyrnq.distops.dso.InstMapper;
-import com.dyrnq.distops.model.Inst;
-import lombok.extern.slf4j.Slf4j;
-import org.noear.solon.annotation.*;
-import org.noear.solon.core.handle.Context;
-import org.noear.solon.serialization.snack4.Snack4StringSerializer;
-
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
+import org.noear.solon.annotation.*;
+import org.noear.solon.core.handle.Context;
+import org.noear.solon.serialization.snack4.Snack4StringSerializer;
 
 @Slf4j
 @Controller
@@ -37,34 +35,36 @@ public class AuthController {
     private InstMapper instMapper;
 
     @Mapping("/auth")
-    public TokenResponse auth(Context ctx,
-                              @Param(required = false) String account,
-                              @Param(required = false) String service,
-                              @Param(required = false) List<String> scope,
-                              @Header(value = "Authorization", required = false) String authorization) {
+    public TokenResponse auth(
+            Context ctx,
+            @Param(required = false) String account,
+            @Param(required = false) String service,
+            @Param(required = false) List<String> scope,
+            @Header(value = "Authorization", required = false) String authorization) {
         Inst inst = resolveInst(service);
         return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
     @Mapping("/auth/token/?")
-    public TokenResponse authToken(Context ctx,
-                                   @Param(required = false) String account,
-                                   @Param(required = false) String service,
-                                   @Param(required = false) List<String> scope,
-                                   @Header(value = "Authorization", required = false) String authorization
-    ) {
+    public TokenResponse authToken(
+            Context ctx,
+            @Param(required = false) String account,
+            @Param(required = false) String service,
+            @Param(required = false) List<String> scope,
+            @Header(value = "Authorization", required = false) String authorization) {
         Inst inst = resolveInst(service);
         return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
     @Mapping("/auth/{instName}/?")
-    public TokenResponse authByInst(Context ctx,
-                                    @Path("instName") String instName,
-                                    @Param(required = false) String account,
-                                    @Param(required = false) String service,
-                                    @Param(required = false) List<String> scope,
-                                    @Param(required = false) String grant_type,
-                                    @Header(value = "Authorization", required = false) String authorization) {
+    public TokenResponse authByInst(
+            Context ctx,
+            @Path("instName") String instName,
+            @Param(required = false) String account,
+            @Param(required = false) String service,
+            @Param(required = false) List<String> scope,
+            @Param(required = false) String grant_type,
+            @Header(value = "Authorization", required = false) String authorization) {
         Inst inst = instMapper.findByName(instName);
         if (inst == null) {
             log.warn("Instance not found: {}", instName);
@@ -84,17 +84,18 @@ public class AuthController {
             oauthParams.put("refresh_token", ctx.param("refresh_token"));
             return authOAuthInternal(ctx, inst, oauthParams);
         }
-        
+
         return authenticate(ctx, inst, account, service, scope, authorization);
     }
 
     @Mapping("/auth/{instName}/token/?")
-    public TokenResponse authTokenByInst(Context ctx,
-                                         @Path("instName") String instName,
-                                         @Param(required = false) String account,
-                                         @Param(required = false) String service,
-                                         @Param(required = false) List<String> scope,
-                                         @Header(value = "Authorization", required = false) String authorization) {
+    public TokenResponse authTokenByInst(
+            Context ctx,
+            @Path("instName") String instName,
+            @Param(required = false) String account,
+            @Param(required = false) String service,
+            @Param(required = false) List<String> scope,
+            @Header(value = "Authorization", required = false) String authorization) {
         Inst inst = instMapper.findByName(instName);
         if (inst == null) {
             log.warn("Instance not found: {}", instName);
@@ -119,7 +120,6 @@ public class AuthController {
         }
         return instMapper.selectById(1L);
     }
-
 
     /**
      * Internal OAuth2 token handler (called from authByInst when POST with grant_type)
@@ -213,9 +213,12 @@ public class AuthController {
         }
     }
 
-    private TokenResponse buildOAuthResponse(Inst inst, String username, String service,
-                                              List<JWTPayload.ResourceAccess> accessList,
-                                              boolean includeRefreshToken) {
+    private TokenResponse buildOAuthResponse(
+            Inst inst,
+            String username,
+            String service,
+            List<JWTPayload.ResourceAccess> accessList,
+            boolean includeRefreshToken) {
         ITokenService tokenService = getTokenService(inst);
         if (tokenService == null) {
             throw new RuntimeException("tokenService not found");
@@ -232,7 +235,8 @@ public class AuthController {
         if (includeRefreshToken) {
             long refreshExpires = System.currentTimeMillis() / 1000 + 86400 * 30;
             String refreshPayload = username + ":" + refreshExpires + ":refresh";
-            String refreshToken = java.util.Base64.getUrlEncoder().withoutPadding()
+            String refreshToken = java.util.Base64.getUrlEncoder()
+                    .withoutPadding()
                     .encodeToString(refreshPayload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             resp.setRefreshToken(refreshToken);
         }
@@ -241,18 +245,14 @@ public class AuthController {
         return resp;
     }
 
-
-    public TokenResponse authenticate(Context ctx,
-                                      Inst inst,
-                                      String account,
-                                      String service,
-                                      List<String> scope,
-                                      String authorization) {
-        log.info("url: {}, method: {}, headers: {}, paramMap: {} ", ctx.url(), ctx.method(),
+    public TokenResponse authenticate(
+            Context ctx, Inst inst, String account, String service, List<String> scope, String authorization) {
+        log.info(
+                "url: {}, method: {}, headers: {}, paramMap: {} ",
+                ctx.url(),
+                ctx.method(),
                 JSONUtil.toJsonStr(ctx.headerMap()),
-                ctx.paramMap()
-        );
-
+                ctx.paramMap());
 
         try {
             byte[] bytes = ctx.bodyAsBytes();
@@ -260,7 +260,6 @@ public class AuthController {
         } catch (Exception e) {
             log.error(e.getMessage());
         }
-
 
         try {
             // Anonymous access: no Authorization header -> grant pull-only
@@ -270,13 +269,16 @@ public class AuthController {
 
             AuthRequest authRequest = parseRequest(account, service, scope, authorization, ctx);
 
-            log.info("Auth request: user={}, account={}, service={}, scopes={}", authRequest.getUser(), authRequest.getAccount(), authRequest.getService(), authRequest.getScopes());
+            log.info(
+                    "Auth request: user={}, account={}, service={}, scopes={}",
+                    authRequest.getUser(),
+                    authRequest.getAccount(),
+                    authRequest.getService(),
+                    authRequest.getScopes());
 
             if (!authService.authenticate(authRequest.getUser(), authRequest.getPassword())) {
                 log.warn("Authentication failed for user: {}", authRequest.getUser());
-                String issuer = (inst != null && inst.getAuthIssuer() != null)
-                        ? inst.getAuthIssuer()
-                        : DEFAULT_ISSUER;
+                String issuer = (inst != null && inst.getAuthIssuer() != null) ? inst.getAuthIssuer() : DEFAULT_ISSUER;
                 ctx.headerAdd("WWW-Authenticate", "Basic realm=\"" + issuer + "\"");
                 ctx.status(401);
                 return null;
@@ -291,11 +293,7 @@ public class AuthController {
                 throw new RuntimeException("tokenService not found");
             }
 
-            String token = tokenService.createToken(
-                    authRequest.getAccount(),
-                    authRequest.getService(),
-                    accessList
-            );
+            String token = tokenService.createToken(authRequest.getAccount(), authRequest.getService(), accessList);
 
             String issuedAt = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
 
@@ -306,7 +304,12 @@ public class AuthController {
                     .issuedAt(issuedAt)
                     .build();
 
-            log.info("Token issued for user: {}, service: {}, scopes: {}, keyType: {}", authRequest.getAccount(), authRequest.getService(), authRequest.getScopes(), tokenService.getClass().getName());
+            log.info(
+                    "Token issued for user: {}, service: {}, scopes: {}, keyType: {}",
+                    authRequest.getAccount(),
+                    authRequest.getService(),
+                    authRequest.getScopes(),
+                    tokenService.getClass().getName());
             log.debug(JSONUtil.toJsonPrettyStr(ctx.headerNamesOfResponse()));
             log.info("response: {} ", Snack4StringSerializer.getDefault().serialize(response));
             return response;
@@ -322,8 +325,8 @@ public class AuthController {
         }
     }
 
-
-    private AuthRequest parseRequest(String account, String service, List<String> scopes, String authorization, Context request) {
+    private AuthRequest parseRequest(
+            String account, String service, List<String> scopes, String authorization, Context request) {
 
         AuthRequest.AuthRequestBuilder builder = AuthRequest.builder();
 
@@ -339,7 +342,6 @@ public class AuthController {
                 password = decoded.substring(colonIndex + 1);
             }
         }
-
 
         if (user == null && request.method().equals("POST")) {
             user = request.param("username");
@@ -361,14 +363,18 @@ public class AuthController {
 
         List<AuthRequest.Scope> parsedScopes = new ArrayList<>();
         if (scopes != null && !scopes.isEmpty()) {
-            // Merge scopes that were split by the framework (e.g., "repo:name:pull" and "push" should be "repo:name:pull,push")
+            // Merge scopes that were split by the framework (e.g., "repo:name:pull" and "push" should be
+            // "repo:name:pull,push")
             StringBuilder mergedScope = new StringBuilder();
             for (String scopeValue : scopes) {
                 if (scopeValue == null || scopeValue.isEmpty()) {
                     continue;
                 }
                 // Check if this looks like a detached action (pull, push, delete, *)
-                if (scopeValue.equals("pull") || scopeValue.equals("push") || scopeValue.equals("*") || scopeValue.equals("delete")) {
+                if (scopeValue.equals("pull")
+                        || scopeValue.equals("push")
+                        || scopeValue.equals("*")
+                        || scopeValue.equals("delete")) {
                     // Append to previous scope
                     if (!mergedScope.isEmpty()) {
                         mergedScope.append(",").append(scopeValue);
@@ -412,7 +418,10 @@ public class AuthController {
             log.info("Parsing individual scope: {}", scopeStr);
 
             // Handle detached actions (e.g., "push" alone) - merge with previous scope
-            if (scopeStr.equals("pull") || scopeStr.equals("push") || scopeStr.equals("*") || scopeStr.equals("delete")) {
+            if (scopeStr.equals("pull")
+                    || scopeStr.equals("push")
+                    || scopeStr.equals("*")
+                    || scopeStr.equals("delete")) {
                 if (!scopes.isEmpty()) {
                     AuthRequest.Scope previousScope = scopes.get(scopes.size() - 1);
                     List<String> newActions = new ArrayList<>(previousScope.getActions());
@@ -514,11 +523,14 @@ public class AuthController {
                     scope.getType(),
                     scope.getName(),
                     requestedActions,
-                    authRequest.getRemoteAddr()
-            );
+                    authRequest.getRemoteAddr());
 
-            log.info("Scope: type={}, name={}, requestedActions={}, authorizedActions={}",
-                    scope.getType(), scope.getName(), requestedActions, authorizedActions);
+            log.info(
+                    "Scope: type={}, name={}, requestedActions={}, authorizedActions={}",
+                    scope.getType(),
+                    scope.getName(),
+                    requestedActions,
+                    authorizedActions);
 
             // Create a mutable set for authorized actions
             Set<String> mutableAuthorizedActions = new HashSet<>(authorizedActions);
@@ -558,7 +570,8 @@ public class AuthController {
         return accessList;
     }
 
-    private TokenResponse handleAnonymous(Inst inst, String accountName, String service, java.util.List<String> scopes, Context ctx) {
+    private TokenResponse handleAnonymous(
+            Inst inst, String accountName, String service, java.util.List<String> scopes, Context ctx) {
         try {
             // Anonymous user: use special "anonymous" account with its own ACL rules
             java.util.List<JWTPayload.ResourceAccess> accessList = new java.util.ArrayList<>();
@@ -571,12 +584,7 @@ public class AuthController {
                     java.util.Set<String> requestedActions = new java.util.HashSet<>(ps.getActions());
                     // Only allow pull for anonymous (read-only)
                     java.util.Set<String> authorizedActions = authService.getAuthorizedActions(
-                            "anonymous",
-                            ps.getType(),
-                            ps.getName(),
-                            requestedActions,
-                            null
-                    );
+                            "anonymous", ps.getType(), ps.getName(), requestedActions, null);
                     if (!authorizedActions.isEmpty()) {
                         accessList.add(JWTPayload.ResourceAccess.builder()
                                 .type(ps.getType())
@@ -608,9 +616,12 @@ public class AuthController {
     private ITokenService getTokenService(Inst inst) {
         String auth = inst.getAuthKeyType();
         switch (auth) {
-            case "EC": return new ECTokenServiceImpl(inst);
-            case "RSA": return new RSATokenServiceImpl(inst);
-            case "HMAC": return new HMACTokenServiceImpl(inst);
+            case "EC":
+                return new ECTokenServiceImpl(inst);
+            case "RSA":
+                return new RSATokenServiceImpl(inst);
+            case "HMAC":
+                return new HMACTokenServiceImpl(inst);
             default:
                 log.warn("Unknown auth key type: {}", auth);
                 return null;

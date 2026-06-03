@@ -1,12 +1,11 @@
 package com.dyrnq.distops.registry.auth;
 
-import lombok.extern.slf4j.Slf4j;
-import org.noear.solon.annotation.Component;
-
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
+import org.noear.solon.annotation.Component;
 
 /**
  * HMAC Key Generator for HS256/HS384/HS512
