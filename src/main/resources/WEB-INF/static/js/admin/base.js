@@ -431,3 +431,11 @@ function cleanData(isUpdate, defaults) {
     layui.form.render('select');
     layui.form.render('checkbox');
 }
+
+/**
+ * 统一 AJAX 错误处理
+ * 在 $.ajax 的 error 回调中调用：handleAjaxError()
+ */
+function handleAjaxError() {
+    handleAjaxError();
+}
