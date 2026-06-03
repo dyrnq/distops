@@ -53,7 +53,7 @@ function loadOciInfo() {
             }
         },
         error: function() {
-            layer.alert(commonStr.errorInfo);
+            handleAjaxError();
         }
     });
 }

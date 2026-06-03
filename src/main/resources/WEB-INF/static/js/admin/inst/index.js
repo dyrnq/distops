@@ -146,7 +146,7 @@ form.on('switch(demo-checkbox-filter)', function(data){
             }
         },
         error : function() {
-            layer.alert(commonStr.errorInfo);
+            handleAjaxError();
         }
     });
 
@@ -201,7 +201,7 @@ $('#addOver').click(function(){
             }
         },
         error : function() {
-            layer.alert(commonStr.errorInfo);
+            handleAjaxError();
         }
     });
 });
@@ -226,7 +226,7 @@ $('#addOver3').click(function(){
             }
         },
         error : function() {
-            layer.alert(commonStr.errorInfo);
+            handleAjaxError();
         }
     });
 });

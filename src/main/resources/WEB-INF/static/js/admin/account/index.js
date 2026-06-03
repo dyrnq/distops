@@ -154,7 +154,7 @@ $('#addOver3').click(function(){
             }
         },
         error : function() {
-            layer.alert(commonStr.errorInfo);
+            handleAjaxError();
         }
     });
 });
