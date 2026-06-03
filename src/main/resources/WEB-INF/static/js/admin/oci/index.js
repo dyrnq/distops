@@ -130,7 +130,7 @@ function loadSingleManifestDetail(manifest) {
     }
     detailHtml += '</tbody></table>';
 
-    
+
     detailHtml += '</div>';
 
     $('#demo').html(detailHtml);

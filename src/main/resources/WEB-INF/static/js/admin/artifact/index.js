@@ -4,12 +4,12 @@
 function addLink(d) {
     // 根据 media_type 判断是 manifest list 还是单 manifest
     let btnEvent = 'oci';
-    
+
     // 如果是单架构镜像，显示 Manifest 按钮
     if (d.mediaType && d.mediaType.includes('manifest.v2+json')) {
         btnEvent = 'manifest';
     }
-    
+
     let ociBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="' + btnEvent + '">' + commonStr.detail + '</button>'
     let editBtn = '<button type="button" class="layui-btn layui-btn-normal layui-btn-xs" lay-event="edit">' + commonStr.edit + '</button>'
     let delBtn  = '<button type="button" class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">' + commonStr.del + '</button>'
