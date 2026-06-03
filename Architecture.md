@@ -783,6 +783,8 @@ The `scripts/` directory contains end-to-end shell scripts:
 
 ### 17.3 Python Integration Test Suite
 
+Detailed usage: [`docs/testing.md`](docs/testing.md)
+
 Located in `scripts/tests/`. Uses `run.py` as entry point, supports Mode 1 (direct) and Mode 2 (nginx proxy).
 
 | Module                 | Tests                                                    |

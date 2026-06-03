@@ -75,6 +75,12 @@ Supports environment variables
 | NO_PROXY                             | No-proxy bypass list for proxy registries    |                  |
 
 
+
+## testing
+
+See [docs/testing.md](docs/testing.md) for integration testing guide.
+
+
 ## registry proxy
 
 when using registry proxy e.g. `https://registry.k8s.io`, you may need config env `HTTPS_PROXY` and `NO_PROXY`.
