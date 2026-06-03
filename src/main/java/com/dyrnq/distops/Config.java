@@ -2,6 +2,7 @@ package com.dyrnq.distops;
 
 import cn.hutool.json.JSONUtil;
 import com.dyrnq.utils.PathUtils;
+import java.io.File;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -11,29 +12,29 @@ import org.noear.solon.annotation.Inject;
 import org.noear.solon.i18n.LocaleResolver;
 import org.noear.solon.i18n.impl.LocaleResolverCookie;
 
-import java.io.File;
-
 @Configuration
 @Slf4j
 public class Config {
     @Inject("${solon.app.name}")
     String projectName;
+
     @Inject("${project.home:}")
     private String home;
+
     @Inject("${server.session.state.jwt.name:${jwt.name:}}")
     private String jwtName;
 
     // typed=true，表示默认数据源。@Db 可不带名字注入
-//    @Bean(value = "db1" ,typed = true)
-//    public DataSource db1(@Inject("${test.db1}") HikariDataSource ds) throws Exception{
-//        Flyway flyway = Flyway.configure()
-//                .baselineOnMigrate(true)
-//                .cleanDisabled(true)
-//                .dataSource(ds.getJdbcUrl(), ds.getUsername(), ds.getPassword()).load();
-//        flyway.migrate();
-//
-//        return ds;
-//    }
+    //    @Bean(value = "db1" ,typed = true)
+    //    public DataSource db1(@Inject("${test.db1}") HikariDataSource ds) throws Exception{
+    //        Flyway flyway = Flyway.configure()
+    //                .baselineOnMigrate(true)
+    //                .cleanDisabled(true)
+    //                .dataSource(ds.getJdbcUrl(), ds.getUsername(), ds.getPassword()).load();
+    //        flyway.migrate();
+    //
+    //        return ds;
+    //    }
     @Bean
     public LocaleResolver localInit() {
         return new LocaleResolverCookie();
@@ -61,5 +62,4 @@ public class Config {
         log.info("config***********tokenCookieName={}", tokenCookieName);
         return new CfgExtractor(tokenCookieName);
     }
-
 }

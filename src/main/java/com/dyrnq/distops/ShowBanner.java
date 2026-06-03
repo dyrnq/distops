@@ -2,13 +2,12 @@ package com.dyrnq.distops;
 
 import cn.hutool.core.io.resource.ClassPathResource;
 import com.dyrnq.utils.VersionUtils;
+import java.io.BufferedReader;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.noear.solon.annotation.Component;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.core.bean.LifecycleBean;
-
-import java.io.BufferedReader;
-import java.nio.charset.StandardCharsets;
 
 @Component
 public class ShowBanner implements LifecycleBean {
@@ -27,7 +26,7 @@ public class ShowBanner implements LifecycleBean {
             while (null != (str = reader.readLine())) {
                 stringBuilder.append(str + "\n");
             }
-            reader.close();// 关闭流
+            reader.close(); // 关闭流
             stringBuilder.append(projectName + " " + VersionUtils.getVersion() + "\n");
             IOUtils.write(stringBuilder.toString(), System.out);
         } catch (Exception e) {
