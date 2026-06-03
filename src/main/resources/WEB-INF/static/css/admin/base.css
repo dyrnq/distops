@@ -82,3 +82,29 @@ textarea {
     width: 100%;
     height: 300px;
 }
+
+
+/* ========== Shared utility classes ========== */
+
+.grid-demo-margin {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.panel-padding {
+    padding: 15px;
+}
+
+.hidden-panel {
+    display: none;
+}
+
+.status-color-warning {
+    border-color: rgba(255, 183, 0, 0) !important;
+}
+
+.code-editor-container {
+    height: 500px;
+    width: 300px;
+    overflow: hidden;
+}
