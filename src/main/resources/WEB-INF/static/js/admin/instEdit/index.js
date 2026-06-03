@@ -171,7 +171,7 @@ layui.use(function() {
                 }
             },
             error : function() {
-                layer.alert(commonStr.errorInfo);
+                handleAjaxError();
             }
         });
     });
