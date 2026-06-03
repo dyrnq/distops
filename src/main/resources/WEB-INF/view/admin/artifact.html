@@ -27,7 +27,7 @@ input[name='param']{
 
 
         <!-- 内容主体区域 -->
-        <div style="padding: 15px">
+        <div class="panel-padding">
             <fieldset class="layui-elem-field layui-field-title">
                 <legend>${i18n.get("menu.artifact")}</legend>
             </fieldset>
@@ -68,9 +68,9 @@ input[name='param']{
 
 
 
-                    <hr class="layui-border-orange" style="border-color:rgba(255, 183, 0, 0)  !important">
+                    <hr class="layui-border-orange" class="status-color-warning">
 
-                    <div class="layui-col-md2" style="margin-top:10px;margin-bottom:10px;"><div class="grid-demo">
+                    <div class="layui-col-md2" class="grid-demo-margin"><div class="grid-demo">
                         <div class="layui-btn-container layui-col-xs12">
 
                             <button class="layui-btn layui-btn-sm" lay-submit lay-filter="demo-table-search">${i18n.get("commonStr.search")}</button>
@@ -95,7 +95,7 @@ input[name='param']{
 <script type="text/html" id="toolbarDemo">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm" lay-event="more">${i18n.get("commonStr.batch")}<i class="layui-icon layui-icon-down layui-font-12"></i></button>
-        <button class="layui-btn layui-btn-sm" lay-event="deleteSelected" style="display: none"><i class="layui-icon  layui-icon-delete"></i></button>
+        <button class="layui-btn layui-btn-sm" lay-event="deleteSelected" class="hidden-panel"><i class="layui-icon  layui-icon-delete"></i></button>
     </div>
 </script>
 
