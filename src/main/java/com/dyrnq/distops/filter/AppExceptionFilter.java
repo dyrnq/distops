@@ -10,7 +10,7 @@ import org.noear.solon.core.handle.FilterChain;
 import org.noear.solon.core.handle.Result;
 import org.noear.solon.validation.ValidatorException;
 
-@Component(index = 0) //index 为顺序位（不加，则默认为0）
+@Component(index = 0) // index 为顺序位（不加，则默认为0）
 @Slf4j
 public class AppExceptionFilter implements Filter {
     @Override
@@ -19,14 +19,15 @@ public class AppExceptionFilter implements Filter {
             chain.doFilter(ctx);
         } catch (ValidatorException e) {
             log.error(e.getMessage(), e);
-            ctx.render(Result.failure(e.getCode(), e.getMessage())); //e.getResult().getDescription()
+            ctx.render(Result.failure(e.getCode(), e.getMessage())); // e.getResult().getDescription()
         } catch (StatusException e) {
             log.error(e.getMessage(), e);
             if (e.getCode() == 404) {
                 ctx.status(e.getCode());
             } else {
                 String msg = e.getMessage();
-                if (ExceptionUtil.getRootCause(e) != null && ExceptionUtil.getRootCause(e).getMessage() != null) {
+                if (ExceptionUtil.getRootCause(e) != null
+                        && ExceptionUtil.getRootCause(e).getMessage() != null) {
                     msg = ExceptionUtil.getRootCause(e).getMessage();
                 }
                 ctx.render(Result.failure(e.getCode(), msg));

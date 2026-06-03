@@ -1,22 +1,20 @@
 package com.dyrnq.distops.controller.api;
 
 import cn.hutool.core.util.PageUtil;
+import cn.hutool.core.util.StrUtil;
 import com.dyrnq.distops.controller.ApiController;
 import com.dyrnq.distops.controller.PageResult;
 import com.dyrnq.distops.dso.InstMapper;
 import com.dyrnq.distops.dso.RepoMapper;
 import com.dyrnq.distops.model.Repo;
 import com.dyrnq.distops.service.dto.RepoQuery;
-import cn.hutool.core.util.StrUtil;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.Result;
-import org.noear.wood.IPage;
-
-import java.util.List;
 
 @Mapping("api/repo")
 @Controller
@@ -36,7 +34,8 @@ public class RepoController extends ApiController {
     public PageResult query(Context ctx, int page, int limit, RepoQuery query) {
         try {
             int start = PageUtil.getStart(page - 1, limit);
-            StringBuilder sql = new StringBuilder("select r.*, i.name as inst_name from repo as r, inst as i where 1=1");
+            StringBuilder sql =
+                    new StringBuilder("select r.*, i.name as inst_name from repo as r, inst as i where 1=1");
             StringBuilder countSql = new StringBuilder("select count(*) from repo as r, inst as i where 1=1");
 
             java.util.List<Object> params = new java.util.ArrayList<>();
@@ -54,8 +53,12 @@ public class RepoController extends ApiController {
             sql.append(" ORDER BY r.id DESC LIMIT ?,?");
             params.add(start);
             params.add(limit);
-            List<Repo> repoList = instMapper.db().sql(sql.toString(), params.toArray()).getList(Repo.class);
-            long count = instMapper.db().sql(countSql.toString(), countParams(params)).getCount();
+            List<Repo> repoList =
+                    instMapper.db().sql(sql.toString(), params.toArray()).getList(Repo.class);
+            long count = instMapper
+                    .db()
+                    .sql(countSql.toString(), countParams(params))
+                    .getCount();
             return PageResult.succeed(repoList, count);
         } catch (Exception e) {
             log.error("Failed to query repos", e);
@@ -126,4 +129,3 @@ public class RepoController extends ApiController {
         }
     }
 }
-

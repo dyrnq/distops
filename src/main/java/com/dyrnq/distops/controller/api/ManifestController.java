@@ -5,6 +5,7 @@ import com.dyrnq.distops.controller.ApiController;
 import com.dyrnq.distops.controller.PageResult;
 import com.dyrnq.distops.dso.ManifestMapper;
 import com.dyrnq.distops.model.Manifest;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
@@ -12,8 +13,6 @@ import org.noear.solon.annotation.Mapping;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.Result;
 import org.noear.wood.IPage;
-
-import java.util.List;
 
 @Mapping("api/manifest")
 @Controller
@@ -103,10 +102,8 @@ public class ManifestController extends ApiController {
 
             Long instId = ctx.param("instId") != null ? Long.valueOf(ctx.param("instId")) : 1L;
 
-            IPage<Manifest> p = manifestMapper.selectPage(start, limit, c ->
-                    c.whereEq(Manifest.INST_ID, instId)
-                            .andEq(Manifest.PARENT_DIGEST, parentDigest)
-            );
+            IPage<Manifest> p = manifestMapper.selectPage(
+                    start, limit, c -> c.whereEq(Manifest.INST_ID, instId).andEq(Manifest.PARENT_DIGEST, parentDigest));
             List<Manifest> manifestList = p.getList();
             return PageResult.succeed(manifestList, p.getTotal());
         } catch (Exception e) {
@@ -122,9 +119,7 @@ public class ManifestController extends ApiController {
     public PageResult queryByRepo(Context ctx, Long repoId, int page, int limit) {
         try {
             int start = PageUtil.getStart(page - 1, limit);
-            IPage<Manifest> p = manifestMapper.selectPage(start, limit, c ->
-                    c.whereEq(Manifest.REPO_ID, repoId)
-            );
+            IPage<Manifest> p = manifestMapper.selectPage(start, limit, c -> c.whereEq(Manifest.REPO_ID, repoId));
             List<Manifest> manifestList = p.getList();
             return PageResult.succeed(manifestList, p.getTotal());
         } catch (Exception e) {
@@ -140,9 +135,7 @@ public class ManifestController extends ApiController {
     public PageResult queryByArch(Context ctx, String osArch, int page, int limit) {
         try {
             int start = PageUtil.getStart(page - 1, limit);
-            IPage<Manifest> p = manifestMapper.selectPage(start, limit, c ->
-                    c.whereEq(Manifest.OS_ARCH, osArch)
-            );
+            IPage<Manifest> p = manifestMapper.selectPage(start, limit, c -> c.whereEq(Manifest.OS_ARCH, osArch));
             List<Manifest> manifestList = p.getList();
             return PageResult.succeed(manifestList, p.getTotal());
         } catch (Exception e) {

@@ -1,6 +1,5 @@
 package com.dyrnq.distops.controller;
 
-
 public class BaseController {
 
     /**
@@ -11,5 +10,4 @@ public class BaseController {
         int end = params.size() >= 2 ? params.size() - 2 : params.size();
         return params.subList(0, end).toArray();
     }
-
 }

@@ -1,6 +1,5 @@
 package com.dyrnq.distops.controller;
 
-
 import com.dyrnq.distops.CfgExtractor;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.Utils;
@@ -11,9 +10,6 @@ import org.noear.solon.annotation.Path;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.ModelAndView;
 import org.noear.solon.i18n.annotation.I18n;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 @Mapping("admin")
 @Controller
@@ -31,7 +27,7 @@ public class AdminController extends BaseController {
     }
 
     @Mapping("instConfig-{id}")
-    public Object instConfig(@Path("id") Long id ) {
+    public Object instConfig(@Path("id") Long id) {
         ModelAndView model = new ModelAndView("admin/instConfig.html");
         model.put("id", id);
         return model;
@@ -51,9 +47,8 @@ public class AdminController extends BaseController {
         return model;
     }
 
-
     @Mapping("instEdit-{id}")
-    public Object instEdit(@Path("id") Long id ) {
+    public Object instEdit(@Path("id") Long id) {
         ModelAndView model = new ModelAndView("admin/instEdit.html");
         model.put("id", id);
         return model;
@@ -104,9 +99,6 @@ public class AdminController extends BaseController {
         return model;
     }
 
-
-
-
     @Mapping("userEdit")
     public Object userEdit() {
         ModelAndView model = new ModelAndView("admin/userEdit.html");
@@ -134,27 +126,23 @@ public class AdminController extends BaseController {
         return model;
     }
 
-
     @Mapping("templateConfig")
     public Object templateConfig() {
         ModelAndView model = new ModelAndView("admin/templateConfig.html");
         return model;
     }
+
     @Mapping("about")
     public Object about() {
         ModelAndView model = new ModelAndView("admin/about.html");
         return model;
     }
 
-
-
-
     @Mapping("login")
     public Object login() {
         ModelAndView model = new ModelAndView("admin/login.html");
         return model;
     }
-
 
     @Mapping("")
     public Object index(Context ctx) {
@@ -167,8 +155,5 @@ public class AdminController extends BaseController {
             ModelAndView model = new ModelAndView("admin/index-auth.html");
             return model;
         }
-
     }
-
-
 }

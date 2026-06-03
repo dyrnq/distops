@@ -53,12 +53,12 @@ public class GcController extends ApiController {
         try {
             String body = org.noear.solon.core.handle.Context.current().body();
             if (body != null && !body.isBlank()) {
-            cn.hutool.json.JSONObject json = cn.hutool.json.JSONUtil.parseObj(body);
-            if (json.containsKey("instId") && json.get("instId") != null) {
-                return json.getLong("instId");
+                cn.hutool.json.JSONObject json = cn.hutool.json.JSONUtil.parseObj(body);
+                if (json.containsKey("instId") && json.get("instId") != null) {
+                    return json.getLong("instId");
+                }
             }
-        }
-        return null; // all insts
+            return null; // all insts
         } catch (java.io.IOException e) {
             return null;
         }

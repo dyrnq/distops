@@ -10,6 +10,7 @@ import com.dyrnq.distops.controller.PageResult;
 import com.dyrnq.distops.dso.*;
 import com.dyrnq.distops.model.*;
 import com.dyrnq.distops.service.dto.ArtQuery;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
@@ -17,8 +18,6 @@ import org.noear.solon.annotation.Mapping;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.Result;
 import org.noear.wood.IPage;
-
-import java.util.List;
 
 @Mapping("api/artifact")
 @Controller
@@ -65,9 +64,9 @@ public class ArtifactController extends ApiController {
             }
 
             StringBuilder sql = new StringBuilder(
-                "select v.*, i.name as inst_name from artifact_manifest_view v, inst i where v.inst_id = i.id");
-            StringBuilder countSql = new StringBuilder(
-                "select count(*) from artifact_manifest_view v, inst i where v.inst_id = i.id");
+                    "select v.*, i.name as inst_name from artifact_manifest_view v, inst i where v.inst_id = i.id");
+            StringBuilder countSql =
+                    new StringBuilder("select count(*) from artifact_manifest_view v, inst i where v.inst_id = i.id");
 
             if (filterInstId != null) {
                 String cond = " and v.inst_id = " + filterInstId;
@@ -80,12 +79,14 @@ public class ArtifactController extends ApiController {
                 countSql.append(cond);
             }
             if (StrUtil.isNotBlank(artQuery.getTagName())) {
-                String cond = " and (v.tag_name like '%" + artQuery.getTagName() + "%' or v.digest like '%" + artQuery.getTagName() + "%')";
+                String cond = " and (v.tag_name like '%" + artQuery.getTagName() + "%' or v.digest like '%"
+                        + artQuery.getTagName() + "%')";
                 sql.append(cond);
                 countSql.append(cond);
             }
             sql.append(" LIMIT ?,?");
-            List<ArtifactManifestView> artifactList = instMapper.db().sql(sql.toString(), start, limit).getList(ArtifactManifestView.class);
+            List<ArtifactManifestView> artifactList =
+                    instMapper.db().sql(sql.toString(), start, limit).getList(ArtifactManifestView.class);
             long count = instMapper.db().sql(countSql.toString()).getCount();
             return PageResult.succeed(artifactList, count);
         } catch (Exception e) {
@@ -132,7 +133,11 @@ public class ArtifactController extends ApiController {
                 // Delete manifest from registry (marks blobs for GC)
                 if (inst != null && manifest != null) {
                     deleteRegistryManifest(inst, artifact.getRepoName(), manifest.getDigest());
-                    log.info("Deleted manifest from registry: {}/{} @ {}", inst.getName(), artifact.getFullName(), manifest.getDigest());
+                    log.info(
+                            "Deleted manifest from registry: {}/{} @ {}",
+                            inst.getName(),
+                            artifact.getFullName(),
+                            manifest.getDigest());
 
                     // If manifest is a multi-arch index, also delete child manifests
                     if (manifest.getDigest() != null) {
@@ -152,9 +157,8 @@ public class ArtifactController extends ApiController {
 
                 // If no other artifacts reference this manifest, delete it too
                 if (manifest != null) {
-                    List<Artifact> remaining = artifactMapper.selectList(c ->
-                            c.whereEq(Artifact.MANIFEST_ID, manifest.getId())
-                    );
+                    List<Artifact> remaining =
+                            artifactMapper.selectList(c -> c.whereEq(Artifact.MANIFEST_ID, manifest.getId()));
                     if (remaining == null || remaining.isEmpty()) {
                         manifestMapper.deleteById(manifest.getId());
                         log.info("Deleted orphaned manifest: {}", manifest.getDigest());
@@ -179,7 +183,9 @@ public class ArtifactController extends ApiController {
         String url = "http://127.0.0.1:" + registryPort + "/v2/" + repoName + "/manifests/" + digest;
         try (HttpResponse response = HttpRequest.of(url)
                 .method(Method.DELETE)
-                .header("Accept", "application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json")
+                .header(
+                        "Accept",
+                        "application/vnd.docker.distribution.manifest.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, application/vnd.docker.distribution.manifest.list.v2+json")
                 .execute()) {
             if (!response.isOk() && response.getStatus() != 404) {
                 log.warn("Registry delete returned {}: {}", response.getStatus(), response.body());
@@ -237,9 +243,7 @@ public class ArtifactController extends ApiController {
     @Mapping("byManifest")
     public Result queryByManifest(Context ctx, Long manifestId) {
         try {
-            List<Artifact> artifactList = artifactMapper.selectList(c ->
-                    c.whereEq(Artifact.MANIFEST_ID, manifestId)
-            );
+            List<Artifact> artifactList = artifactMapper.selectList(c -> c.whereEq(Artifact.MANIFEST_ID, manifestId));
             return Result.succeed(artifactList);
         } catch (Exception e) {
             log.error("Failed to query artifacts by manifest", e);
@@ -277,6 +281,4 @@ public class ArtifactController extends ApiController {
             return Result.failure(e.getMessage());
         }
     }
-
-
 }

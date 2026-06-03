@@ -14,6 +14,9 @@ import com.dyrnq.distops.service.InstService;
 import com.dyrnq.distops.service.dto.AccountQuery;
 import com.dyrnq.utils.BcryptUtils;
 import com.dyrnq.utils.IDUtils;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
@@ -21,12 +24,6 @@ import org.noear.solon.annotation.Mapping;
 import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.Result;
 import org.noear.solon.validation.annotation.Numeric;
-import org.noear.wood.MapperWhereQ;
-import org.noear.wood.ext.Act1;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Account Management Controller
@@ -53,7 +50,8 @@ public class AccountController extends ApiController {
     public PageResult query(Context ctx, int page, int limit, AccountQuery query) {
         try {
             int start = PageUtil.getStart(page - 1, limit);
-            StringBuilder sql = new StringBuilder("select a.*, b.name as inst_name from account as a, inst as b where 1=1");
+            StringBuilder sql =
+                    new StringBuilder("select a.*, b.name as inst_name from account as a, inst as b where 1=1");
             StringBuilder countSql = new StringBuilder("select count(*) from account as a, inst as b where 1=1");
 
             java.util.List<Object> params = new java.util.ArrayList<>();
@@ -66,8 +64,12 @@ public class AccountController extends ApiController {
             sql.append(" ORDER BY a.id DESC LIMIT ?,?");
             params.add(start);
             params.add(limit);
-            List<Account> list = instMapper.db().sql(sql.toString(), params.toArray()).getList(Account.class);
-            long count = instMapper.db().sql(countSql.toString(), countParams(params)).getCount();
+            List<Account> list =
+                    instMapper.db().sql(sql.toString(), params.toArray()).getList(Account.class);
+            long count = instMapper
+                    .db()
+                    .sql(countSql.toString(), countParams(params))
+                    .getCount();
             return PageResult.succeed(list, count);
         } catch (Exception e) {
             log.error("Failed to query accounts", e);
@@ -269,13 +271,13 @@ public class AccountController extends ApiController {
             if (account == null) {
                 return Result.failure("Account not found");
             }
-            
+
             Map<String, Object> result = new HashMap<>();
             result.put("id", account.getId());
             result.put("username", account.getUsername());
 
-            try{
-                //pretty format JSON
+            try {
+                // pretty format JSON
                 String acl = JSONUtil.toJsonPrettyStr(account.getAcl());
                 result.put("acl", acl);
             } catch (Exception ignore) {
@@ -298,20 +300,21 @@ public class AccountController extends ApiController {
             if (account == null) {
                 return Result.failure("Account not found");
             }
-            
+
             // Validate ACL JSON if provided
             if (acl != null && !acl.trim().isEmpty()) {
                 try {
-                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    com.fasterxml.jackson.databind.ObjectMapper mapper =
+                            new com.fasterxml.jackson.databind.ObjectMapper();
                     mapper.readTree(acl); // Validate JSON
                 } catch (Exception e) {
                     return Result.failure("Invalid ACL JSON format: " + e.getMessage());
                 }
             }
-            
+
             account.setAcl(acl);
             accountMapper.updateById(account, true);
-            
+
             log.info("Updated ACL for account: {}", account.getUsername());
             return Result.succeed("ok");
         } catch (Exception e) {

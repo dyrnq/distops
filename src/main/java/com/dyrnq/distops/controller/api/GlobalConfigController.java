@@ -4,15 +4,13 @@ import com.dyrnq.distops.Constants;
 import com.dyrnq.distops.controller.ApiController;
 import com.dyrnq.distops.dso.GlobalConfigMapper;
 import com.dyrnq.distops.model.GlobalConfig;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.noear.solon.annotation.Controller;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.annotation.Mapping;
-import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.Result;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 @Mapping("api/globalConfig")
 @Controller

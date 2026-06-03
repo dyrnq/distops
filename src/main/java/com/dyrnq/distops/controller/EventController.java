@@ -4,32 +4,29 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import cn.hutool.http.HttpRequest;
-import cn.hutool.http.HttpResponse;
 import com.dyrnq.distops.HomeDir;
 import com.dyrnq.distops.dso.ArtifactMapper;
-import com.dyrnq.distops.dso.InstMapper;
-import com.dyrnq.distops.dso.ManifestMapper;
 import com.dyrnq.distops.dso.BlobMapper;
+import com.dyrnq.distops.dso.InstMapper;
 import com.dyrnq.distops.dso.ManifestBlobMapper;
+import com.dyrnq.distops.dso.ManifestMapper;
 import com.dyrnq.distops.dso.RepoMapper;
 import com.dyrnq.distops.model.Artifact;
+import com.dyrnq.distops.model.Blob;
 import com.dyrnq.distops.model.Inst;
 import com.dyrnq.distops.model.Manifest;
-import com.dyrnq.distops.model.Blob;
 import com.dyrnq.distops.model.ManifestBlob;
 import com.dyrnq.distops.model.Repo;
 import com.dyrnq.utils.IDUtils;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.noear.solon.annotation.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.noear.solon.annotation.*;
 
 @Controller
 @Mapping("event")
@@ -60,7 +57,8 @@ public class EventController {
     @Mapping("/{instName}")
     public String event(@Body String o, @Path("instName") String instName) throws IOException {
         Long id = IDUtils.getLongID();
-        File file = new File(StringUtils.joinWith(File.separator, homeDir.getTmpAbsolutePath(), "event", instName, "event_" + id + ".json"));
+        File file = new File(StringUtils.joinWith(
+                File.separator, homeDir.getTmpAbsolutePath(), "event", instName, "event_" + id + ".json"));
         log.info(file.getAbsolutePath());
         FileUtils.forceMkdirParent(file);
         FileUtil.appendUtf8String(o, file);
@@ -74,7 +72,8 @@ public class EventController {
     @Mapping("")
     public String event(@Body String o) throws IOException {
         Long id = IDUtils.getLongID();
-        File file = new File(StringUtils.joinWith(File.separator, homeDir.getTmpAbsolutePath(), "event", "event_" + id + ".json"));
+        File file = new File(
+                StringUtils.joinWith(File.separator, homeDir.getTmpAbsolutePath(), "event", "event_" + id + ".json"));
         log.info(file.getAbsolutePath());
         FileUtils.forceMkdirParent(file);
         FileUtil.appendUtf8String(o, file);
@@ -150,10 +149,9 @@ public class EventController {
                 }
 
                 // Check if this is a manifest list/index (multi-arch image)
-                boolean isManifestList = mediaType != null && (
-                        mediaType.contains("application/vnd.docker.distribution.manifest.list") ||
-                        mediaType.contains("application/vnd.oci.image.index")
-                );
+                boolean isManifestList = mediaType != null
+                        && (mediaType.contains("application/vnd.docker.distribution.manifest.list")
+                                || mediaType.contains("application/vnd.oci.image.index"));
 
                 // Process repository (create or update)
                 Repo repo = repoMapper.findByInstIdAndRepoName(instId, repository);
@@ -171,9 +169,12 @@ public class EventController {
                 boolean isLayer = false;
                 if (mediaType != null) {
                     String mt = mediaType.toLowerCase();
-                    isLayer = mt.contains("octet-stream") || mt.contains("tar") ||
-                              mt.contains("gzip") || mt.contains("layer") ||
-                              mt.contains("rootfs") || mt.contains("container.image");
+                    isLayer = mt.contains("octet-stream")
+                            || mt.contains("tar")
+                            || mt.contains("gzip")
+                            || mt.contains("layer")
+                            || mt.contains("rootfs")
+                            || mt.contains("container.image");
                 }
 
                 if (isLayer) {
@@ -229,7 +230,8 @@ public class EventController {
                 if (!isLayer) {
                     // Process artifact - create or update artifact record
                     if (StringUtils.isNotBlank(tag)) {
-                        Artifact artifactRecord = artifactMapper.findByInstIdAndRepoIdAndTagName(instId, repo.getId(), tag);
+                        Artifact artifactRecord =
+                                artifactMapper.findByInstIdAndRepoIdAndTagName(instId, repo.getId(), tag);
                         if (artifactRecord == null || artifactRecord.getId() == null) {
                             // New artifact - create record
                             artifactRecord = new Artifact();
@@ -246,7 +248,11 @@ public class EventController {
                                 artifactRecord.setLastPulled(lastPushed);
                             }
                             artifactMapper.insert(artifactRecord, true);
-                            log.info("Inserted artifact: repo={}, tag={}, manifestId={}", repository, tag, manifest.getId());
+                            log.info(
+                                    "Inserted artifact: repo={}, tag={}, manifestId={}",
+                                    repository,
+                                    tag,
+                                    manifest.getId());
                         } else {
                             // Existing artifact - update manifest reference
                             artifactRecord.setManifestId(manifest.getId());
@@ -301,8 +307,13 @@ public class EventController {
                     }
                 }
 
-                log.info("Processed event: action={}, repository={}, digest={}, tag={}, isManifestList={}",
-                        action, repository, digest, tag, isManifestList);
+                log.info(
+                        "Processed event: action={}, repository={}, digest={}, tag={}, isManifestList={}",
+                        action,
+                        repository,
+                        digest,
+                        tag,
+                        isManifestList);
             }
         } catch (Exception e) {
             log.error("Failed to process event: {}", json, e);
@@ -312,7 +323,8 @@ public class EventController {
     /**
      * Process references for multi-arch manifest lists
      */
-    private void processReferences(JSONObject target, Long instId, Long repoId, String parentDigest, LocalDateTime lastPushed) {
+    private void processReferences(
+            JSONObject target, Long instId, Long repoId, String parentDigest, LocalDateTime lastPushed) {
         log.info("Processing references for manifest list: parentDigest={}", parentDigest);
         JSONArray references = target.getJSONArray("references");
         if (references == null || references.isEmpty()) {
@@ -360,7 +372,8 @@ public class EventController {
                 String createdStr = annotations.getStr("org.opencontainers.image.created");
                 if (StringUtils.isNotBlank(createdStr)) {
                     try {
-                        created = LocalDateTime.parse(createdStr.replace("Z", ""), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                        created =
+                                LocalDateTime.parse(createdStr.replace("Z", ""), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
                     } catch (Exception e) {
                         log.warn("Failed to parse created time: {}", createdStr, e);
                     }
@@ -436,7 +449,11 @@ public class EventController {
             if (parent != null && parent.getId() != null) {
                 parent.setCompressedSize(totalCompressedSize);
                 manifestMapper.updateById(parent, true);
-                log.info("Updated parent manifest list {} compressed_size: {} bytes (from {} children)", parentDigest, totalCompressedSize, references.size());
+                log.info(
+                        "Updated parent manifest list {} compressed_size: {} bytes (from {} children)",
+                        parentDigest,
+                        totalCompressedSize,
+                        references.size());
             }
         }
     }
@@ -448,17 +465,27 @@ public class EventController {
         try {
             // Read manifest body from local registry storage filesystem (avoids auth issues)
             String instName = inst.getName();
-            String blobBasePath = StringUtils.joinWith(File.separator,
-                    homeDir.getHomeAbsolutePath(), "registry", instName, "data", "docker", "registry", "v2", "blobs", "sha256");
+            String blobBasePath = StringUtils.joinWith(
+                    File.separator,
+                    homeDir.getHomeAbsolutePath(),
+                    "registry",
+                    instName,
+                    "data",
+                    "docker",
+                    "registry",
+                    "v2",
+                    "blobs",
+                    "sha256");
             String digestHex = digest.replace("sha256:", "");
-            String blobPath = StringUtils.joinWith(File.separator,
-                    blobBasePath, digestHex.substring(0, 2), digestHex, "data");
+            String blobPath =
+                    StringUtils.joinWith(File.separator, blobBasePath, digestHex.substring(0, 2), digestHex, "data");
             File blobFile = new File(blobPath);
             if (!blobFile.exists()) {
                 log.warn("Manifest blob not found for {}: {}", digest, blobPath);
                 return;
             }
-            String body = org.apache.commons.io.FileUtils.readFileToString(blobFile, java.nio.charset.StandardCharsets.UTF_8);
+            String body =
+                    org.apache.commons.io.FileUtils.readFileToString(blobFile, java.nio.charset.StandardCharsets.UTF_8);
             if (StringUtils.isBlank(body)) {
                 return;
             }
@@ -473,18 +500,20 @@ public class EventController {
                     totalSize += (configSize != null ? configSize : 0);
                 }
 
-                // Extract platform from config blob for Docker v2 manifests (distribution doesn't send platform in v2 events)
+                // Extract platform from config blob for Docker v2 manifests (distribution doesn't send platform in v2
+                // events)
                 Manifest existingForPlatform = manifestMapper.selectById(manifestId);
                 if (existingForPlatform != null && StringUtils.isBlank(existingForPlatform.getOsArch())) {
                     try {
                         String configDigest = config != null ? config.getStr("digest") : null;
                         if (StringUtils.isNotBlank(configDigest)) {
                             String configHex = configDigest.replace("sha256:", "");
-                            String configPath = StringUtils.joinWith(File.separator,
-                                    blobBasePath, configHex.substring(0, 2), configHex, "data");
+                            String configPath = StringUtils.joinWith(
+                                    File.separator, blobBasePath, configHex.substring(0, 2), configHex, "data");
                             File configFile = new File(configPath);
                             if (configFile.exists()) {
-                                String configBody = org.apache.commons.io.FileUtils.readFileToString(configFile, java.nio.charset.StandardCharsets.UTF_8);
+                                String configBody = org.apache.commons.io.FileUtils.readFileToString(
+                                        configFile, java.nio.charset.StandardCharsets.UTF_8);
                                 if (StringUtils.isNotBlank(configBody)) {
                                     JSONObject configJson = JSONUtil.parseObj(configBody);
                                     String cfgOs = configJson.getStr("os");
@@ -501,7 +530,12 @@ public class EventController {
                                     }
                                     if (StringUtils.isNotBlank(cfgArch) || StringUtils.isNotBlank(cfgOs)) {
                                         manifestMapper.updateById(existingForPlatform, true);
-                                        log.info("Updated platform for manifest {}: {}/{}/{}", digest, cfgArch, cfgOs, cfgVariant);
+                                        log.info(
+                                                "Updated platform for manifest {}: {}/{}/{}",
+                                                digest,
+                                                cfgArch,
+                                                cfgOs,
+                                                cfgVariant);
                                     }
                                 }
                             }
@@ -523,7 +557,8 @@ public class EventController {
                         if (StringUtils.isNotBlank(layerDigest)) {
                             Blob layerBlob = blobMapper.findByInstIdAndDigest(inst.getId(), layerDigest);
                             if (layerBlob != null && layerBlob.getId() != null) {
-                                ManifestBlob mb = manifestBlobMapper.findByManifestIdAndBlobId(manifestId, layerBlob.getId());
+                                ManifestBlob mb =
+                                        manifestBlobMapper.findByManifestIdAndBlobId(manifestId, layerBlob.getId());
                                 if (mb == null || mb.getId() == null) {
                                     mb = new ManifestBlob();
                                     mb.setId(IDUtils.getLongID());
@@ -560,5 +595,4 @@ public class EventController {
             log.warn("Error computing compressed_size for {}: {}", digest, e.getMessage());
         }
     }
-
 }

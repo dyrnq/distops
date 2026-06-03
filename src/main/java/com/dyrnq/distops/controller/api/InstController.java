@@ -1,6 +1,5 @@
 package com.dyrnq.distops.controller.api;
 
-
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.PageUtil;
@@ -14,6 +13,9 @@ import com.dyrnq.distops.service.InstService;
 import com.dyrnq.distops.service.dto.ConfigVo;
 import com.dyrnq.distops.service.dto.InstQuery;
 import com.dyrnq.utils.IDUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.Strings;
 import org.noear.solon.annotation.Controller;
@@ -26,10 +28,6 @@ import org.noear.solon.validation.annotation.Valid;
 import org.noear.wood.IPage;
 import org.noear.wood.MapperWhereQ;
 import org.noear.wood.ext.Act1;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 @Mapping("api/inst")
 @Controller
@@ -50,7 +48,10 @@ public class InstController extends ApiController {
             Act1<MapperWhereQ> condition = mapperWhereQ -> {
                 mapperWhereQ.whereTrue();
                 if (StrUtil.isNotBlank(query.getInstName())) {
-                    mapperWhereQ.and().beginLk("name", "%" + query.getInstName() + "%").end();
+                    mapperWhereQ
+                            .and()
+                            .beginLk("name", "%" + query.getInstName() + "%")
+                            .end();
                 }
             };
 
@@ -109,7 +110,6 @@ public class InstController extends ApiController {
             return Result.failure(e.getMessage());
         }
     }
-
 
     @Mapping("stop")
     public Result stop(Context ctx, long... id) {
@@ -189,9 +189,16 @@ public class InstController extends ApiController {
             instMapper.updateById(inst, true);
 
             if (inst.getAuth() == null || Strings.CI.equals("none", inst.getAuth())) {
-                instMapper.db().table("inst").usingNull(true)
+                instMapper
+                        .db()
+                        .table("inst")
+                        .usingNull(true)
                         .set("auth", null)
-                        .whereTrue().and().beginEq("id", inst.getId()).end().update();
+                        .whereTrue()
+                        .and()
+                        .beginEq("id", inst.getId())
+                        .end()
+                        .update();
             }
 
             return Result.succeed("ok");
@@ -200,7 +207,6 @@ public class InstController extends ApiController {
             return Result.failure(e.getMessage());
         }
     }
-
 
     @Mapping("/config")
     public Result getConfig(Context ctx, long id) {
@@ -278,7 +284,10 @@ public class InstController extends ApiController {
                     result.append(inst.getName()).append(" GC completed. ");
                 } catch (Exception e) {
                     log.error("GC failed for instance {}", inst.getName(), e);
-                    result.append(inst.getName()).append(" GC failed: ").append(e.getMessage()).append("; ");
+                    result.append(inst.getName())
+                            .append(" GC failed: ")
+                            .append(e.getMessage())
+                            .append("; ");
                 }
             }
             return Result.succeed(result.toString().trim());
@@ -287,7 +296,6 @@ public class InstController extends ApiController {
             return Result.failure(e.getMessage());
         }
     }
-
 
     /**
      * Generate key pair for instance
@@ -356,72 +364,72 @@ public class InstController extends ApiController {
     }
 
     //
-//    @Mapping("/reset")
-//    public Result reset(Context ctx, long... id) {
-//        try {
-//            List<Long> list = CollectionUtil.newArrayList();
-//            for (long i : id) {
-//                list.add(i);
-//            }
-//            instMapper.db().table("inst").usingNull(true)
-//                    .set("current_job_id", null)
-//                    .set("final_status", null)
-//                    .set("_lock", null).whereTrue().and().beginIn("id", list).end().update();
-//            return Result.succeed("ok");
-//        } catch (Exception e) {
-//            log.error(e.getMessage(), e);
-//            return Result.failure(e.getMessage());
-//        }
-//    }
-//
-//    @Mapping("/batchAdd")
-//    public Result batchAdd(Context ctx, String data) {
-//        try {
-//            List<String> list = IOUtils.readLines(data);
-//            int success = 0;
-//            int skip = 0;
-//            for (String str : list) {
-//                if (StringUtils.isBlank(str)) {
-//                    continue;
-//                }
-//                String[] k = StringUtils.split(str, ",");
-//                Inst inst = new Inst();
-//                if (k.length > 2) {
-//                    inst.setId(IDUtils.getLongID());
-//                    inst.setName(k[0]);
-//                    inst.setUrl(k[1]);
-//                    if (ReUtil.isMatch("^(1|yes|ok)$", k[2])) {
-//                        inst.setAutoJob(1);
-//                    }
-//                } else if (k.length == 2) {
-//                    inst.setId(IDUtils.getLongID());
-//                    inst.setName(k[0]);
-//                    inst.setUrl(k[1]);
-//                    inst.setAutoJob(1);
-//                } else if (k.length == 1) {
-//                    inst.setId(IDUtils.getLongID());
-//                    inst.setUrl(k[0]);
-//                    inst.setAutoJob(1);
-//                }
-//                long count = instMapper.db().table("inst").whereTrue().and().beginEq("url", inst.getUrl()).end().selectCount();
-//                if (count > 0) {
-//                    log.debug("{}已存在! skip", inst.getUrl());
-//                    skip++;
-//                } else {
-//                    instMapper.insert(inst, true);
-//                    success++;
-//                }
-//
-//            }
-//            String skipStr = "";
-//            if (skip > 0) {
-//                skipStr = String.format(", 跳过%s条重复数据", skip);
-//            }
-//            return Result.succeed(String.format("成功添加%s条%s", success, skipStr));
-//        } catch (Exception e) {
-//            log.error(e.getMessage(), e);
-//            return Result.failure(e.getMessage());
-//        }
-//    }
+    //    @Mapping("/reset")
+    //    public Result reset(Context ctx, long... id) {
+    //        try {
+    //            List<Long> list = CollectionUtil.newArrayList();
+    //            for (long i : id) {
+    //                list.add(i);
+    //            }
+    //            instMapper.db().table("inst").usingNull(true)
+    //                    .set("current_job_id", null)
+    //                    .set("final_status", null)
+    //                    .set("_lock", null).whereTrue().and().beginIn("id", list).end().update();
+    //            return Result.succeed("ok");
+    //        } catch (Exception e) {
+    //            log.error(e.getMessage(), e);
+    //            return Result.failure(e.getMessage());
+    //        }
+    //    }
+    //
+    //    @Mapping("/batchAdd")
+    //    public Result batchAdd(Context ctx, String data) {
+    //        try {
+    //            List<String> list = IOUtils.readLines(data);
+    //            int success = 0;
+    //            int skip = 0;
+    //            for (String str : list) {
+    //                if (StringUtils.isBlank(str)) {
+    //                    continue;
+    //                }
+    //                String[] k = StringUtils.split(str, ",");
+    //                Inst inst = new Inst();
+    //                if (k.length > 2) {
+    //                    inst.setId(IDUtils.getLongID());
+    //                    inst.setName(k[0]);
+    //                    inst.setUrl(k[1]);
+    //                    if (ReUtil.isMatch("^(1|yes|ok)$", k[2])) {
+    //                        inst.setAutoJob(1);
+    //                    }
+    //                } else if (k.length == 2) {
+    //                    inst.setId(IDUtils.getLongID());
+    //                    inst.setName(k[0]);
+    //                    inst.setUrl(k[1]);
+    //                    inst.setAutoJob(1);
+    //                } else if (k.length == 1) {
+    //                    inst.setId(IDUtils.getLongID());
+    //                    inst.setUrl(k[0]);
+    //                    inst.setAutoJob(1);
+    //                }
+    //                long count = instMapper.db().table("inst").whereTrue().and().beginEq("url",
+    // inst.getUrl()).end().selectCount();
+    //                if (count > 0) {
+    //                    log.debug("{}已存在! skip", inst.getUrl());
+    //                    skip++;
+    //                } else {
+    //                    instMapper.insert(inst, true);
+    //                    success++;
+    //                }
+    //
+    //            }
+    //            String skipStr = "";
+    //            if (skip > 0) {
+    //                skipStr = String.format(", 跳过%s条重复数据", skip);
+    //            }
+    //            return Result.succeed(String.format("成功添加%s条%s", success, skipStr));
+    //        } catch (Exception e) {
+    //            log.error(e.getMessage(), e);
+    //            return Result.failure(e.getMessage());
+    //        }
+    //    }
 }
-

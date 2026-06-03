@@ -19,7 +19,6 @@ public class PageResult<T> extends Result<T> {
         super(data);
     }
 
-
     public PageResult(int code, String description) {
         super(code, description);
     }

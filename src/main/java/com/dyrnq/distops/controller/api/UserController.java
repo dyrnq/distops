@@ -8,6 +8,7 @@ import com.dyrnq.distops.dso.UserMapper;
 import com.dyrnq.distops.model.User;
 import com.dyrnq.distops.service.BusinessLogic;
 import com.dyrnq.utils.BCryptPasswordEncoder;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.noear.solon.annotation.Controller;
@@ -17,8 +18,6 @@ import org.noear.solon.core.handle.Context;
 import org.noear.solon.core.handle.Result;
 import org.noear.solon.i18n.I18nUtil;
 import org.noear.wood.IPage;
-
-import java.util.List;
 
 @Mapping("api/user")
 @Controller
@@ -86,7 +85,7 @@ public class UserController extends ApiController {
 
     @Mapping("update")
     public Result update(Context ctx, User user) {
-        //throw new RuntimeException("not support");
+        // throw new RuntimeException("not support");
         try {
             userMapper.updateById(user, true);
             return Result.succeed("ok");
