@@ -17,7 +17,6 @@ public class CronTab {
     @Inject
     InstMapper instMapper;
 
-
     public String exec(String cmd) {
         Process process = RuntimeUtil.exec(cmd);
         while (process.isAlive()) {
@@ -33,25 +32,27 @@ public class CronTab {
 
     @Scheduled(fixedRate = 1000 * 3)
     public void run() {
-        instMapper.selectList(c -> {
-            c.whereEq(Inst.ENABLED, 1);
-        }).forEach(x -> {
-            try {
-                String svcName = "registry-" + x.getName();
-                String cmd = "supervisorctl status " + svcName;
-                String status = exec(cmd);
-                if (StrUtil.containsIgnoreCase(status, "RUNNING")) {
-                    cmd = "supervisorctl pid " + svcName;
-                    String pidResult = exec(cmd);
-                    Long pid = Long.valueOf(StrUtil.trim(pidResult).replace("\"", ""));
-                    instMapper.updatePid(x.getId(), pid);
-                } else {
-                    instMapper.updatePid(x.getId(), 0L);
-                }
+        instMapper
+                .selectList(c -> {
+                    c.whereEq(Inst.ENABLED, 1);
+                })
+                .forEach(x -> {
+                    try {
+                        String svcName = "registry-" + x.getName();
+                        String cmd = "supervisorctl status " + svcName;
+                        String status = exec(cmd);
+                        if (StrUtil.containsIgnoreCase(status, "RUNNING")) {
+                            cmd = "supervisorctl pid " + svcName;
+                            String pidResult = exec(cmd);
+                            Long pid = Long.valueOf(StrUtil.trim(pidResult).replace("\"", ""));
+                            instMapper.updatePid(x.getId(), pid);
+                        } else {
+                            instMapper.updatePid(x.getId(), 0L);
+                        }
 
-            } catch (Exception e) {
-                //log.error(e.getMessage());
-            }
-        });
+                    } catch (Exception e) {
+                        // log.error(e.getMessage());
+                    }
+                });
     }
 }

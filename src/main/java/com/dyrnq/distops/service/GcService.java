@@ -7,15 +7,14 @@ import com.dyrnq.distops.dso.ManifestBlobMapper;
 import com.dyrnq.distops.dso.RepoMapper;
 import com.dyrnq.distops.model.Blob;
 import com.dyrnq.distops.model.Inst;
+import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.noear.solon.annotation.Component;
 import org.noear.solon.annotation.Inject;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -81,7 +80,10 @@ public class GcService {
             }
         }
 
-        log.info("GC mark: {} active, {} orphan ({})", result.activeBlobs, result.orphanBlobs,
+        log.info(
+                "GC mark: {} active, {} orphan ({})",
+                result.activeBlobs,
+                result.orphanBlobs,
                 formatSize(result.orphanSize));
         return result;
     }
@@ -140,10 +142,20 @@ public class GcService {
     private boolean deleteBlobFile(Inst inst, String digest) {
         String hex = digest.replace("sha256:", "");
         if (hex.length() < 4) return false;
-        String path = StringUtils.joinWith(File.separator,
-                homeDir.getHomeAbsolutePath(), "registry", inst.getName(), "data",
-                "docker", "registry", "v2", "blobs", "sha256",
-                hex.substring(0, 2), hex, "data");
+        String path = StringUtils.joinWith(
+                File.separator,
+                homeDir.getHomeAbsolutePath(),
+                "registry",
+                inst.getName(),
+                "data",
+                "docker",
+                "registry",
+                "v2",
+                "blobs",
+                "sha256",
+                hex.substring(0, 2),
+                hex,
+                "data");
         File f = new File(path);
         if (!f.exists()) return false;
         boolean ok = FileUtils.deleteQuietly(f);
@@ -168,9 +180,16 @@ public class GcService {
     }
 
     private void deleteAllManifestRevisions(Inst inst, String digest) {
-        String reposPath = StringUtils.joinWith(File.separator,
-                homeDir.getHomeAbsolutePath(), "registry", inst.getName(), "data",
-                "docker", "registry", "v2", "repositories");
+        String reposPath = StringUtils.joinWith(
+                File.separator,
+                homeDir.getHomeAbsolutePath(),
+                "registry",
+                inst.getName(),
+                "data",
+                "docker",
+                "registry",
+                "v2",
+                "repositories");
         File reposDir = new File(reposPath);
         if (!reposDir.exists()) return;
         File[] repoDirs = reposDir.listFiles();
@@ -185,16 +204,19 @@ public class GcService {
                 File[] tagDirs = tagsDir.listFiles();
                 if (tagDirs != null) {
                     for (File td : tagDirs) {
-                        for (String link : new String[]{"current", "index"}) {
+                        for (String link : new String[] {"current", "index"}) {
                             File lf = new File(td, link);
                             if (lf.exists()) {
                                 try {
-                                    String target = FileUtils.readFileToString(lf, java.nio.charset.StandardCharsets.UTF_8).trim();
+                                    String target = FileUtils.readFileToString(
+                                                    lf, java.nio.charset.StandardCharsets.UTF_8)
+                                            .trim();
                                     if (target.contains(hex)) {
                                         FileUtils.deleteQuietly(td);
                                         break;
                                     }
-                                } catch (Exception ignored) {}
+                                } catch (Exception ignored) {
+                                }
                             }
                         }
                     }

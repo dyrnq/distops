@@ -15,11 +15,12 @@ import org.noear.solon.annotation.Inject;
 public class RegistrySuperGen {
     @Inject
     private GlobalConfigMapper globalConfigMapper;
+
     @Inject
     private InstMapper instMapper;
+
     @Inject
     private InstService instService;
-
 
     @Init
     public void registry() {
@@ -39,8 +40,10 @@ public class RegistrySuperGen {
             globalConfigMapper.insert(globalConfig, true);
         }
 
-        String config_yaml_template = globalConfigMapper.findByName(Constants.YAML_CONFIG).getValue();
-        String registry_supervisor_template = globalConfigMapper.findByName(Constants.INI_CONFIG).getValue();
+        String config_yaml_template =
+                globalConfigMapper.findByName(Constants.YAML_CONFIG).getValue();
+        String registry_supervisor_template =
+                globalConfigMapper.findByName(Constants.INI_CONFIG).getValue();
         log.debug(config_yaml_template);
         log.debug(registry_supervisor_template);
 

@@ -9,7 +9,6 @@ import org.noear.solon.annotation.Component;
 import org.noear.solon.annotation.Inject;
 import org.noear.solon.i18n.I18nUtil;
 
-
 @Component
 @Slf4j
 public class BusinessLogic {
@@ -43,7 +42,5 @@ public class BusinessLogic {
         } else {
             throw new RuntimeException(I18nUtil.getMessage("loginStr.backError5"));
         }
-
     }
-
 }
