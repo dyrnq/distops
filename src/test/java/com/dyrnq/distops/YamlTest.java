@@ -4,6 +4,11 @@ import cn.hutool.core.lang.Dict;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.setting.yaml.YamlUtil;
 import com.dyrnq.distops.registry.RegistryProxy;
+import java.io.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.introspector.Property;
@@ -11,17 +16,10 @@ import org.yaml.snakeyaml.nodes.MappingNode;
 import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Representer;
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
 public class YamlTest {
     public static void main(String[] args) throws IOException {
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-
 
         Representer representer = new Representer(options) {
             @Override
@@ -61,7 +59,6 @@ public class YamlTest {
         Writer writer = new OutputStreamWriter(System.out);
         yaml.dump(mergedMap, writer);
         fos.close();
-
 
         RegistryProxy registryProxy = new RegistryProxy();
         registryProxy.setTtl("168h");

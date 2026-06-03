@@ -1,22 +1,15 @@
 package com.dyrnq.distops;
 
-import cn.hutool.core.io.FileUtil;
+import java.io.*;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-
-import java.io.*;
-import java.nio.charset.Charset;
-import java.security.*;
-import java.security.cert.CertificateException;
-import java.security.interfaces.ECPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Base64;
 
 @Slf4j
 public class PrivateKeyTest {
@@ -46,7 +39,6 @@ public class PrivateKeyTest {
         } finally {
             IOUtils.closeQuietly(reader);
         }
-
     }
 
     public static PrivateKey load(InputStream in) throws IOException, CertificateException {
@@ -69,28 +61,28 @@ public class PrivateKeyTest {
         }
     }
 
-    public static void main(String[] args) throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public static void main(String[] args)
+            throws CertificateException, IOException, NoSuchAlgorithmException, InvalidKeySpecException {
 
-//        PrivateKey p =  PrivateKeyTest.load(new File("scripts/auth.pub") );
-//        ECPrivateKey ecPrivateKey = (ECPrivateKey) p;
+        //        PrivateKey p =  PrivateKeyTest.load(new File("scripts/auth.pub") );
+        //        ECPrivateKey ecPrivateKey = (ECPrivateKey) p;
 
+        //        String keyContent = FileUtil.readString(new File("scripts/auth.key"), Charset.defaultCharset());
+        //
+        //        keyContent = StringUtils.substringBetween(keyContent,"-----BEGIN EC PRIVATE KEY-----","-----END EC
+        // PRIVATE KEY-----");
+        //
+        //        keyContent = keyContent
+        //                .replaceAll("\\s", "");
+        //
+        //        log.info(keyContent);
+        //
+        //
+        //        byte[] keyBytes = Base64.getDecoder().decode(keyContent);
+        //        log.info(new String(keyBytes));
 
-//        String keyContent = FileUtil.readString(new File("scripts/auth.key"), Charset.defaultCharset());
-//
-//        keyContent = StringUtils.substringBetween(keyContent,"-----BEGIN EC PRIVATE KEY-----","-----END EC PRIVATE KEY-----");
-//
-//        keyContent = keyContent
-//                .replaceAll("\\s", "");
-//
-//        log.info(keyContent);
-//
-//
-//        byte[] keyBytes = Base64.getDecoder().decode(keyContent);
-//        log.info(new String(keyBytes));
+        PrivateKey ecPrivateKey = load(new File("scripts/auth.key"));
 
-        PrivateKey ecPrivateKey  = load(new File("scripts/auth.key"));
-
-        System.out.println(ecPrivateKey==null);
-
+        System.out.println(ecPrivateKey == null);
     }
 }

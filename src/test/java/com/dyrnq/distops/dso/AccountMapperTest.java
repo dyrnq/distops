@@ -14,7 +14,6 @@ public class AccountMapperTest {
     @Inject
     AccountMapper accountMapper;
 
-
     @Test
     public void testInitData() {
         for (int i = 0; i < 1000; i++) {

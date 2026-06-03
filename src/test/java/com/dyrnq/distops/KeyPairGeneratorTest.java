@@ -15,17 +15,15 @@ public class KeyPairGeneratorTest {
         keyPairGenerator.initialize(256);
         KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
-        String privateKeyPEM = "-----BEGIN PRIVATE KEY-----\n" +
-                               Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded()) +
-                               "\n-----END PRIVATE KEY-----";
+        String privateKeyPEM = "-----BEGIN PRIVATE KEY-----\n"
+                + Base64.getEncoder().encodeToString(keyPair.getPrivate().getEncoded())
+                + "\n-----END PRIVATE KEY-----";
 
-        String publicKeyPEM = "-----BEGIN PUBLIC KEY-----\n" +
-                              Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded()) +
-                              "\n-----END PUBLIC KEY-----";
+        String publicKeyPEM = "-----BEGIN PUBLIC KEY-----\n"
+                + Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded())
+                + "\n-----END PUBLIC KEY-----";
 
         Files.writeString(Path.of("scripts/hello.crt"), privateKeyPEM);
         Files.writeString(Path.of("scripts/hello.key"), publicKeyPEM);
-
-
     }
 }
