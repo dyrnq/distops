@@ -65,33 +65,28 @@ public class ArtifactController extends ApiController {
             }
 
             StringBuilder sql = new StringBuilder(
-                "select v.*, i.name as inst_name from artifact_manifest_view v, inst i where 1=1");
+                "select v.*, i.name as inst_name from artifact_manifest_view v, inst i where v.inst_id = i.id");
             StringBuilder countSql = new StringBuilder(
-                "select count(*) from artifact_manifest_view v, inst i where 1=1");
-
-            java.util.List<Object> params = new java.util.ArrayList<>();
+                "select count(*) from artifact_manifest_view v, inst i where v.inst_id = i.id");
 
             if (filterInstId != null) {
-                sql.append(" and v.inst_id = ?");
-                countSql.append(" and v.inst_id = ?");
-                params.add(filterInstId);
+                String cond = " and v.inst_id = " + filterInstId;
+                sql.append(cond);
+                countSql.append(cond);
             }
             if (StrUtil.isNotBlank(artQuery.getRepoName())) {
-                sql.append(" and v.full_name like ?");
-                countSql.append(" and v.full_name like ?");
-                params.add("%" + artQuery.getRepoName() + "%");
+                String cond = " and v.full_name like '%" + artQuery.getRepoName() + "%'";
+                sql.append(cond);
+                countSql.append(cond);
             }
             if (StrUtil.isNotBlank(artQuery.getTagName())) {
-                sql.append(" and (v.tag_name like ? or v.digest like ?)");
-                countSql.append(" and (v.tag_name like ? or v.digest like ?)");
-                params.add("%" + artQuery.getTagName() + "%");
-                params.add("%" + artQuery.getTagName() + "%");
+                String cond = " and (v.tag_name like '%" + artQuery.getTagName() + "%' or v.digest like '%" + artQuery.getTagName() + "%')";
+                sql.append(cond);
+                countSql.append(cond);
             }
-            sql.append(" ORDER BY v.id DESC LIMIT ?,?");
-            params.add(start);
-            params.add(limit);
-            List<ArtifactManifestView> artifactList = instMapper.db().sql(sql.toString(), params.toArray()).getList(ArtifactManifestView.class);
-            long count = instMapper.db().sql(countSql.toString(), countParams(params)).getCount();
+            sql.append(" LIMIT ?,?");
+            List<ArtifactManifestView> artifactList = instMapper.db().sql(sql.toString(), start, limit).getList(ArtifactManifestView.class);
+            long count = instMapper.db().sql(countSql.toString()).getCount();
             return PageResult.succeed(artifactList, count);
         } catch (Exception e) {
             log.error("Failed to query artifacts", e);
@@ -124,9 +119,7 @@ public class ArtifactController extends ApiController {
     public Result del(Context ctx, Long... id) {
         try {
             StringBuilder resultMsg = new StringBuilder();
-            if (id != null) {
-                for (Long artifactId : id) {
-
+            for (Long artifactId : id) {
                 Artifact artifact = artifactMapper.selectById(artifactId);
                 if (artifact == null) {
                     log.warn("Artifact not found: {}", artifactId);

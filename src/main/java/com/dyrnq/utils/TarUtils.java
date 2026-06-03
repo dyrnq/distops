@@ -8,12 +8,9 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class TarUtils {
-    static final Logger log = LoggerFactory.getLogger(TarUtils.class);
     /**
      * 将目录压缩成一个tar.gz文件
      *
@@ -32,11 +29,8 @@ public class TarUtils {
             gzipOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
             tarArchiveOutputStream = new TarArchiveOutputStream(gzipOutputStream);
             File sourceDir = new File(sourceDirPath);
-            File[] files = sourceDir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    addFileToTarGz(tarArchiveOutputStream, "", file);
-                }
+            for (File file : sourceDir.listFiles()) {
+                addFileToTarGz(tarArchiveOutputStream, "", file);
             }
         } finally {
             IOUtils.closeQuietly(tarArchiveOutputStream, null);
@@ -47,7 +41,6 @@ public class TarUtils {
     }
 
     private static void addFileToTarGz(TarArchiveOutputStream tarArchiveOutputStream, String base, File file) throws IOException {
-
         String entryName = base + file.getName();
         TarArchiveEntry tarEntry = new TarArchiveEntry(file, entryName);
         tarArchiveOutputStream.putArchiveEntry(tarEntry);
@@ -63,14 +56,10 @@ public class TarUtils {
             tarArchiveOutputStream.closeArchiveEntry();
         } else if (file.isDirectory()) {
             tarArchiveOutputStream.closeArchiveEntry();
-            File[] childFiles = file.listFiles();
-            if (childFiles != null) {
-                for (File childFile : childFiles) {
-                    String childBase = entryName + "/";
-                    addFileToTarGz(tarArchiveOutputStream, childBase, childFile);
-                }
+            for (File childFile : file.listFiles()) {
+                String childBase = entryName + "/";
+                addFileToTarGz(tarArchiveOutputStream, childBase, childFile);
             }
-
         }
     }
 
@@ -83,37 +72,34 @@ public class TarUtils {
      * @throws IOException
      */
     public static void extractTarGz(String tarGzFilepath, String destDirectory) throws IOException {
-        try (FileInputStream fis = new FileInputStream(tarGzFilepath);
-             GzipCompressorInputStream gzis = new GzipCompressorInputStream(fis);
-             TarArchiveInputStream tais = new TarArchiveInputStream(gzis)) {
+        FileInputStream fis = new FileInputStream(tarGzFilepath);
+        GzipCompressorInputStream gzis = new GzipCompressorInputStream(fis);
+        TarArchiveInputStream tais = new TarArchiveInputStream(gzis);
 
         TarArchiveEntry entry;
         while ((entry = tais.getNextTarEntry()) != null) {
             String fileName = entry.getName();
-            File outputFile = new File(destDirectory, fileName);
-
-            // Zip Slip protection: canonical path must start with destDirectory
-            String canonicalDest = new File(destDirectory).getCanonicalPath();
-            String canonicalOutput = outputFile.getCanonicalPath();
-            if (!canonicalOutput.startsWith(canonicalDest + File.separator)) {
-                log.warn("Skipped path traversal entry: {}", fileName);
+            if (fileName.contains("..")) {
+                // 跳过包含..的文件名
                 continue;
             }
-
+            File outputFile = new File(destDirectory, fileName);
             if (entry.isDirectory()) {
+                // 如果是目录，则创建目录
                 outputFile.mkdirs();
             } else {
+                // 如果是文件，则写入文件内容
                 byte[] buffer = new byte[4096];
                 int bytesRead;
-                try (FileOutputStream fos = new FileOutputStream(outputFile);
-                     BufferedOutputStream bos = new BufferedOutputStream(fos)) {
-                    while ((bytesRead = tais.read(buffer)) != -1) {
-                        bos.write(buffer, 0, bytesRead);
-                    }
+                FileOutputStream fos = new FileOutputStream(outputFile);
+                BufferedOutputStream bos = new BufferedOutputStream(fos);
+                while ((bytesRead = tais.read(buffer)) != -1) {
+                    bos.write(buffer, 0, bytesRead);
                 }
+                bos.close();
             }
-
         }
+        tais.close();
     }
 
 }
