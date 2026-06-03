@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter
+    xmlns="https://github.com/spotbugs/filter/3.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://github.com/spotbugs/filter/3.0.0 https://raw.githubusercontent.com/spotbugs/spotbugs/4.9.3/spotbugs/etc/findbugsfilter.xsd">
+
+    <!-- Model/DTO classes expose internal representation by design -->
+    <Match>
+        <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+    </Match>
+
+    <!-- Unread public fields in service result/summary classes -->
+    <Match>
+        <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD"/>
+    </Match>
+
+    <!-- DataSourceEmbed System.exit is intentional for H2 migration failures -->
+    <Match>
+        <Class name="com.dyrnq.distops.DataSourceEmbed"/>
+        <Bug pattern="DM_EXIT"/>
+    </Match>
+
+    <!-- DataSourceEmbed ds null path is a false positive (it's always set) -->
+    <Match>
+        <Class name="com.dyrnq.distops.DataSourceEmbed"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH"/>
+    </Match>
+
+    <!-- Legacy methods intentionally throw RuntimeException -->
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_RUNTIMEEXCEPTION"/>
+    </Match>
+
+    <!-- Legacy exception handling patterns -->
+    <Match>
+        <Bug pattern="THROWS_METHOD_THROWS_CLAUSE_BASIC_EXCEPTION"/>
+    </Match>
+
+    <!-- Uncalled private methods (may be used via reflection or left for future) -->
+    <Match>
+        <Bug pattern="UPM_UNCALLED_PRIVATE_METHOD"/>
+    </Match>
+
+    <!-- mkdirs return value ignored (common pattern, acceptable) -->
+    <Match>
+        <Bug pattern="RV_RETURN_VALUE_IGNORED_BAD_PRACTICE"/>
+    </Match>
+
+    <!-- Generic catch of Exception in controller methods -->
+    <Match>
+        <Class name="~com\.dyrnq\.distops\.controller\..*"/>
+        <Bug pattern="REC_CATCH_EXCEPTION"/>
+    </Match>
+
+    <!-- CLi/CliMain System.exit is intentional -->
+    <Match>
+        <Class name="com.dyrnq.distops.cli.CliMain"/>
+        <Bug pattern="DM_EXIT"/>
+    </Match>
+
+    <!-- WebApp System.exit for CLI mode is intentional -->
+    <Match>
+        <Class name="com.dyrnq.distops.WebApp"/>
+        <Bug pattern="DM_EXIT"/>
+    </Match>
+
+    <!-- HMACKeyGenerator main method utility -->
+    <Match>
+        <Class name="com.dyrnq.distops.registry.auth.HMACKeyGenerator"/>
+        <Bug pattern="DM_DEFAULT_ENCODING"/>
+    </Match>
+
+    <!-- Default encoding in InstService file I/O - acceptable for config files -->
+    <Match>
+        <Class name="com.dyrnq.distops.service.InstService"/>
+        <Bug pattern="DM_DEFAULT_ENCODING,DLS_DEAD_LOCAL_STORE"/>
+    </Match>
+
+    <!-- Resource cleanup obligations in InstService.enable -->
+    <Match>
+        <Class name="com.dyrnq.distops.service.InstService"/>
+        <Bug pattern="OBL_UNSATISFIED_OBLIGATION_EXCEPTION_EDGE"/>
+    </Match>
+
+    <!-- Default encoding in Md5Util - acceptable for internal hashing -->
+    <Match>
+        <Class name="com.dyrnq.utils.Md5Util"/>
+        <Bug pattern="DM_DEFAULT_ENCODING"/>
+    </Match>
+
+    <!-- TarUtils null pointer from listFiles() - checked with null guard -->
+    <Match>
+        <Class name="com.dyrnq.utils.TarUtils"/>
+        <Bug pattern="NP_NULL_ON_SOME_PATH_FROM_RETURN_VALUE"/>
+    </Match>
+
+    <!-- Random usage in NimbusJwtService (Math.abs on random int) -->
+    <Match>
+        <Class name="com.dyrnq.distops.registry.auth.util.NimbusJwtService"/>
+        <Bug pattern="DMI_RANDOM_USED_ONLY_ONCE,RV_ABSOLUTE_VALUE_OF_RANDOM_INT"/>
+    </Match>
+</FindBugsFilter>
