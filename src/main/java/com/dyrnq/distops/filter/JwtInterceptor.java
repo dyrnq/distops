@@ -58,8 +58,10 @@ public class JwtInterceptor implements RouterInterceptor {
                 if (!validateToken) {
                     if (ctx.path().startsWith("/api")) {
                         ctx.status(401);
+                        return;
                     } else {
                         ctx.redirect("/admin/login", 302);
+                        return;
                     }
                 }
             }
