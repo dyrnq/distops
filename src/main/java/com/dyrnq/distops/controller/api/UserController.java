@@ -48,7 +48,7 @@ public class UserController extends ApiController {
         try {
             String base64Pass = user.getPass();
             String pass = Base64.decodeStr(Base64.decodeStr(base64Pass));
-            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+            BCryptPasswordEncoder encoder = BCryptPasswordEncoder.DEFAULT;
             user.setPass(encoder.encode(pass));
             userMapper.insert(user, true);
             return Result.succeed("ok");

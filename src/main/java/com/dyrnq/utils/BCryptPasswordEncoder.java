@@ -4,6 +4,8 @@ import cn.hutool.crypto.digest.BCrypt;
 import java.security.SecureRandom;
 
 public class BCryptPasswordEncoder {
+    public static final BCryptPasswordEncoder DEFAULT = new BCryptPasswordEncoder(12);
+
     private final SecureRandom random;
     private final int strength;
 

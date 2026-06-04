@@ -27,8 +27,11 @@ public class TarUtils {
             gzipOutputStream = new GzipCompressorOutputStream(bufferedOutputStream);
             tarArchiveOutputStream = new TarArchiveOutputStream(gzipOutputStream);
             File sourceDir = new File(sourceDirPath);
-            for (File file : sourceDir.listFiles()) {
-                addFileToTarGz(tarArchiveOutputStream, "", file);
+            File[] srcFiles = sourceDir.listFiles();
+            if (srcFiles != null) {
+                for (File file : srcFiles) {
+                    addFileToTarGz(tarArchiveOutputStream, "", file);
+                }
             }
         } finally {
             IOUtils.closeQuietly(tarArchiveOutputStream, null);
@@ -55,9 +58,12 @@ public class TarUtils {
             tarArchiveOutputStream.closeArchiveEntry();
         } else if (file.isDirectory()) {
             tarArchiveOutputStream.closeArchiveEntry();
-            for (File childFile : file.listFiles()) {
-                String childBase = entryName + "/";
-                addFileToTarGz(tarArchiveOutputStream, childBase, childFile);
+            File[] childFiles = file.listFiles();
+            if (childFiles != null) {
+                for (File childFile : childFiles) {
+                    String childBase = entryName + "/";
+                    addFileToTarGz(tarArchiveOutputStream, childBase, childFile);
+                }
             }
         }
     }

@@ -46,7 +46,7 @@ public class TokenController extends BaseController {
             Claims claims = new DefaultClaims(map);
             return Result.succeed(JwtUtils.buildJwt(claims, jwt_expire, jwt_secret, jwt_prefix));
         } catch (Exception e) {
-            return Result.failure(e.getMessage());
+            return Result.failure("用户名密码错误");
         }
     }
 

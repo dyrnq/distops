@@ -32,7 +32,7 @@ public class H2FormatVersionChecker {
             IOUtils.closeQuietly(fis);
         }
 
-        String fileHeader = new String(header);
+        String fileHeader = new String(header, java.nio.charset.StandardCharsets.UTF_8);
         return StringUtils.contains(fileHeader, "format:" + ver);
     }
 }

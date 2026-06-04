@@ -19,7 +19,7 @@ public class BusinessLogic {
         String pass = Base64.decodeStr(Base64.decodeStr(base64Pass));
         User user = new User();
         user.setId(id);
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+        BCryptPasswordEncoder encoder = BCryptPasswordEncoder.DEFAULT;
         user.setPass(encoder.encode(pass));
         userMapper.updateById(user, true);
     }
@@ -33,7 +33,7 @@ public class BusinessLogic {
         String pass = Base64.decodeStr(Base64.decodeStr(base64Pass));
         User user = userMapper.findByName(name);
         if (user != null) {
-            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
+            BCryptPasswordEncoder encoder = BCryptPasswordEncoder.DEFAULT;
             if (encoder.matches(pass, user.getPass())) {
                 return user;
             } else {
