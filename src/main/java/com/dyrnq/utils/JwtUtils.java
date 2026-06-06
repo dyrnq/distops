@@ -53,9 +53,7 @@ public class JwtUtils {
             builder = Jwts.builder().claims().empty().add(claims).and().issuedAt(new Date());
         }
 
-        if (Utils.isNotEmpty(Solon.cfg().appName())) {
-            builder.issuer(Solon.cfg().appName());
-        }
+        builder.issuer(Utils.isNotEmpty(Solon.cfg().appName()) ? Solon.cfg().appName() : "distops");
 
         if (Utils.isNotEmpty(jwt_prefix)) {
             return jwt_prefix + " " + builder.signWith(signKey).compact();
@@ -89,8 +87,12 @@ public class JwtUtils {
             token = token.substring(jwt_prefix.length()).trim();
         }
 
+        String expectedIssuer =
+                Utils.isNotEmpty(Solon.cfg().appName()) ? Solon.cfg().appName() : "distops";
+
         try {
             return Jwts.parser()
+                    .requireIssuer(expectedIssuer)
                     .verifyWith(signKey)
                     .build()
                     .parseSignedClaims(token)
