@@ -23,7 +23,7 @@ def run(port=None):
         f"--network host "
         f"-v /data/distops:/data/distops "
         f"-e TZ=Asia/Shanghai "
-        f'-e JAVA_OPTS="-server -Xms256m -Xmx256m -Djava.awt.headless=true '
+        f'-e JAVA_OPTS="-server -Xms1g -Xmx1g -Djava.awt.headless=true '
         f'-Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai '
         f'-Djava.net.preferIPv4Stack=true -Dspring.flyway.enabled=true" '
         f"-e OTEL_TRACES_EXPORTER=none "
