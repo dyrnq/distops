@@ -1,6 +1,5 @@
 package com.dyrnq.utils;
 
-import cn.hutool.core.util.StrUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtBuilder;
@@ -76,11 +75,6 @@ public class JwtUtils {
 
         if (token.startsWith(TOKEN_HEADER)) {
             token = token.substring(TOKEN_HEADER.length()).trim();
-        }
-        // %20 为空格URLEncoding
-        if (token.startsWith(StrUtil.replace(TOKEN_HEADER, " ", "%20"))) {
-            token = token.substring(StrUtil.replace(TOKEN_HEADER, " ", "%20").length())
-                    .trim();
         }
 
         if (Utils.isNotEmpty(jwt_prefix) && token.startsWith(jwt_prefix)) {
