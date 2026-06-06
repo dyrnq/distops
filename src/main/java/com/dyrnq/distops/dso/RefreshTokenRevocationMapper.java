@@ -22,6 +22,18 @@ public class RefreshTokenRevocationMapper extends BaseMapperWrap<RefreshTokenRev
         return this.dbContext;
     }
 
+    public boolean existsByUsernameAndInstId(String username, Long instId) {
+        try {
+            return db().table(RefreshTokenRevocation.TABLE_NAME)
+                    .whereEq("username", username)
+                    .andEq("inst_id", instId)
+                    .selectExists();
+        } catch (Exception e) {
+            log.warn("Failed to check revocation for user {}: {}", username, e.getMessage());
+            return false;
+        }
+    }
+
     public boolean existsByJtiAndInstId(String jti, Long instId) {
         try {
             return db().table(RefreshTokenRevocation.TABLE_NAME)
