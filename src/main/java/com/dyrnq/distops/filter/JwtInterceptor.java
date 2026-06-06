@@ -49,7 +49,15 @@ public class JwtInterceptor implements RouterInterceptor {
     public void doIntercept(Context ctx, Handler mainHandler, RouterInterceptorChain chain) throws Throwable {
         if ((ctx.path().startsWith("/admin") && !ctx.path().startsWith("/admin/login"))
                 || (ctx.path().startsWith("/api"))) {
-            String token = ctx.cookie(cfgExtractor.tokenCookieName());
+            // Prefer Authorization: Bearer header, fallback to cookie
+            String authHeader = ctx.header("Authorization");
+            String token = null;
+            if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+                token = authHeader.substring(7);
+            }
+            if (token == null) {
+                token = ctx.cookie(cfgExtractor.tokenCookieName());
+            }
 
             boolean validateToken = false;
             try {
