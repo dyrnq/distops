@@ -504,27 +504,7 @@ public class AuthController {
                         .name("catalog")
                         .actions(List.of("*"))
                         .build());
-            } else if (authRequest.getUser() != null) {
-                // Docker 29+ uses offline_token for push on insecure registries.
-                // Issue a token that grants the user their ACL-authorized actions
-                // against a concrete scope. Distribution registry does exact string
-                // match on the resource name; empty string won't match. We request
-                // actions for a concrete repository to force a valid access entry.
-                java.util.Set<String> userActions = authService.getAuthorizedActions(
-                        authRequest.getAccount(),
-                        "repository",
-                        "itest",
-                        java.util.Set.of("pull", "push"),
-                        authRequest.getRemoteAddr());
-                if (!userActions.isEmpty()) {
-                    java.util.List<String> sorted = new java.util.ArrayList<>(userActions);
-                    java.util.Collections.sort(sorted);
-                    accessList.add(JWTPayload.ResourceAccess.builder()
-                            .type("repository")
-                            .name("itest")
-                            .actions(sorted)
-                            .build());
-                }
+
             }
             return accessList;
         }
@@ -547,28 +527,6 @@ public class AuthController {
 
             // Create a mutable set for authorized actions
             Set<String> mutableAuthorizedActions = new HashSet<>(authorizedActions);
-
-            // For admin user, grant all requested actions plus any related actions
-            if ("admin".equals(authRequest.getAccount())) {
-                log.info("Admin user detected, granting additional actions");
-                if (requestedActions.contains("push")) {
-                    mutableAuthorizedActions.addAll(Arrays.asList("pull", "push", "*"));
-                    log.info("Added pull, push, * for push action");
-                }
-                if (requestedActions.contains("pull")) {
-                    mutableAuthorizedActions.add("pull");
-                    log.info("Added pull for pull action");
-                }
-                if (requestedActions.contains("*")) {
-                    mutableAuthorizedActions.addAll(Arrays.asList("pull", "push", "delete", "*"));
-                    log.info("Added all actions for * action");
-                }
-                if (requestedActions.contains("delete")) {
-                    mutableAuthorizedActions.add("delete");
-                    log.info("Added delete for delete action");
-                }
-                log.info("Final authorized actions for admin: {}", mutableAuthorizedActions);
-            }
 
             List<String> sortedActions = new ArrayList<>(mutableAuthorizedActions);
             Collections.sort(sortedActions);
