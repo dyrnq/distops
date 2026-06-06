@@ -3,7 +3,6 @@ package com.dyrnq.distops.registry.auth.controller;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.json.JSONUtil;
 import com.dyrnq.distops.dso.InstMapper;
-import com.dyrnq.distops.dso.RefreshTokenRevocationMapper;
 import com.dyrnq.distops.model.Inst;
 import com.dyrnq.distops.registry.auth.model.AuthRequest;
 import com.dyrnq.distops.registry.auth.model.JWTPayload;
@@ -33,21 +32,8 @@ public class AuthController {
     @Inject("${distops.auth.trust_forwarded_headers:false}")
     boolean trustForwardedHeaders;
 
-    @Inject("${server.session.state.jwt.secret:${jwt.secret:}}")
-    String jwtSecret;
-
-    private RefreshTokenService refreshTokenService;
-
-    private RefreshTokenService refreshTokenService() {
-        if (refreshTokenService == null) {
-            refreshTokenService = new RefreshTokenService(jwtSecret);
-            refreshTokenService.setRevocationMapper(refreshTokenRevocationMapper);
-        }
-        return refreshTokenService;
-    }
-
     @Inject
-    RefreshTokenRevocationMapper refreshTokenRevocationMapper;
+    private RefreshTokenService refreshTokenService;
 
     @Inject
     AuthService authService;
@@ -191,7 +177,7 @@ public class AuthController {
                     return null;
                 }
 
-                String verifiedUser = refreshTokenService().verify(refreshToken);
+                String verifiedUser = refreshTokenService.verify(refreshToken);
                 if (verifiedUser == null) {
                     log.warn("Invalid or expired refresh_token");
                     ctx.status(401);
@@ -233,7 +219,7 @@ public class AuthController {
 
         if (includeRefreshToken) {
             long refreshExpires = System.currentTimeMillis() / 1000 + 86400 * 30;
-            String refreshToken = refreshTokenService().issue(username, refreshExpires, inst.getId());
+            String refreshToken = refreshTokenService.issue(username, refreshExpires, inst.getId());
             resp.setRefreshToken(refreshToken);
         }
 
