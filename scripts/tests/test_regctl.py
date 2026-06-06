@@ -9,7 +9,7 @@ from pathlib import Path
 HOST = os.environ.get("HOST", "localhost")
 TU = os.environ.get("TU", "test")
 TP = os.environ.get("TP", "test")
-IMG = os.environ.get("IMG", "itest")
+IMG = os.environ.get("IMG", "docker-test")
 
 
 def sh(cmd, timeout=30):
@@ -25,6 +25,8 @@ def run(port):
     cfg.parent.mkdir(parents=True, exist_ok=True)
     cfg.write_text(json.dumps({"hosts": {reg: {"user": TU, "pass": TP, "tls": "disabled", "regcert": ""}}}))
 
+    # Ensure TLS disabled for local registry
+    sh(f"regctl registry set {reg} --tls disabled", timeout=10)
     r = sh(
         f"regctl manifest head {reg}/{IMG}:latest",
         timeout=30,
