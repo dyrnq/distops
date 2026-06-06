@@ -188,7 +188,7 @@ public class InstController extends ApiController {
 
             instMapper.updateById(inst, true);
 
-            if (inst.getAuth() == null || Strings.CI.equals("none", inst.getAuth())) {
+            if (Strings.CI.equals("none", inst.getAuth())) {
                 instMapper
                         .db()
                         .table("inst")
