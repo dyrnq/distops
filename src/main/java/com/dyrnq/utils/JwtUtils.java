@@ -98,7 +98,7 @@ public class JwtUtils {
                     .parseSignedClaims(token)
                     .getPayload();
         } catch (ExpiredJwtException ex) {
-
+            log.debug("JWT expired: {}", ex.getMessage());
         } catch (Throwable e) {
             log.warn(e.getMessage(), e);
         }
