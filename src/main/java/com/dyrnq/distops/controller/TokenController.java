@@ -28,7 +28,7 @@ public class TokenController extends BaseController {
     @Inject("${server.session.state.jwt.prefix:${jwt.prefix:}}")
     String jwt_prefix;
 
-    @Inject("${jwt.expire:864000000}")
+    @Inject("${jwt.expire:7200000}")
     long jwt_expire;
 
     /**
