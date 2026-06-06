@@ -119,12 +119,19 @@ def main():
         run_module("test_docker", "Docker Operations", port=RP)
         run_module("test_regctl", "regctl", port=RP)
         run_module("test_skopeo", "skopeo", port=RP)
+        run_module("test_skopeo_copy", "skopeo copy", port=RP)
         run_module("test_jwt", "JWT CLI")
         run_module("test_admin", "Admin API", port=RP)
         run_module("test_oauth", "OAuth2 POST Endpoint", port=RP)
         run_module("test_oauth_errors", "OAuth2 Error Handling")
+        # Restart distops to free memory before heavy containerd/crictl tests
+        import subprocess as _sp
+        _sp.run("docker restart ${DISTOPS_CONTAINER:-distops-test}", shell=True, timeout=30)
+        import time as _time
+        _time.sleep(10)
         run_module("test_containerd", "containerd ctr Pull via OAuth2")
         run_module("test_crictl", "crictl Pull")
+        run_module("test_podman", "Podman Operations", port=RP)
         run_module("test_proxy", "Proxy Registry")
         run_module("test_proxy_push_denied", "Proxy Registry Push Denied")
 
@@ -146,6 +153,7 @@ def main():
         run_module("test_docker", "Docker Push via Proxy", port=PP_LOCAL)
         run_module("test_regctl", "regctl via Proxy", port=PP_LOCAL)
         run_module("test_skopeo", "skopeo via Proxy", port=PP_LOCAL)
+        run_module("test_skopeo_copy", "skopeo copy via Proxy", port=PP_LOCAL)
         run_module("test_oauth", "OAuth2 POST Endpoint via Proxy")
         run_module("test_oauth_errors", "OAuth2 Error Handling via Proxy")
         run_module("test_containerd", "containerd ctr Pull via OAuth2", port=PP_LOCAL)
