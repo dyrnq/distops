@@ -20,7 +20,7 @@ docker rm -f "$CONTAINER_NAME" 2>/dev/null || true
 
 docker run -d --name "$CONTAINER_NAME" --network host \
   -e TZ=Asia/Shanghai \
-  -e JAVA_OPTS="-server -Xms256m -Xms256m -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai -Djava.net.preferIPv4Stack=true -Dspring.flyway.enabled=true" \
+  -e JAVA_OPTS="-server -Xms1g -Xmx1g -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai -Djava.net.preferIPv4Stack=true -Dspring.flyway.enabled=true" \
   -e OTEL_TRACES_EXPORTER=none \
   "$IMAGE"
 
