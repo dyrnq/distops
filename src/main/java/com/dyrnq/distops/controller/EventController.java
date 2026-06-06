@@ -71,13 +71,6 @@ public class EventController {
             return "400";
         }
 
-        Long id = IDUtils.getLongID();
-        File file = new File(StringUtils.joinWith(
-                File.separator, homeDir.getTmpAbsolutePath(), "event", instName, "event_" + id + ".json"));
-        log.info(file.getAbsolutePath());
-        FileUtils.forceMkdirParent(file);
-        FileUtil.appendUtf8String(o, file);
-
         // Process event asynchronously so registry doesn't block waiting for us.
         // Distribution registry synchronously waits for the event endpoint's response;
         // heavy processing (DB writes, manifest parsing) must not hold this thread.
