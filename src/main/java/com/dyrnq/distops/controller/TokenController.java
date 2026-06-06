@@ -46,7 +46,11 @@ public class TokenController extends BaseController {
             Claims claims = new DefaultClaims(map);
             return Result.succeed(JwtUtils.buildJwt(claims, jwt_expire, jwt_secret, jwt_prefix));
         } catch (Exception e) {
-            return Result.failure("用户名密码错误");
+            // Use a single generic message regardless of the underlying cause
+            // (wrong password vs unknown user vs disabled account) so the
+            // caller cannot enumerate accounts.
+            log.debug("Login failed: {}", e.getMessage());
+            return Result.failure("用户名或密码错误");
         }
     }
 
