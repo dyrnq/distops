@@ -40,9 +40,9 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKER_USERNAME }}/distops:test ./docker
 
-      - name: Install test tools (regctl, skopeo)
+      - name: Install test tools (regctl, skopeo, podman)
         run: |
-          sudo apt-get update -qq && sudo apt-get install -y -qq skopeo
+          sudo apt-get update -qq && sudo apt-get install -y -qq skopeo podman
           curl -sL https://github.com/regclient/regclient/releases/download/v0.11.1/regctl-linux-amd64 -o /tmp/regctl
           chmod +x /tmp/regctl && sudo mv /tmp/regctl /usr/local/bin/regctl
 
