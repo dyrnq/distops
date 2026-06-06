@@ -10,6 +10,7 @@ import com.dyrnq.distops.dso.AccountMapper;
 import com.dyrnq.distops.dso.InstMapper;
 import com.dyrnq.distops.model.Account;
 import com.dyrnq.distops.model.Inst;
+import com.dyrnq.distops.registry.auth.util.RefreshTokenService;
 import com.dyrnq.distops.service.InstService;
 import com.dyrnq.distops.service.dto.AccountQuery;
 import com.dyrnq.utils.BcryptUtils;
@@ -39,6 +40,9 @@ public class AccountController extends ApiController {
 
     @Inject
     InstMapper instMapper;
+
+    @Inject
+    private RefreshTokenService refreshTokenService;
 
     @Inject
     InstService instService;
@@ -246,6 +250,7 @@ public class AccountController extends ApiController {
                 }
                 account.setEnabled(0);
                 accountMapper.updateById(account, true);
+                refreshTokenService.revokeAllForUser(account.getUsername(), account.getInstId());
                 if (account.getInstId() != null) {
                     Inst inst = instMapper.selectById(account.getInstId());
                     if (inst != null) {
@@ -257,6 +262,25 @@ public class AccountController extends ApiController {
             return Result.succeed("ok");
         } catch (Exception e) {
             log.error("Failed to disable account", e);
+            return Result.failure(e.getMessage());
+        }
+    }
+
+    /**
+     * Revoke all refresh tokens for an account
+     */
+    @Mapping("revoke")
+    public Result revoke(Context ctx, long... id) {
+        try {
+            for (long i : id) {
+                Account account = accountMapper.selectById(i);
+                if (account == null) continue;
+                refreshTokenService.revokeAllForUser(account.getUsername(), account.getInstId());
+                log.info("Revoked refresh tokens for: {}", account.getUsername());
+            }
+            return Result.succeed("ok");
+        } catch (Exception e) {
+            log.error("Failed to revoke tokens", e);
             return Result.failure(e.getMessage());
         }
     }
