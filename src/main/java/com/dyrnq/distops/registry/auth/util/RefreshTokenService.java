@@ -1,5 +1,7 @@
 package com.dyrnq.distops.registry.auth.util;
 
+import com.dyrnq.distops.dso.RefreshTokenRevocationMapper;
+import com.dyrnq.distops.model.RefreshTokenRevocation;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -8,6 +10,7 @@ import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Date;
+import java.util.UUID;
 import javax.crypto.SecretKey;
 
 /**
@@ -51,9 +54,15 @@ public final class RefreshTokenService {
      * {@code exp} is the absolute expiration epoch in seconds.
      */
     public String issue(String username, long expiresEpochSeconds) {
+        return issue(username, expiresEpochSeconds, 1L);
+    }
+
+    public String issue(String username, long expiresEpochSeconds, Long instId) {
         long now = System.currentTimeMillis();
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(username)
+                .claim("inst_id", instId != null ? instId : 1L)
                 .issuedAt(new Date(now))
                 .expiration(new Date(expiresEpochSeconds * 1000L))
                 .signWith(signingKey)
@@ -65,7 +74,25 @@ public final class RefreshTokenService {
      * ({@code sub}) on success, or null if the token is invalid for any reason
      * (bad signature, malformed, expired, etc.).
      */
+    // Guard against null: in fail-safe no-DI scenarios, verify without revocation.
+    // Callers should inject the mapper when available.
+    private RefreshTokenRevocationMapper revocationMapper;
+
+    public void setRevocationMapper(RefreshTokenRevocationMapper mapper) {
+        this.revocationMapper = mapper;
+    }
+
     public String verify(String token) {
+        return verify(token, null);
+    }
+
+    /**
+     * Verify a refresh token with optional JTI revocation check.
+     * When {@code revocationMapper} is available, tokens whose JTI is in the
+     * blacklist are rejected. This allows an administrator or password-change
+     * flow to invalidate all outstanding refresh tokens for a user.
+     */
+    public String verify(String token, RefreshTokenRevocationMapper mapper) {
         if (token == null || token.isEmpty()) {
             return null;
         }
@@ -75,11 +102,44 @@ public final class RefreshTokenService {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
+            // Check JTI blacklist (per-inst_id)
+            RefreshTokenRevocationMapper rmap = mapper != null ? mapper : this.revocationMapper;
+            if (rmap != null) {
+                String jti = claims.getId();
+                if (jti != null && !jti.isEmpty()) {
+                    Long instId = claims.get("inst_id", Long.class);
+                    if (instId == null) instId = 1L;
+                    if (rmap.existsByJtiAndInstId(jti, instId)) {
+                        return null; // explicitly revoked
+                    }
+                }
+            }
             return claims.getSubject();
         } catch (ExpiredJwtException e) {
             return null;
         } catch (JwtException | IllegalArgumentException e) {
             return null;
         }
+    }
+
+    /**
+     * Revoke all refresh tokens for a user by writing their outstanding
+     * tokens to the blacklist. Callers should invoke this after a password
+     * reset, account disable, or explicit logout.
+     */
+    public void revokeAllForUser(String username, Long instId) {
+        if (revocationMapper == null || username == null) return;
+        Date now = new Date();
+        RefreshTokenRevocation bulk = new RefreshTokenRevocation();
+        bulk.setJti("revoke-all-" + username + "-" + System.currentTimeMillis());
+        bulk.setInstId(instId != null ? instId : 1L);
+        bulk.setUsername(username);
+        bulk.setRevokedAt(now);
+        bulk.setExpiresAt(new Date(System.currentTimeMillis() + 86400L * 30 * 1000));
+        revocationMapper.insert(bulk, false);
+    }
+
+    public void revokeAllForUser(String username) {
+        revokeAllForUser(username, 1L);
     }
 }

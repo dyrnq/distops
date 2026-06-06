@@ -3,6 +3,7 @@ package com.dyrnq.distops.registry.auth.controller;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.json.JSONUtil;
 import com.dyrnq.distops.dso.InstMapper;
+import com.dyrnq.distops.dso.RefreshTokenRevocationMapper;
 import com.dyrnq.distops.model.Inst;
 import com.dyrnq.distops.registry.auth.model.AuthRequest;
 import com.dyrnq.distops.registry.auth.model.JWTPayload;
@@ -40,9 +41,13 @@ public class AuthController {
     private RefreshTokenService refreshTokenService() {
         if (refreshTokenService == null) {
             refreshTokenService = new RefreshTokenService(jwtSecret);
+            refreshTokenService.setRevocationMapper(refreshTokenRevocationMapper);
         }
         return refreshTokenService;
     }
+
+    @Inject
+    RefreshTokenRevocationMapper refreshTokenRevocationMapper;
 
     @Inject
     AuthService authService;
@@ -228,7 +233,7 @@ public class AuthController {
 
         if (includeRefreshToken) {
             long refreshExpires = System.currentTimeMillis() / 1000 + 86400 * 30;
-            String refreshToken = refreshTokenService().issue(username, refreshExpires);
+            String refreshToken = refreshTokenService().issue(username, refreshExpires, inst.getId());
             resp.setRefreshToken(refreshToken);
         }
 
@@ -504,7 +509,6 @@ public class AuthController {
                         .name("catalog")
                         .actions(List.of("*"))
                         .build());
-
             }
             return accessList;
         }
