@@ -25,7 +25,7 @@ def run(port=None):
     TEST_IMG = f"{reg}/library/ctr-test:latest"
 
     # 1. Check containerd is available
-    r = sh("which ctr && sudo systemctl is-active containerd", timeout=5)
+    r = sh("command -v ctr && sudo systemctl is-active containerd", timeout=5)
     if r.returncode != 0:
         results.append(("containerd not available - skipped", True))
         return results
@@ -37,10 +37,18 @@ def run(port=None):
     # docker login first
     sh(f"docker login {reg} -u {TU} -p {TP} 2>/dev/null", timeout=10)
 
-    # 3. Prepare a test image (push via docker)
-    sh(f"docker pull alpine:latest -q 2>/dev/null", timeout=30)
-    sh(f"docker tag alpine:latest {TEST_IMG} 2>/dev/null", timeout=5)
-    r = sh(f"docker push {TEST_IMG} 2>&1", timeout=30)
+    # 3. Prepare a test image (push via docker, fallback to skopeo)
+    # Ensure alpine is available locally
+    sh("docker pull alpine:3.21 2>/dev/null", timeout=120)
+    sh(f"docker tag alpine:3.21 {TEST_IMG} 2>/dev/null", timeout=5)
+    r = sh(f"docker push {TEST_IMG} 2>&1", timeout=120)
+    # Fallback: if docker push fails (e.g. Docker 29.5.2), try skopeo
+    if r.returncode != 0:
+        import pathlib
+        policy_dir = pathlib.Path.home() / ".config" / "containers"
+        policy_dir.mkdir(parents=True, exist_ok=True)
+        (policy_dir / "policy.json").write_text('{"default": [{"type": "insecureAcceptAnything"}]}')
+        r = sh(f"skopeo copy --dest-tls-verify=false --dest-creds {TU}:{TP} docker-daemon:alpine:3.21 docker://{TEST_IMG}", timeout=120)
     ok_push = r.returncode == 0
     results.append(("Push test image for ctr", ok_push))
     if not ok_push:
