@@ -205,7 +205,7 @@ fun_misc() {
     echo "${HOSTNAME}"
 if command -v apt >/dev/null 2>&1; then
     DEBIAN_FRONTEND=noninteractive apt update;
-    DEBIAN_FRONTEND=noninteractive apt install -y jq wget curl vim git net-tools netcat-openbsd gosu aria2;
+    DEBIAN_FRONTEND=noninteractive apt install -y jq wget curl vim git net-tools netcat-openbsd gosu aria2 podman;
 fi
     if [ -f "/etc/ssh/sshd_config.d/60-cloudimg-settings.conf" ]; then
         sed -i "s|^PasswordAuthentication.*|PasswordAuthentication yes|g" /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
