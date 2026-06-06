@@ -211,10 +211,11 @@ public class InstService {
 
         data.put("app_home", homeDir.getHomeAbsolutePath());
 
-        // Sanitize env for template: do NOT modify inst object (prevents commas persisting to DB)
+        // Sanitize env for the supervisor template without mutating the
+        // input inst object. Only ${inst.env} is used in the supervisor .ini
+        // template, so we expose a separate `env_lines` slot.
         if (StringUtils.isNotBlank(inst.getEnv())) {
             List<String> lines = IOUtils.readLines(inst.getEnv());
-
             StringBuilder sb = new StringBuilder();
             for (String line : lines) {
                 String trim_line = StringUtils.trim(line);
@@ -222,8 +223,7 @@ public class InstService {
                     sb.append(trim_line).append(",");
                 }
             }
-            String sanitizedEnv = sb.toString();
-            inst.setEnv(sanitizedEnv);
+            data.put("env_lines", sb.toString());
         }
         data.put("inst", inst);
 
@@ -314,9 +314,9 @@ public class InstService {
             FileUtils.forceMkdirParent(super_file);
             //            FileUtils.writeStringToFile(super_file, registry_supervisor, Charset.defaultCharset(), false);
 
-            Template yaml = new Template("yaml", new StringReader(registry_supervisor_template), cfg);
+            Template ini_tpl = new Template("ini", new StringReader(registry_supervisor_template), cfg);
             try (Writer out = new OutputStreamWriter(new FileOutputStream(super_file))) {
-                yaml.process(data, out);
+                ini_tpl.process(data, out);
             }
 
         } catch (IOException | TemplateException e) {
