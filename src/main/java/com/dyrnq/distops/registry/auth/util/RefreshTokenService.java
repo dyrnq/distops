@@ -18,6 +18,16 @@ import javax.crypto.SecretKey;
  * keyed off the application's main JWT secret (see {@code jwt.secret}); the
  * signing key is derived with SHA-256 so the existing app secret can be used
  * directly without length concerns.
+ *
+ * <h3>Key derivation</h3>
+ * Refresh tokens and API access tokens (issued by {@code JwtUtils}) share the
+ * same {@code jwt.secret} configuration value but derive different HMAC keys:
+ * <ul>
+ *   <li>Access tokens: {@code Keys.hmacShaKeyFor(Base64.decode(secret))}</li>
+ *   <li>Refresh tokens: {@code Keys.hmacShaKeyFor(SHA-256(secret))}</li>
+ * </ul>
+ * This is <strong>intentional</strong>: it prevents token-type confusion.
+ * A refresh token cannot be used as an API access token, and vice versa.
  */
 public final class RefreshTokenService {
 
