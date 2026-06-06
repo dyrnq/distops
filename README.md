@@ -45,7 +45,7 @@ run \
 -e SERVER_PORT="8080" \
 -e SERVER_SESSION_TIMEOUT="172800" \
 -e JWT_SECRET="__REPLACEME__" \
--e JAVA_OPTS="-server -Xms256m -Xms256m -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai -Djava.net.preferIPv4Stack=true -Dspring.flyway.enabled=true" \
+-e JAVA_OPTS="-server -Xms1g -Xmx1g -Djava.awt.headless=true -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai -Djava.net.preferIPv4Stack=true -Dspring.flyway.enabled=true" \
 -v /data/distops/persistent_data:/data \
 dyrnq/distops:latest
 
