@@ -32,10 +32,10 @@ def run(port=None):
         return results
 
     # 2. Prepare test image
-    sh("docker pull alpine:3.21 2>/dev/null || true", timeout=10)
+    sh("docker pull alpine:3.21 2>&1 || true", timeout=10)
     # Wait for pending events from previous tests to flush
     time.sleep(5)
-    sh(f"docker tag alpine:3.21 {TEST_IMG} 2>/dev/null", timeout=5)
+    sh(f"docker tag alpine:3.21 {TEST_IMG} 2>&1", timeout=5)
     r = sh(f"docker push {TEST_IMG} 2>&1", timeout=120)
     if r.returncode != 0:
         time.sleep(5)

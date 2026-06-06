@@ -39,8 +39,8 @@ def run(port=None):
 
     # 3. Prepare a test image (push via docker, fallback to skopeo)
     # Ensure alpine is available locally
-    sh("docker pull alpine:3.21 2>/dev/null", timeout=120)
-    sh(f"docker tag alpine:3.21 {TEST_IMG} 2>/dev/null", timeout=5)
+    sh("docker pull alpine:3.21 2>&1", timeout=120)
+    sh(f"docker tag alpine:3.21 {TEST_IMG} 2>&1", timeout=5)
     r = sh(f"docker push {TEST_IMG} 2>&1", timeout=120)
     # Fallback: if docker push fails (e.g. Docker 29.5.2), try skopeo
     if r.returncode != 0:
