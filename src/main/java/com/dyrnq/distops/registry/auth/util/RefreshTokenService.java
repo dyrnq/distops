@@ -6,12 +6,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import java.util.Date;
 import java.util.UUID;
 import javax.crypto.SecretKey;
+import lombok.extern.slf4j.Slf4j;
+import org.noear.solon.annotation.Component;
+import org.noear.solon.annotation.Inject;
 
 /**
  * Issues and verifies OAuth-style refresh tokens.
@@ -32,22 +32,15 @@ import javax.crypto.SecretKey;
  * This is <strong>intentional</strong>: it prevents token-type confusion.
  * A refresh token cannot be used as an API access token, and vice versa.
  */
-public final class RefreshTokenService {
+@Component
+@Slf4j
+public class RefreshTokenService {
 
-    private final SecretKey signingKey;
+    @Inject("secretKey")
+    private SecretKey signingKey;
 
-    public RefreshTokenService(String appJwtSecret) {
-        if (appJwtSecret == null || appJwtSecret.isEmpty()) {
-            throw new IllegalStateException(
-                    "jwt.secret must be configured before issuing refresh tokens; refusing to fall back to an unsigned token");
-        }
-        try {
-            byte[] digest = MessageDigest.getInstance("SHA-256").digest(appJwtSecret.getBytes(StandardCharsets.UTF_8));
-            this.signingKey = Keys.hmacShaKeyFor(digest);
-        } catch (java.security.NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 not available", e);
-        }
-    }
+    @Inject
+    private RefreshTokenRevocationMapper revocationMapper;
 
     /**
      * Sign a refresh token. The token's {@code sub} claim is the username and
@@ -69,30 +62,7 @@ public final class RefreshTokenService {
                 .compact();
     }
 
-    /**
-     * Verify a refresh token's signature and expiration. Returns the username
-     * ({@code sub}) on success, or null if the token is invalid for any reason
-     * (bad signature, malformed, expired, etc.).
-     */
-    // Guard against null: in fail-safe no-DI scenarios, verify without revocation.
-    // Callers should inject the mapper when available.
-    private RefreshTokenRevocationMapper revocationMapper;
-
-    public void setRevocationMapper(RefreshTokenRevocationMapper mapper) {
-        this.revocationMapper = mapper;
-    }
-
     public String verify(String token) {
-        return verify(token, null);
-    }
-
-    /**
-     * Verify a refresh token with optional JTI revocation check.
-     * When {@code revocationMapper} is available, tokens whose JTI is in the
-     * blacklist are rejected. This allows an administrator or password-change
-     * flow to invalidate all outstanding refresh tokens for a user.
-     */
-    public String verify(String token, RefreshTokenRevocationMapper mapper) {
         if (token == null || token.isEmpty()) {
             return null;
         }
@@ -102,18 +72,21 @@ public final class RefreshTokenService {
                     .build()
                     .parseSignedClaims(token)
                     .getPayload();
-            // Check JTI blacklist (per-inst_id)
-            RefreshTokenRevocationMapper rmap = mapper != null ? mapper : this.revocationMapper;
-            if (rmap != null) {
-                String jti = claims.getId();
-                if (jti != null && !jti.isEmpty()) {
-                    Long instId = claims.get("inst_id", Long.class);
-                    if (instId == null) instId = 1L;
-                    if (rmap.existsByJtiAndInstId(jti, instId)) {
-                        return null; // explicitly revoked
-                    }
-                }
+
+            String jti = claims.getId();
+            String username = claims.getSubject();
+            Long instId = claims.get("inst_id", Long.class);
+            if (instId == null) instId = 1L;
+            // Exact JTI match (individual token revocation)
+            if (jti != null && !jti.isEmpty() && revocationMapper.existsByJtiAndInstId(jti, instId)) {
+                return null;
             }
+            // Bulk revocation for user (e.g. account disable)
+            if (username != null && revocationMapper.existsByUsernameAndInstId(username, instId)) {
+                log.warn("Refresh token rejected by bulk revocation: user={}", username);
+                return null;
+            }
+
             return claims.getSubject();
         } catch (ExpiredJwtException e) {
             return null;
