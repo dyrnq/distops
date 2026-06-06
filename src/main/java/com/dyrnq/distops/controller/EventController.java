@@ -33,6 +33,13 @@ import org.noear.solon.annotation.*;
 @Slf4j
 public class EventController {
 
+    private static final java.util.concurrent.ExecutorService EVENT_EXECUTOR =
+            java.util.concurrent.Executors.newFixedThreadPool(2, r -> {
+                Thread t = new Thread(r, "event-proc");
+                t.setDaemon(true);
+                return t;
+            });
+
     @Inject
     HomeDir homeDir;
 
@@ -56,6 +63,14 @@ public class EventController {
 
     @Mapping("/{instName}")
     public String event(@Body String o, @Path("instName") String instName) throws IOException {
+        // Validate instName: must look like a normal instance name. Anything containing
+        // path separators or ".." is rejected so the path we build below cannot escape
+        // the events directory.
+        if (!isSafeInstName(instName)) {
+            log.warn("Rejected event with unsafe instName: {}", instName);
+            return "400";
+        }
+
         Long id = IDUtils.getLongID();
         File file = new File(StringUtils.joinWith(
                 File.separator, homeDir.getTmpAbsolutePath(), "event", instName, "event_" + id + ".json"));
@@ -63,10 +78,29 @@ public class EventController {
         FileUtils.forceMkdirParent(file);
         FileUtil.appendUtf8String(o, file);
 
-        // Parse and process the event data
-        processEvent(o, instName);
+        // Process event asynchronously so registry doesn't block waiting for us.
+        // Distribution registry synchronously waits for the event endpoint's response;
+        // heavy processing (DB writes, manifest parsing) must not hold this thread.
+        final String eventJson = o;
+        final String name = instName;
+        EVENT_EXECUTOR.submit(() -> processEvent(eventJson, name));
 
         return "200";
+    }
+
+    private static boolean isSafeInstName(String name) {
+        if (name == null || name.isEmpty() || name.length() > 128) {
+            return false;
+        }
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            // Allow only URL-safe characters that make sense in a registry instance name.
+            if (!(Character.isLetterOrDigit(c) || c == '-' || c == '_' || c == '.')) {
+                return false;
+            }
+        }
+        // Forbid "." and ".." outright even though the loop above allows dots.
+        return !".".equals(name) && !"..".equals(name);
     }
 
     @Mapping("")
@@ -104,8 +138,9 @@ public class EventController {
                 JSONObject event = events.getJSONObject(i);
                 String action = event.getStr("action");
 
-                // Only process pull and push actions
-                if (!"pull".equals(action) && !"push".equals(action)) {
+                // Only process push/mount actions (pull events are too frequent and
+                // the heavy processing per event causes memory/thread contention)
+                if (!"push".equals(action) && !"mount".equals(action)) {
                     continue;
                 }
 
@@ -124,28 +159,13 @@ public class EventController {
                     continue;
                 }
 
-                // Parse timestamp
+                // Parse timestamp. Distribution emits ISO 8601 with optional
+                // fractional seconds and a timezone offset. We strip the
+                // offset because the column is a naive LocalDateTime.
                 LocalDateTime lastPushed = null;
                 String timestamp = event.getStr("timestamp");
                 if (StringUtils.isNotBlank(timestamp)) {
-                    try {
-                        // Handle ISO 8601 format with timezone offset: 2026-02-27T10:40:57.779182297+08:00
-                        String ts = timestamp;
-                        if (ts.contains("+") || ts.contains("-")) {
-                            // Remove timezone offset for parsing
-                            int plusIndex = ts.indexOf('+');
-                            int minusIndex = ts.lastIndexOf('-');
-                            if (plusIndex > 0) {
-                                ts = ts.substring(0, plusIndex);
-                            } else if (minusIndex > 10) { // Avoid matching date part
-                                ts = ts.substring(0, minusIndex);
-                            }
-                        }
-                        ts = ts.replace("Z", "");
-                        lastPushed = LocalDateTime.parse(ts, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    } catch (Exception e) {
-                        log.warn("Failed to parse timestamp: {}", timestamp, e);
-                    }
+                    lastPushed = parseIsoToLocalDateTime(timestamp);
                 }
 
                 // Check if this is a manifest list/index (multi-arch image)
@@ -189,7 +209,7 @@ public class EventController {
                         blob.setMediaType(mediaType);
                         blob.setCreated(lastPushed);
                         blob.setStatus("active");
-                        blobMapper.insert(blob, true);
+                        blobMapper.insert(blob);
                         log.info("Inserted blob: repo={}, digest={}, size={}", repository, digest, size);
                     } else {
                         blob.setSize(size);
@@ -197,7 +217,7 @@ public class EventController {
                             blob.setStatus("active");
                             log.info("Re-activated orphan blob: repo={}, digest={}", repository, digest);
                         }
-                        blobMapper.updateById(blob, true);
+                        blobMapper.updateById(blob);
                     }
                 }
 
@@ -321,6 +341,38 @@ public class EventController {
     }
 
     /**
+     * Parse an ISO 8601 timestamp into a {@link LocalDateTime}. The registry
+     * emits values like {@code 2026-02-27T10:40:57.779182297+08:00} or
+     * {@code 2026-02-27T10:40:57Z}. We previously hand-rolled offset stripping
+     * which was fragile; here we use the standard library instead.
+     */
+    private static LocalDateTime parseIsoToLocalDateTime(String timestamp) {
+        if (timestamp == null || timestamp.isEmpty()) {
+            return null;
+        }
+        try {
+            // Fast path: parse as OffsetDateTime/ZonedDateTime/Instant first.
+            try {
+                java.time.OffsetDateTime odt = java.time.OffsetDateTime.parse(timestamp);
+                return odt.toLocalDateTime();
+            } catch (Exception ignore) {
+                // fall through
+            }
+            try {
+                java.time.Instant inst = java.time.Instant.parse(timestamp);
+                return inst.atZone(java.time.ZoneId.systemDefault()).toLocalDateTime();
+            } catch (Exception ignore) {
+                // fall through
+            }
+            // Naive local datetime (no offset suffix).
+            return LocalDateTime.parse(timestamp, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        } catch (Exception e) {
+            log.warn("Failed to parse timestamp: {}", timestamp, e);
+            return null;
+        }
+    }
+
+    /**
      * Process references for multi-arch manifest lists
      */
     private void processReferences(
@@ -371,12 +423,7 @@ public class EventController {
             if (annotations != null) {
                 String createdStr = annotations.getStr("org.opencontainers.image.created");
                 if (StringUtils.isNotBlank(createdStr)) {
-                    try {
-                        created =
-                                LocalDateTime.parse(createdStr.replace("Z", ""), DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    } catch (Exception e) {
-                        log.warn("Failed to parse created time: {}", createdStr, e);
-                    }
+                    created = parseIsoToLocalDateTime(createdStr);
                 }
             }
 
@@ -459,6 +506,13 @@ public class EventController {
     }
 
     /**
+     * Hard cap on how much of a single blob we are willing to slurp into
+     * memory. Real registry manifests are well under 1 MiB; the cap exists
+     * so a malicious webhook cannot trick us into reading gigabytes.
+     */
+    private static final long MAX_BLOB_READ_BYTES = 4L * 1024 * 1024;
+
+    /**
      * Fetch manifest body from registry and compute compressed_size (sum of config + layers size)
      */
     private void fetchAndUpdateCompressedSize(Inst inst, String repository, String digest, Long manifestId) {
@@ -482,6 +536,10 @@ public class EventController {
             File blobFile = new File(blobPath);
             if (!blobFile.exists()) {
                 log.warn("Manifest blob not found for {}: {}", digest, blobPath);
+                return;
+            }
+            if (blobFile.length() > MAX_BLOB_READ_BYTES) {
+                log.warn("Manifest blob too large to read: {} ({} bytes)", digest, blobFile.length());
                 return;
             }
             String body =
@@ -512,30 +570,37 @@ public class EventController {
                                     File.separator, blobBasePath, configHex.substring(0, 2), configHex, "data");
                             File configFile = new File(configPath);
                             if (configFile.exists()) {
-                                String configBody = org.apache.commons.io.FileUtils.readFileToString(
-                                        configFile, java.nio.charset.StandardCharsets.UTF_8);
-                                if (StringUtils.isNotBlank(configBody)) {
-                                    JSONObject configJson = JSONUtil.parseObj(configBody);
-                                    String cfgOs = configJson.getStr("os");
-                                    String cfgArch = configJson.getStr("architecture");
-                                    String cfgVariant = configJson.getStr("variant");
-                                    if (StringUtils.isNotBlank(cfgArch)) {
-                                        existingForPlatform.setOsArch(cfgArch);
-                                    }
-                                    if (StringUtils.isNotBlank(cfgOs)) {
-                                        existingForPlatform.setOs(cfgOs);
-                                    }
-                                    if (StringUtils.isNotBlank(cfgVariant)) {
-                                        existingForPlatform.setVariant(cfgVariant);
-                                    }
-                                    if (StringUtils.isNotBlank(cfgArch) || StringUtils.isNotBlank(cfgOs)) {
-                                        manifestMapper.updateById(existingForPlatform, true);
-                                        log.info(
-                                                "Updated platform for manifest {}: {}/{}/{}",
-                                                digest,
-                                                cfgArch,
-                                                cfgOs,
-                                                cfgVariant);
+                                if (configFile.length() > MAX_BLOB_READ_BYTES) {
+                                    log.warn(
+                                            "Config blob too large to read: {} ({} bytes)",
+                                            configDigest,
+                                            configFile.length());
+                                } else {
+                                    String configBody = org.apache.commons.io.FileUtils.readFileToString(
+                                            configFile, java.nio.charset.StandardCharsets.UTF_8);
+                                    if (StringUtils.isNotBlank(configBody)) {
+                                        JSONObject configJson = JSONUtil.parseObj(configBody);
+                                        String cfgOs = configJson.getStr("os");
+                                        String cfgArch = configJson.getStr("architecture");
+                                        String cfgVariant = configJson.getStr("variant");
+                                        if (StringUtils.isNotBlank(cfgArch)) {
+                                            existingForPlatform.setOsArch(cfgArch);
+                                        }
+                                        if (StringUtils.isNotBlank(cfgOs)) {
+                                            existingForPlatform.setOs(cfgOs);
+                                        }
+                                        if (StringUtils.isNotBlank(cfgVariant)) {
+                                            existingForPlatform.setVariant(cfgVariant);
+                                        }
+                                        if (StringUtils.isNotBlank(cfgArch) || StringUtils.isNotBlank(cfgOs)) {
+                                            manifestMapper.updateById(existingForPlatform, true);
+                                            log.info(
+                                                    "Updated platform for manifest {}: {}/{}/{}",
+                                                    digest,
+                                                    cfgArch,
+                                                    cfgOs,
+                                                    cfgVariant);
+                                        }
                                     }
                                 }
                             }
