@@ -53,8 +53,11 @@ public class UserController extends ApiController {
             userMapper.insert(user, true);
             return Result.succeed("ok");
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            return Result.failure(e.getMessage());
+            // Never echo the underlying exception back to the API caller — it
+            // can leak column constraints, JDBC details, and stack-trace
+            // fragments which are useful to an attacker probing the schema.
+            log.error("add user failed", e);
+            return Result.failure("internal error");
         }
     }
 
