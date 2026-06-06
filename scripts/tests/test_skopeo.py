@@ -6,7 +6,7 @@ import re
 import subprocess
 
 HOST = os.environ.get("HOST", "localhost")
-IMG = os.environ.get("IMG", "itest")
+IMG = os.environ.get("IMG", "docker-test")
 TU = os.environ.get("TU", "test")
 TP = os.environ.get("TP", "test")
 
