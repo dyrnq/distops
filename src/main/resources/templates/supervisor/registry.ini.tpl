@@ -1,5 +1,5 @@
 [program:registry-${inst.name}]
-environment = OTEL_TRACES_EXPORTER=none<#if inst.env??>,${inst.env}</#if>
+environment = OTEL_TRACES_EXPORTER=none<#if env_lines??>,${env_lines}<#elseif inst.env??>,${inst.env}</#if>
 user = dist
 command = /usr/local/bin/registry serve ${app_home}/registry/${inst.name}/config/config.yml
 autostart = true
