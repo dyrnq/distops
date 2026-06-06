@@ -117,3 +117,19 @@ NO_PROXY=127.0.0.1,192.168.66.100
 - [GitHub docker_auth](https://github.com/cesanta/docker_auth)
 - [Supervisor: A Process Control System](https://supervisord.org/)
 
+
+
+### Event Endpoint (`/event/{instName}`)
+
+Distops exposes the `/event/{instName}` endpoint for Distribution Registry [webhook notifications](https://github.com/distribution/distribution/blob/main/docs/notifications.md). This endpoint is **unauthenticated** by design — the registry pushes events to it, not users.
+
+- Distribution Registry signs no events; any HTTP source can POST
+- The endpoint validates `instName` for path traversal safety (`isSafeInstName`)
+- Event processing is **asynchronous** in a fixed-size thread pool (2 threads)
+- Pull events are **skipped** — only push/mount events trigger database updates
+- Malformed or oversized payloads are rejected early with limited resource consumption
+
+> **Security note:** There is no authentication on this endpoint because the registry
+> webhook mechanism does not support bearer tokens or HMAC signing. Access is
+> implicitly trusted from the local network. Do not expose this endpoint to the
+> public internet without a reverse proxy that restricts source IPs.
