@@ -150,7 +150,7 @@ public class NimbusJwtService {
                 .expirationTime(new Date((now + expirationSeconds) * 1000))
                 .notBeforeTime(new Date((now - 10) * 1000))
                 .issueTime(new Date(now * 1000))
-                .jwtID(String.valueOf(Math.abs(new java.util.Random().nextLong())))
+                .jwtID(java.util.UUID.randomUUID().toString())
                 .claim("access", accessList)
                 .build();
 
