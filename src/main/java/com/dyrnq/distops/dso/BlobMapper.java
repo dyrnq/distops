@@ -22,7 +22,7 @@ public class BlobMapper {
         }
     }
 
-    public void insert(Blob blob, boolean replace) {
+    public void insert(Blob blob) {
         try {
             dbContext.table(Blob.TABLE_NAME).setEntity(blob).insert();
         } catch (Exception e) {
@@ -30,7 +30,7 @@ public class BlobMapper {
         }
     }
 
-    public void updateById(Blob blob, boolean replace) {
+    public void updateById(Blob blob) {
         try {
             dbContext
                     .table(Blob.TABLE_NAME)
