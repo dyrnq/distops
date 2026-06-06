@@ -67,7 +67,7 @@ public class GcService {
                     String newStatus = referenced.contains(blob.getId()) ? "active" : "orphan";
                     if (!newStatus.equals(blob.getStatus())) {
                         blob.setStatus(newStatus);
-                        blobMapper.updateById(blob, false);
+                        blobMapper.updateById(blob);
                     }
                     if ("orphan".equals(newStatus)) {
                         result.orphanBlobs++;
