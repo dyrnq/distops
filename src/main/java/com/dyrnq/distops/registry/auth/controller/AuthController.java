@@ -12,6 +12,7 @@ import com.dyrnq.distops.registry.auth.service.ITokenService;
 import com.dyrnq.distops.registry.auth.service.impl.ECTokenServiceImpl;
 import com.dyrnq.distops.registry.auth.service.impl.HMACTokenServiceImpl;
 import com.dyrnq.distops.registry.auth.service.impl.RSATokenServiceImpl;
+import com.dyrnq.distops.registry.auth.util.RefreshTokenService;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -27,6 +28,21 @@ import org.noear.solon.serialization.snack4.Snack4StringSerializer;
 public class AuthController {
     private static final Pattern SCOPE_PATTERN = Pattern.compile("([a-z0-9]+)(\\([a-z0-9]+\\))?");
     private static final String DEFAULT_ISSUER = "docker-auth-server";
+
+    @Inject("${distops.auth.trust_forwarded_headers:false}")
+    boolean trustForwardedHeaders;
+
+    @Inject("${server.session.state.jwt.secret:${jwt.secret:}}")
+    String jwtSecret;
+
+    private RefreshTokenService refreshTokenService;
+
+    private RefreshTokenService refreshTokenService() {
+        if (refreshTokenService == null) {
+            refreshTokenService = new RefreshTokenService(jwtSecret);
+        }
+        return refreshTokenService;
+    }
 
     @Inject
     AuthService authService;
@@ -170,38 +186,16 @@ public class AuthController {
                     return null;
                 }
 
-                String decoded;
-                try {
-                    decoded = new String(java.util.Base64.getUrlDecoder().decode(refreshToken));
-                } catch (IllegalArgumentException e) {
-                    log.warn("Invalid refresh_token encoding");
-                    ctx.status(401);
-                    return null;
-                }
-                String[] parts = decoded.split(":", 3);
-                if (parts.length < 3) {
-                    ctx.status(401);
-                    return null;
-                }
-                username = parts[0];
-                long expires;
-                try {
-                    expires = Long.parseLong(parts[1]);
-                } catch (NumberFormatException e) {
-                    log.warn("Invalid refresh_token expiry");
+                String verifiedUser = refreshTokenService().verify(refreshToken);
+                if (verifiedUser == null) {
+                    log.warn("Invalid or expired refresh_token");
                     ctx.status(401);
                     return null;
                 }
 
-                if (System.currentTimeMillis() / 1000 > expires) {
-                    log.warn("Refresh token expired for user: {}", username);
-                    ctx.status(401);
-                    return null;
-                }
-
-                AuthRequest authRequest = parseRequest(username, service, scopes, null, ctx);
+                AuthRequest authRequest = parseRequest(verifiedUser, service, scopes, null, ctx);
                 List<JWTPayload.ResourceAccess> accessList = authorizeScopes(authRequest);
-                return buildOAuthResponse(inst, username, service, accessList, "offline".equals(accessType));
+                return buildOAuthResponse(inst, verifiedUser, service, accessList, "offline".equals(accessType));
             }
 
             ctx.status(400);
@@ -234,10 +228,7 @@ public class AuthController {
 
         if (includeRefreshToken) {
             long refreshExpires = System.currentTimeMillis() / 1000 + 86400 * 30;
-            String refreshPayload = username + ":" + refreshExpires + ":refresh";
-            String refreshToken = java.util.Base64.getUrlEncoder()
-                    .withoutPadding()
-                    .encodeToString(refreshPayload.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            String refreshToken = refreshTokenService().issue(username, refreshExpires);
             resp.setRefreshToken(refreshToken);
         }
 
@@ -355,9 +346,11 @@ public class AuthController {
         builder.service(service);
 
         String remoteAddr = request.remoteIp();
-        String realIp = request.header("X-Real-IP");
-        if (realIp != null && !realIp.isEmpty()) {
-            remoteAddr = realIp.split(",")[0].trim();
+        if (trustForwardedHeaders) {
+            String realIp = request.header("X-Real-IP");
+            if (realIp != null && !realIp.isEmpty()) {
+                remoteAddr = realIp.split(",")[0].trim();
+            }
         }
         builder.remoteAddr(remoteAddr);
 
@@ -506,12 +499,32 @@ public class AuthController {
         // If no scopes requested, give admin full access to all resources
         if (authRequest.getScopes() == null || authRequest.getScopes().isEmpty()) {
             if ("admin".equals(authRequest.getAccount())) {
-                // Admin gets full access to everything
                 accessList.add(JWTPayload.ResourceAccess.builder()
                         .type("registry")
                         .name("catalog")
                         .actions(List.of("*"))
                         .build());
+            } else if (authRequest.getUser() != null) {
+                // Docker 29+ uses offline_token for push on insecure registries.
+                // Issue a token that grants the user their ACL-authorized actions
+                // against a concrete scope. Distribution registry does exact string
+                // match on the resource name; empty string won't match. We request
+                // actions for a concrete repository to force a valid access entry.
+                java.util.Set<String> userActions = authService.getAuthorizedActions(
+                        authRequest.getAccount(),
+                        "repository",
+                        "itest",
+                        java.util.Set.of("pull", "push"),
+                        authRequest.getRemoteAddr());
+                if (!userActions.isEmpty()) {
+                    java.util.List<String> sorted = new java.util.ArrayList<>(userActions);
+                    java.util.Collections.sort(sorted);
+                    accessList.add(JWTPayload.ResourceAccess.builder()
+                            .type("repository")
+                            .name("itest")
+                            .actions(sorted)
+                            .build());
+                }
             }
             return accessList;
         }
