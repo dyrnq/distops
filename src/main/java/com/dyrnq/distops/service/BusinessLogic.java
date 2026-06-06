@@ -36,11 +36,11 @@ public class BusinessLogic {
             BCryptPasswordEncoder encoder = BCryptPasswordEncoder.DEFAULT;
             if (encoder.matches(pass, user.getPass())) {
                 return user;
-            } else {
-                throw new RuntimeException(I18nUtil.getMessage("loginStr.backError2"));
             }
-        } else {
-            throw new RuntimeException(I18nUtil.getMessage("loginStr.backError5"));
         }
+        // Same error for "user not found" and "wrong password" so an attacker
+        // cannot enumerate accounts. The message key intentionally matches the
+        // historical "credentials invalid" copy.
+        throw new RuntimeException(I18nUtil.getMessage("loginStr.backError2"));
     }
 }
