@@ -19,6 +19,18 @@ import org.noear.solon.annotation.Inject;
 @Component
 public class AuthService {
 
+    private static final Pattern IPV4_LITERAL =
+            Pattern.compile("^(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)){3}$");
+    private static final Pattern IPV6_LITERAL = Pattern.compile("^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|"
+            + "^(?:[0-9a-fA-F]{1,4}:){1,7}:$|"
+            + "^:(?::[0-9a-fA-F]{1,4}){1,7}$|"
+            + "^(?:[0-9a-fA-F]{1,4}:){1,6}(?::[0-9a-fA-F]{1,4}){1,6}$|"
+            + "^(?:[0-9a-fA-F]{1,4}:){1,5}(?::[0-9a-fA-F]{1,4}){1,5}$|"
+            + "^(?:[0-9a-fA-F]{1,4}:){1,4}(?::[0-9a-fA-F]{1,4}){1,4}$|"
+            + "^(?:[0-9a-fA-F]{1,4}:){1,3}(?::[0-9a-fA-F]{1,4}){1,3}$|"
+            + "^(?:[0-9a-fA-F]{1,4}:){1,2}(?::[0-9a-fA-F]{1,4}){1,2}$|"
+            + "^[0-9a-fA-F]{1,4}:(?::[0-9a-fA-F]{1,4}){1,7}$|"
+            + "^::$");
     private static final Pattern GLOB_PATTERN = Pattern.compile("[?*\\[\\]]");
     private static final Pattern REGEX_PATTERN = Pattern.compile("^/(.+)/$");
 
@@ -258,8 +270,36 @@ public class AuthService {
      * @return true if match successful, false otherwise
      */
     private boolean globMatch(String pattern, String text) {
-        String regex = pattern.replace(".", "\\.").replace("*", ".*").replace("?", ".");
-        return text.matches(regex);
+        if (text == null) {
+            return false;
+        }
+        StringBuilder regex = new StringBuilder(pattern.length() + 8);
+        for (int i = 0; i < pattern.length(); i++) {
+            char c = pattern.charAt(i);
+            switch (c) {
+                case '*':
+                    regex.append(".*");
+                    break;
+                case '?':
+                    regex.append('.');
+                    break;
+                case '[':
+                case ']':
+                    regex.append(c);
+                    break;
+                default:
+                    if ("\\.^$|(){}+".indexOf(c) >= 0) {
+                        regex.append('\\');
+                    }
+                    regex.append(c);
+            }
+        }
+        try {
+            return Pattern.compile(regex.toString()).matcher(text).matches();
+        } catch (java.util.regex.PatternSyntaxException e) {
+            log.warn("Invalid glob pattern: {}", pattern, e);
+            return false;
+        }
     }
 
     /**
@@ -317,10 +357,13 @@ public class AuthService {
             String[] parts = cidr.split("/");
             if (parts.length != 2) return false;
             int prefixLen = Integer.parseInt(parts[1]);
+            if (prefixLen < 0) return false;
 
             byte[] cidrBytes = ipToBytes(parts[0]);
             byte[] ipBytes = ipToBytes(ip);
             if (cidrBytes.length != ipBytes.length) return false;
+
+            if (prefixLen > cidrBytes.length * 8) return false;
 
             int fullBytes = prefixLen / 8;
             int remainingBits = prefixLen % 8;
