@@ -32,6 +32,7 @@ def run(port=None):
     )
 
     import time
+    time.sleep(8)  # give Flyway + supervisor time to initialize
     for _ in range(30):
         time.sleep(2)
         r = sh("curl -s -o /dev/null -w '%{http_code}' http://localhost:12680/", timeout=5)
