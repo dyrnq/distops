@@ -60,8 +60,9 @@ def run(port=None):
 
     # 3. refresh_token grant
     if refresh:
+        from urllib.parse import quote
         r = subprocess.run(
-            f'curl -s -X POST "{base}" -d "grant_type=refresh_token&refresh_token={refresh}&service=registry.docker.io&scope=repository:alpine:pull"',
+            f'curl -s -X POST "{base}" -d "grant_type=refresh_token&refresh_token={quote(refresh, safe="")}&service=registry.docker.io&scope=repository:alpine:pull"',
             shell=True, timeout=10, capture_output=True, text=True,
         )
         try:
@@ -104,7 +105,7 @@ def run(port=None):
                     )
                     # Verify rejected
                     r = subprocess.run(
-                        f'curl -s -X POST "{base}" -d "grant_type=refresh_token&refresh_token={refresh}&service=registry.docker.io&scope=repository:alpine:pull"',
+                        f'curl -s -X POST "{base}" -d "grant_type=refresh_token&refresh_token={quote(refresh, safe="")}&service=registry.docker.io&scope=repository:alpine:pull"',
                         shell=True, timeout=10, capture_output=True, text=True,
                     )
                     try:
