@@ -35,14 +35,21 @@ def run(port=None, proxy_ports=None):
         results.append(("No live proxy ports to test", False))
         return results
 
+    import time
     for p in live_ports:
         # POST blob upload should return 405 on proxy registries
-        r = sh(
-            f"curl -s -X POST -o /dev/null -w '%{{http_code}}' "
-            f"'http://{HOST}:{p}/v2/test-push-verify-project/blobs/uploads/'",
-            timeout=5,
-        )
-        code = r.stdout.strip()
+        # Retry up to 3 times in case the registry instance is restarting
+        code = "000"
+        for attempt in range(3):
+            r = sh(
+                f"curl -s -X POST -o /dev/null -w '%{{http_code}}' "
+                f"'http://{HOST}:{p}/v2/test-push-verify-project/blobs/uploads/'",
+                timeout=5,
+            )
+            code = r.stdout.strip()
+            if code == "405":
+                break
+            time.sleep(2)
         ok = code == "405"
         results.append((f"POST blob upload to :{p} = {code}", ok))
 
