@@ -52,8 +52,12 @@ public class JwtInterceptor implements RouterInterceptor {
             // Prefer Authorization: Bearer header, fallback to cookie
             String authHeader = ctx.header("Authorization");
             String token = null;
-            if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
-                token = authHeader.substring(7);
+            if (authHeader != null && authHeader.length() > 7 && authHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
+                // Use split (not substring) so any extra leading whitespace
+                // after "Bearer" is absorbed instead of becoming a leading
+                // space on the token, which JJWT would reject.
+                String[] parts = authHeader.substring(7).split("\\s+", 2);
+                token = parts.length > 0 ? parts[0] : null;
             }
             if (token == null) {
                 token = ctx.cookie(cfgExtractor.tokenCookieName());
