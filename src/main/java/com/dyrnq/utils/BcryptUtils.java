@@ -19,7 +19,10 @@ public class BcryptUtils {
         Bcrypt ver = Bcrypt.B;
         if (matcher.find()) {
             cost = Integer.parseInt(matcher.group(1));
-            String verStr = matcher.group(0);
+            // matcher.group() returns the entire match e.g. "$2a$10$xxx"; we
+            // want only the 2-char version token ("2a"/"2x"/"2y"/"2b") that
+            // sits between the first and second '$'.
+            String verStr = matcher.group().substring(1, 3);
             ver = switch (verStr) {
                 case "2a" -> Bcrypt.A;
                 case "2x" -> Bcrypt.X;
