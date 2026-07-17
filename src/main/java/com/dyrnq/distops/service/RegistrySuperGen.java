@@ -49,7 +49,17 @@ public class RegistrySuperGen {
 
         instMapper.selectList(null).forEach(inst -> {
             if (inst.getEnabled() != null && inst.getEnabled() == 1) {
-                instService.enable(inst, config_yaml_template, registry_supervisor_template);
+                // A failure to re-render an instance at startup must not
+                // abort Solon bootstrap — other instances and unrelated
+                // services should still come up. Per-instance errors are
+                // logged and surfaced via the instance's own health; the
+                // strict-throw behaviour of InstService.enable is preserved
+                // for user-facing paths (e.g. POST /api/inst/enable).
+                try {
+                    instService.enable(inst, config_yaml_template, registry_supervisor_template);
+                } catch (RuntimeException e) {
+                    log.error("Failed to re-enable instance '{}' at startup: {}", inst.getName(), e.getMessage());
+                }
             }
         });
     }

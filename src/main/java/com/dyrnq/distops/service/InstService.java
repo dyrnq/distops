@@ -19,6 +19,9 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -87,6 +90,83 @@ public class InstService {
                 target.put(key, sourceValue);
             }
         }
+    }
+
+    /**
+     * Write content to {@code target} atomically by first writing to a sibling
+     * temp file and then using {@link StandardCopyOption#ATOMIC_MOVE} to
+     * rename it into place. This prevents readers (supervisord, the registry
+     * process, other dashboard instances) from observing a partially written
+     * file mid-rewrite.
+     *
+     * <p>Throws on any I/O failure; callers accumulate the message and decide
+     * whether to abort the surrounding operation.
+     */
+    private static void atomicWrite(File target, String content) throws IOException {
+        atomicWrite(target, out -> out.write(content.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+    }
+
+    /**
+     * Stream-based variant of {@link #atomicWrite(File, String)}. The writer is
+     * invoked against the open temp file and must close itself (the temp
+     * stream is closed automatically before the rename).
+     */
+    private static void atomicWrite(File target, IOConsumer writer) throws IOException {
+        Path parent = target.getAbsoluteFile().getParentFile().toPath();
+        Files.createDirectories(parent);
+        Path tmp = Files.createTempFile(parent, target.getName() + ".", ".tmp");
+        try {
+            try (OutputStream os = Files.newOutputStream(tmp)) {
+                writer.accept(os);
+            }
+            Files.move(tmp, target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(tmp);
+        }
+    }
+
+    @FunctionalInterface
+    private interface IOConsumer {
+        void accept(OutputStream out) throws IOException;
+    }
+
+    /**
+     * Run an external command synchronously and return its exit code. We
+     * capture stdout/stderr to a bounded buffer so the child never blocks on a
+     * full pipe (which would otherwise wedge the supervisorctl call forever
+     * if its output grows unexpectedly).
+     */
+    private static int execChecked(String cmd) throws IOException, InterruptedException {
+        Process p = RuntimeUtil.exec(cmd);
+        // Drain stdout/stderr concurrently so the child never deadlocks on a
+        // full pipe buffer.
+        Thread out = new Thread(
+                () -> {
+                    try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                        String line;
+                        while ((line = r.readLine()) != null) {
+                            log.debug("[exec stdout] {}", line);
+                        }
+                    } catch (IOException ignore) {
+                    }
+                },
+                "exec-stdout-" + cmd);
+        Thread err = new Thread(
+                () -> {
+                    try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getErrorStream()))) {
+                        String line;
+                        while ((line = r.readLine()) != null) {
+                            log.warn("[exec stderr] {}", line);
+                        }
+                    } catch (IOException ignore) {
+                    }
+                },
+                "exec-stderr-" + cmd);
+        out.setDaemon(true);
+        err.setDaemon(true);
+        out.start();
+        err.start();
+        return p.waitFor();
     }
 
     /**
@@ -200,11 +280,11 @@ public class InstService {
         File config_file = new File(StringUtils.joinWith(
                 File.separator, homeDir.getHomeAbsolutePath(), "registry", inst_name, "config", "config.yml"));
 
-        try {
-            FileUtils.forceMkdirParent(config_file);
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
+        // Errors accumulated across all steps. We only flip enabled=1 if this
+        // list is empty at the end; otherwise we throw and the DB stays at
+        // its prior state so a partially-rendered filesystem doesn't get
+        // presented as a healthy instance.
+        List<String> errors = new ArrayList<>();
 
         Map<String, Object> data = new HashMap<>();
         data.put("port", String.valueOf(Solon.cfg().serverPort()));
@@ -239,11 +319,11 @@ public class InstService {
         data.put("issuer_name", StringUtils.defaultIfBlank(inst.getAuthIssuer(), "docker-auth-server"));
 
         try {
-            FileUtils.forceMkdirParent(config_file);
             Template yaml = new Template("yaml", new StringReader(config_yaml_template), cfg);
-            try (Writer out = new OutputStreamWriter(new FileOutputStream(config_file))) {
-                yaml.process(data, out);
-            }
+            final StringWriter yamlOut = new StringWriter();
+            yaml.process(data, yamlOut);
+            atomicWrite(config_file, yamlOut.toString());
+
             DumperOptions options = new DumperOptions();
             options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
 
@@ -253,8 +333,8 @@ public class InstService {
             if (StringUtils.isNotEmpty(inst.getExtraYaml())) {
                 try {
                     extra = snakeyaml.load(inst.getExtraYaml());
-                } catch (Exception ignore) {
-
+                } catch (Exception e) {
+                    errors.add("extraYaml parse: " + e.getMessage());
                 }
             }
 
@@ -270,10 +350,14 @@ public class InstService {
             }
 
             if (proxy != null || extra != null) {
-                Map<String, Object> mergedMap = new LinkedHashMap<>();
-                Map<String, Object> org = snakeyaml.load(new FileInputStream(config_file));
-
-                mergedMap.putAll(org);
+                Map<String, Object> org;
+                try (FileReader fr = new FileReader(config_file)) {
+                    org = snakeyaml.load(fr);
+                }
+                if (org == null) {
+                    org = new LinkedHashMap<>();
+                }
+                Map<String, Object> mergedMap = new LinkedHashMap<>(org);
                 if (proxy != null) {
                     mergedMap.putAll(proxy);
                     mergedMap.remove("notifications");
@@ -281,27 +365,34 @@ public class InstService {
                 if (extra != null) {
                     deepMerge(mergedMap, extra);
                 }
-
-                FileOutputStream fos = new FileOutputStream(config_file);
-                Writer writer = new OutputStreamWriter(fos);
-                snakeyaml.dump(mergedMap, writer);
-                IOUtils.closeQuietly(writer);
+                final String dumped = snakeyaml.dump(mergedMap);
+                atomicWrite(config_file, dumped);
             }
 
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        } catch (TemplateException e) {
-            log.error(e.getMessage());
+        } catch (IOException | TemplateException e) {
+            errors.add("config.yml: " + e.getMessage());
         }
 
         if (Strings.CI.equals("token", inst.getAuth())) {
             if (StrUtil.isBlank(inst.getAuthJwksJson())) {
-                generateKeyPairForInst(inst, "EC", "ES512");
+                try {
+                    generateKeyPairForInst(inst, "EC", "ES512");
+                } catch (Exception e) {
+                    errors.add("keypair: " + e.getMessage());
+                }
             }
         }
-        updateJwksFile(inst);
+        try {
+            updateJwksFile(inst);
+        } catch (Exception e) {
+            errors.add("jwks: " + e.getMessage());
+        }
 
-        writeHtpasswd(inst);
+        try {
+            writeHtpasswd(inst);
+        } catch (Exception e) {
+            errors.add("htpasswd: " + e.getMessage());
+        }
 
         File super_file = new File(StringUtils.joinWith(
                 File.separator,
@@ -311,22 +402,27 @@ public class InstService {
                 "registry-" + inst_name + ".ini"));
 
         try {
-            FileUtils.forceMkdirParent(super_file);
-            //            FileUtils.writeStringToFile(super_file, registry_supervisor, Charset.defaultCharset(), false);
-
             Template ini_tpl = new Template("ini", new StringReader(registry_supervisor_template), cfg);
-            try (Writer out = new OutputStreamWriter(new FileOutputStream(super_file))) {
-                ini_tpl.process(data, out);
-            }
-
+            final StringWriter iniOut = new StringWriter();
+            ini_tpl.process(data, iniOut);
+            atomicWrite(super_file, iniOut.toString());
         } catch (IOException | TemplateException e) {
-            log.error(e.getMessage());
+            errors.add("supervisor.ini: " + e.getMessage());
         }
 
+        int supervisorExit = -1;
         try {
-            RuntimeUtil.exec("supervisorctl update");
+            supervisorExit = execChecked("supervisorctl update");
         } catch (Exception e) {
-            log.error(e.getMessage());
+            errors.add("supervisorctl update: " + e.getMessage());
+        }
+        if (supervisorExit != 0) {
+            errors.add("supervisorctl update exit=" + supervisorExit);
+        }
+
+        if (!errors.isEmpty()) {
+            // Abort: do NOT flip enabled=1, surface the failure to the caller.
+            throw new RuntimeException("Instance '" + inst_name + "' enable failed: " + String.join("; ", errors));
         }
 
         instMapper.updateEnabled(inst.getId(), 1);
