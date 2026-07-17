@@ -4,6 +4,7 @@ import com.dyrnq.distops.dso.AccountMapper;
 import com.dyrnq.distops.model.Account;
 import com.dyrnq.distops.registry.auth.model.AclConfig;
 import com.dyrnq.utils.BcryptUtils;
+import com.google.common.net.InetAddresses;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -383,10 +384,21 @@ public class AuthService {
     }
 
     /**
-     * Convert IP string to byte array (supports IPv4 and IPv6)
+     * Convert IP literal to byte array (supports IPv4 and IPv6).
+     *
+     * <p>This deliberately does NOT call {@link java.net.InetAddress#getByName}
+     * because IP-ACL matching must be literal-only. If we allowed hostnames,
+     * a DNS rebinding attack could make "evil.com → 127.0.0.1" match a
+     * "127.0.0.1" CIDR rule. The {@link IPV4_LITERAL} / {@link IPV6_LITERAL}
+     * patterns at the top of this class were intended to enforce that, but
+     * were never actually wired in.
+     *
+     * <p>{@link InetAddresses#forString} accepts only literal IPv4/IPv6
+     * strings (no DNS) and throws {@link IllegalArgumentException} on any
+     * other input, which {@link #matchCidr}'s catch-all converts to "no
+     * match".
      */
-    private byte[] ipToBytes(String ip) throws java.net.UnknownHostException {
-        java.net.InetAddress addr = java.net.InetAddress.getByName(ip);
-        return addr.getAddress();
+    private byte[] ipToBytes(String ip) {
+        return InetAddresses.forString(ip).getAddress();
     }
 }
