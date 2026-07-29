@@ -27,7 +27,8 @@ public class BcryptUtils {
                 case "2a" -> Bcrypt.A;
                 case "2x" -> Bcrypt.X;
                 case "2y" -> Bcrypt.Y;
-                default -> Bcrypt.B;};
+                default -> Bcrypt.B;
+            };
         }
 
         return Password.check(plainPassword, hash).with(BcryptFunction.getInstance(ver, cost));
