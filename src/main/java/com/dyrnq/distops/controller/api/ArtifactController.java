@@ -67,27 +67,39 @@ public class ArtifactController extends ApiController {
                     "select v.*, i.name as inst_name from artifact_manifest_view v, inst i where v.inst_id = i.id");
             StringBuilder countSql =
                     new StringBuilder("select count(*) from artifact_manifest_view v, inst i where v.inst_id = i.id");
+            java.util.List<Object> params = new java.util.ArrayList<>();
+            java.util.List<Object> countParams = new java.util.ArrayList<>();
 
             if (filterInstId != null) {
-                String cond = " and v.inst_id = " + filterInstId;
-                sql.append(cond);
-                countSql.append(cond);
+                sql.append(" and v.inst_id = ?");
+                countSql.append(" and v.inst_id = ?");
+                params.add(filterInstId);
+                countParams.add(filterInstId);
             }
             if (StrUtil.isNotBlank(artQuery.getRepoName())) {
-                String cond = " and v.full_name like '%" + artQuery.getRepoName() + "%'";
-                sql.append(cond);
-                countSql.append(cond);
+                sql.append(" and v.full_name like ?");
+                countSql.append(" and v.full_name like ?");
+                params.add("%" + artQuery.getRepoName() + "%");
+                countParams.add("%" + artQuery.getRepoName() + "%");
             }
             if (StrUtil.isNotBlank(artQuery.getTagName())) {
-                String cond = " and (v.tag_name like '%" + artQuery.getTagName() + "%' or v.digest like '%"
-                        + artQuery.getTagName() + "%')";
-                sql.append(cond);
-                countSql.append(cond);
+                sql.append(" and (v.tag_name like ? or v.digest like ?)");
+                countSql.append(" and (v.tag_name like ? or v.digest like ?)");
+                String likeTag = "%" + artQuery.getTagName() + "%";
+                params.add(likeTag);
+                params.add(likeTag);
+                countParams.add(likeTag);
+                countParams.add(likeTag);
             }
             sql.append(" LIMIT ?,?");
+            params.add(start);
+            params.add(limit);
             List<ArtifactManifestView> artifactList =
-                    instMapper.db().sql(sql.toString(), start, limit).getList(ArtifactManifestView.class);
-            long count = instMapper.db().sql(countSql.toString()).getCount();
+                    instMapper.db().sql(sql.toString(), params.toArray()).getList(ArtifactManifestView.class);
+            long count = instMapper
+                    .db()
+                    .sql(countSql.toString(), countParams.toArray())
+                    .getCount();
             return PageResult.succeed(artifactList, count);
         } catch (Exception e) {
             log.error("Failed to query artifacts", e);
