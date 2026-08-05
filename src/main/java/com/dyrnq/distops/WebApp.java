@@ -72,17 +72,14 @@ public class WebApp {
                     log.error(ex.getMessage(), ex);
                 }
             });
-            app.chains()
-                    .addFilter(
-                            (c, chain) -> {
-                                String path = c.path();
-                                while (path.contains("//")) {
-                                    path = path.replace("//", "/");
-                                }
-                                c.pathNew(path);
-                                chain.doFilter(c);
-                            },
-                            0);
+            app.filter((c, chain) -> {
+                String path = c.path();
+                while (path.contains("//")) {
+                    path = path.replace("//", "/");
+                }
+                c.pathNew(path);
+                chain.doFilter(c);
+            });
 
             WoodConfig.isUsingValueExpression = false;
             if (Solon.cfg().isDebugMode()) {
