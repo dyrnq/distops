@@ -85,6 +85,7 @@ public class WebApp {
                             0);
 
             WoodConfig.isUsingValueExpression = false;
+            WoodConfig.typeConverter = new WoodTypeConverter();
             if (Solon.cfg().isDebugMode()) {
                 // 执行后打印下sql
                 WoodConfig.onExecuteAft(cmd -> {
