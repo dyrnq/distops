@@ -11,7 +11,7 @@ pg_image="${pg_image:-postgres:12.14}"
 adminer_image="${adminer_image:-adminer:5.4.2}"
 minio_image="${minio_image:-minio/minio:RELEASE.2025-02-28T09-55-16Z}"
 nginx_image="${nginx_image:-nginx:1.28.2}"
-distribution_image="${distribution_image:-distribution/distribution:3.0}"
+distribution_image="${distribution_image:-distribution/distribution:3.1.2}"
 
 
 
