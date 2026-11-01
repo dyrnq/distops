@@ -184,7 +184,7 @@ ssh vagrant@192.168.66.125 '
   docker rm -f distops-test 2>/dev/null
   docker run -d --name distops-test --restart always \
     --network host \
-    -v /data/distops:/data/distops \
+    -v /data:/data \
     -e TZ=Asia/Shanghai \
     -e JAVA_OPTS="-server -Xms1g -Xmx1g -Djava.awt.headless=true \
       -Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai \

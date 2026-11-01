@@ -21,7 +21,7 @@ def run(port=None):
     sh(
         f"docker run -d --name {DISTOPS_CONTAINER} --restart always "
         f"--network host "
-        f"-v /data/distops:/data/distops "
+        f"-v /data:/data "
         f"-e TZ=Asia/Shanghai "
         f'-e JAVA_OPTS="-server -Xms1g -Xmx1g -Djava.awt.headless=true '
         f'-Dfile.encoding=UTF-8 -Duser.timezone=Asia/Shanghai '
