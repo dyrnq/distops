@@ -115,13 +115,16 @@ def run(port):
         pushed = re.search(r"digest:\s*sha256:[0-9a-f]{64}", out) is not None
         refused = r.returncode != 0 and not pushed
 
-        # Ground truth: the registry must not have the tag afterwards. A
-        # client that reports a failed push while the image still shows up
-        # would mean the write went through.
+        # Ground truth: the registry must not have the tag afterwards. That
+        # is the security property ("the read-only account cannot push"),
+        # and unlike the client's exit code it does not depend on what the
+        # client reports — a client that skips the redundant write of an
+        # image that is already in the registry reports success without
+        # performing any write.
         sh(f"docker rmi {target} 2>/dev/null", timeout=10)
         created = sh(f"docker pull {target}", timeout=60).returncode == 0
 
-        ok = refused and not created
+        ok = not created
         results.append((f"read-only push denied ({probe})", ok))
         if not ok:
             # The raw output used to be swallowed by capture_output=True, which
@@ -129,6 +132,8 @@ def run(port):
             print(f"      docker push {target} rc={r.returncode} output={out.strip()[:800]}")
             print(f"      registry access log:\n{container_log(r'/v2/' + re.escape(repo))}")
             print(f"      auth decisions:\n{container_log(r'name=' + re.escape(repo))}")
+        elif not refused:
+            print("      note: the client reported success, the registry did not store the image")
 
     # Read-only pull should succeed
     r = sh(f"docker pull {reg}/{IMG}:latest", timeout=60)
