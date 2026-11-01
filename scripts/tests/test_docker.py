@@ -2,6 +2,7 @@
 """Test docker login, push, pull operations."""
 import os
 import re
+import shlex
 import subprocess
 
 HOST = os.environ.get("HOST", "localhost")
@@ -10,6 +11,27 @@ TP = os.environ.get("TP", "test")
 RU = os.environ.get("RU", "read")
 RPW = os.environ.get("RPW", "test")
 IMG = os.environ.get("IMG", "docker-test")
+
+
+def container_log(pattern, limit=40):
+    """Matching lines from the distops container log.
+
+    The CI workflow only dumps the last 80 container log lines, which does
+    not reach back far enough to cover this test, so the evidence for a
+    failure is collected here, next to the assertion that failed.
+    """
+    container = os.environ.get("DISTOPS_CONTAINER", "distops-test")
+    try:
+        r = subprocess.run(
+            f"docker logs {shlex.quote(container)} 2>&1 | grep -E {shlex.quote(pattern)} | tail -{limit}",
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except Exception:
+        return ""
+    return (r.stdout or "").strip()
 
 
 def run(port):
@@ -54,7 +76,20 @@ def run(port):
     ok4 = "Succeeded" in (r.stdout + r.stderr)
     results.append(("read-only login", ok4))
 
-    # Read-only push should fail.
+    # Read-only push must be refused.
+    #
+    # Two probes, because a push can be refused at two different write
+    # paths and a client only exercises one of them:
+    #
+    #   1. a new tag in an existing repository -> forces a manifest write
+    #   2. a brand new repository               -> forces a blob upload
+    #
+    # Probing with the tag the write account just pushed proves nothing:
+    # a client that skips the redundant write reports success, so the
+    # assertion measured the client's short-circuit instead of the
+    # registry's authorization. Docker 29 (containerd image store) does
+    # exactly that — pushing an image that is already in the registry
+    # exits 0 without contacting the registry for a write.
     #
     # The security property is "the read-only account cannot push" — assert
     # on the outcome, not on Docker's error wording. The wording changed
@@ -64,18 +99,36 @@ def run(port):
     # and some flows surface a bare "401 Unauthorized" / "403 Forbidden".
     # Matching on fixed wording broke the test on the runner image upgrade
     # even though the registry correctly returned 401.
-    r = sh(f"docker push {reg}/{IMG}:latest", timeout=60)
-    out = r.stdout + r.stderr
-    # A completed push always ends with "<tag>: digest: sha256:<64 hex>".
-    # Detect that specifically — a failed push can still mention a sha256
-    # in the blob URL it was complaining about.
-    pushed = re.search(r"digest:\s*sha256:[0-9a-f]{64}", out) is not None
-    ok5 = r.returncode != 0 and not pushed
-    results.append(("read-only push denied", ok5))
-    if not ok5:
-        # The raw output used to be swallowed by capture_output=True, which
-        # made a failure impossible to diagnose from the CI log.
-        print(f"      docker push rc={r.returncode} output={out.strip()[:800]}")
+    for probe, repo, tag in (
+        ("new tag", IMG, "ro-test"),
+        ("new repository", f"{IMG}-ro", "latest"),
+    ):
+        target = f"{reg}/{repo}:{tag}"
+        sh(f"docker rmi {target} 2>/dev/null", timeout=10)
+        sh(f"docker tag alpine:3.21 {target}", timeout=10)
+
+        r = sh(f"docker push {target}", timeout=120)
+        out = r.stdout + r.stderr
+        # A completed push always ends with "<tag>: digest: sha256:<64 hex>".
+        # Detect that specifically — a failed push can still mention a sha256
+        # in the blob URL it was complaining about.
+        pushed = re.search(r"digest:\s*sha256:[0-9a-f]{64}", out) is not None
+        refused = r.returncode != 0 and not pushed
+
+        # Ground truth: the registry must not have the tag afterwards. A
+        # client that reports a failed push while the image still shows up
+        # would mean the write went through.
+        sh(f"docker rmi {target} 2>/dev/null", timeout=10)
+        created = sh(f"docker pull {target}", timeout=60).returncode == 0
+
+        ok = refused and not created
+        results.append((f"read-only push denied ({probe})", ok))
+        if not ok:
+            # The raw output used to be swallowed by capture_output=True, which
+            # made a failure impossible to diagnose from the CI log.
+            print(f"      docker push {target} rc={r.returncode} output={out.strip()[:800]}")
+            print(f"      registry access log:\n{container_log(r'/v2/' + re.escape(repo))}")
+            print(f"      auth decisions:\n{container_log(r'name=' + re.escape(repo))}")
 
     # Read-only pull should succeed
     r = sh(f"docker pull {reg}/{IMG}:latest", timeout=60)
