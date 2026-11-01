@@ -31,7 +31,7 @@ cd distops
 
 ```bash
 
-mkdir /data/distops/persistent_data
+mkdir -p /data/distops/persistent_data
 chown 1000:1000 /data/distops/persistent_data
 # 产生一个新的jwt secret 替换默认的 IDP32XTulsVIUZU+srFEUC9Lhu1wV+nd8iCJPoPA2zSFVAtWhCgpMEymxy5wFAZKMB9yROX31UjDzjwL66r1RA==
 docker run -it --rm --entrypoint="" dyrnq/distops:latest bash -c "java -jar /distops.jar cli jwt"
