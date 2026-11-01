@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Test docker login, push, pull operations."""
 import os
+import re
 import subprocess
 
 HOST = os.environ.get("HOST", "localhost")
@@ -53,11 +54,28 @@ def run(port):
     ok4 = "Succeeded" in (r.stdout + r.stderr)
     results.append(("read-only login", ok4))
 
-    # Read-only push should fail
+    # Read-only push should fail.
+    #
+    # The security property is "the read-only account cannot push" — assert
+    # on the outcome, not on Docker's error wording. The wording changed
+    # with the containerd image store (Docker 29.x): 28.x printed
+    # "denied: requested access to the resource is denied", 29.x prints
+    # "push access denied ... insufficient_scope: authorization failed",
+    # and some flows surface a bare "401 Unauthorized" / "403 Forbidden".
+    # Matching on fixed wording broke the test on the runner image upgrade
+    # even though the registry correctly returned 401.
     r = sh(f"docker push {reg}/{IMG}:latest", timeout=60)
-    outc = (r.stdout + r.stderr).lower()
-    ok5 = any(w in outc for w in ["denied", "unauthorized"])
+    out = r.stdout + r.stderr
+    # A completed push always ends with "<tag>: digest: sha256:<64 hex>".
+    # Detect that specifically — a failed push can still mention a sha256
+    # in the blob URL it was complaining about.
+    pushed = re.search(r"digest:\s*sha256:[0-9a-f]{64}", out) is not None
+    ok5 = r.returncode != 0 and not pushed
     results.append(("read-only push denied", ok5))
+    if not ok5:
+        # The raw output used to be swallowed by capture_output=True, which
+        # made a failure impossible to diagnose from the CI log.
+        print(f"      docker push rc={r.returncode} output={out.strip()[:800]}")
 
     # Read-only pull should succeed
     r = sh(f"docker pull {reg}/{IMG}:latest", timeout=60)
