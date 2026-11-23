@@ -20,6 +20,13 @@
              classpath (inherited from the parent's dependencies), so 2.0.20 is a real
              upgrade; 2.0.20 only deprecates Marker's add/remove-child methods. -->
         <slf4j.version>2.0.20</slf4j.version>
+        <!-- Override solon-parent's pinned snack4.version (4.0.59) to pick up 4.0.60.
+             snack4 is on the classpath (solon-serialization-snack4 pulls it in), and
+             4.0.60 is purely additive: a new @ONodeAttr(excludeFeatures=...) attribute
+             whose default is {} (so nothing is excluded) plus an internal Options
+             refactor that the upstream changelog calls behaviour-neutral. The
+             @ONodeAttr(name=...) usages in TokenResponse are unaffected. -->
+        <snack4.version>4.0.60</snack4.version>
     </properties>
     <parent>
         <groupId>org.noear</groupId>
@@ -193,13 +200,13 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>13.12.2</version>
+            <version>13.13.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-mysql</artifactId>
-            <version>13.12.2</version>
+            <version>13.13.0</version>
         </dependency>
 
         <dependency>
