@@ -57,6 +57,22 @@
                 <artifactId>lombok</artifactId>
                 <version>1.18.48</version>
             </dependency>
+            <!-- 1.4.5 -> 1.4.9, pulled in by wood-solon-plugin. solon-parent only
+                 declares a <wood.version> property but never manages org.noear:wood
+                 itself, so the property override does not reach it; only an explicit
+                 dependencyManagement entry does. -->
+            <dependency>
+                <groupId>org.noear</groupId>
+                <artifactId>wood</artifactId>
+                <version>1.4.9</version>
+            </dependency>
+            <!-- 1.4.5 -> 1.4.9, the Kotlin extension of wood; kept in lockstep
+                 with org.noear:wood above so the two never drift apart. -->
+            <dependency>
+                <groupId>org.noear</groupId>
+                <artifactId>wood.plus</artifactId>
+                <version>1.4.9</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
